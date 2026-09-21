@@ -1,7 +1,6 @@
 import 'package:flutter/material.dart';
 import 'content.dart';
 import 'store.dart';
-import 'tts_service.dart';
 
 class WordCard extends StatelessWidget {
   final KWord word;
@@ -198,7 +197,6 @@ class _SentenceCardState extends State<SentenceCard> {
                   ),
                 ),
                 const SizedBox(height: 8),
-                // Compact expandable chunks
                 InkWell(
                   borderRadius: BorderRadius.circular(8),
                   onTap: () => setState(() => _expanded = !_expanded),
