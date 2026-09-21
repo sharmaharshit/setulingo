@@ -1,7 +1,6 @@
 import 'package:flutter/material.dart';
 import 'content.dart';
 import 'store.dart';
-import 'tts_service.dart';
 
 class LessonPage extends StatefulWidget {
   final Lesson lesson;
@@ -16,11 +15,8 @@ class _LessonPageState extends State<LessonPage> {
   int _index = 0;
   bool _done = false;
 
-  // Unscramble tile state
   List<String> _placed = <String>[];
   bool? _buildResult;
-
-  // Quiz state
   int? _picked;
 
   LessonStep get _step => widget.lesson.steps[_index];
