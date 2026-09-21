@@ -33,9 +33,9 @@ workflows:
         script: |
           flutter analyze || true
 
-      - name: Build Android debug APK
+      - name: Build Android debug APK (new home + lessons)
         script: |
-          flutter build apk --debug
+          flutter build apk --debug -t lib/main_v2.dart
 
     artifacts:
       - build/app/outputs/flutter-apk/*.apk
