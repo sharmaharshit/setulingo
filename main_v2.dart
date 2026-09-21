@@ -28,7 +28,7 @@ class SetuLingoV2App extends StatelessWidget {
           surface: const Color(0xFF141414),
         ),
         scaffoldBackgroundColor: const Color(0xFF0F0F0F),
-        cardTheme: CardTheme(
+        cardTheme: CardThemeData(
           color: const Color(0xFF1C1C1E),
           elevation: 0,
           shape: RoundedRectangleBorder(
