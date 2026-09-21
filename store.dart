@@ -2,18 +2,55 @@ import 'dart:convert';
 import 'package:flutter/foundation.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
-/// Model for sentences saved or created in the Sentence Lab.
+enum ScriptDisplayMode { roman, deva }
+
+/// Controls whether spoken Kannada is displayed in English Roman or Devanagari.
+class AppSettingsStore extends ChangeNotifier {
+  AppSettingsStore._();
+  static final AppSettingsStore instance = AppSettingsStore._();
+
+  static const String _prefKey = 'display_script_mode';
+  ScriptDisplayMode _mode = ScriptDisplayMode.roman;
+
+  ScriptDisplayMode get mode => _mode;
+  bool get isDevanagari => _mode == ScriptDisplayMode.deva;
+
+  Future<void> load() async {
+    try {
+      final prefs = await SharedPreferences.getInstance();
+      final saved = prefs.getString(_prefKey);
+      if (saved == 'deva') {
+        _mode = ScriptDisplayMode.deva;
+      } else {
+        _mode = ScriptDisplayMode.roman;
+      }
+    } catch (_) {}
+    notifyListeners();
+  }
+
+  Future<void> toggleMode() async {
+    _mode = _mode == ScriptDisplayMode.roman
+        ? ScriptDisplayMode.deva
+        : ScriptDisplayMode.roman;
+    notifyListeners();
+    try {
+      final prefs = await SharedPreferences.getInstance();
+      await prefs.setString(_prefKey, _mode == ScriptDisplayMode.deva ? 'deva' : 'roman');
+    } catch (_) {}
+  }
+}
+
 class SavedSentence {
   final String id;
   final String roman;
-  final String script;
+  final String deva;
   final String hindi;
   final DateTime createdAt;
 
   const SavedSentence({
     required this.id,
     required this.roman,
-    required this.script,
+    required this.deva,
     required this.hindi,
     required this.createdAt,
   });
@@ -21,7 +58,7 @@ class SavedSentence {
   Map<String, dynamic> toMap() => {
         'id': id,
         'roman': roman,
-        'script': script,
+        'deva': deva,
         'hindi': hindi,
         'createdAt': createdAt.toIso8601String(),
       };
@@ -29,14 +66,12 @@ class SavedSentence {
   factory SavedSentence.fromMap(Map<String, dynamic> map) => SavedSentence(
         id: map['id'] as String,
         roman: map['roman'] as String,
-        script: (map['script'] ?? '') as String,
+        deva: (map['deva'] ?? '') as String,
         hindi: map['hindi'] as String,
-        createdAt: DateTime.tryParse(map['createdAt'] as String? ?? '') ??
-            DateTime.now(),
+        createdAt: DateTime.tryParse(map['createdAt'] as String? ?? '') ?? DateTime.now(),
       );
 }
 
-/// Keeps the learner's personal vocabulary ("My Words") on device.
 class MyWordsStore extends ChangeNotifier {
   MyWordsStore._();
   static final MyWordsStore instance = MyWordsStore._();
@@ -45,7 +80,6 @@ class MyWordsStore extends ChangeNotifier {
   final Set<String> _ids = <String>{};
 
   Set<String> get ids => Set<String>.unmodifiable(_ids);
-
   bool contains(String id) => _ids.contains(id);
 
   Future<void> load() async {
@@ -92,7 +126,6 @@ class MyWordsStore extends ChangeNotifier {
   }
 }
 
-/// Keeps the learner's constructed & bookmarked sentences on device.
 class MySentencesStore extends ChangeNotifier {
   MySentencesStore._();
   static final MySentencesStore instance = MySentencesStore._();
@@ -101,7 +134,6 @@ class MySentencesStore extends ChangeNotifier {
   final List<SavedSentence> _sentences = <SavedSentence>[];
 
   List<SavedSentence> get sentences => List<SavedSentence>.unmodifiable(_sentences);
-
   bool contains(String id) => _sentences.any((s) => s.id == id);
 
   Future<void> load() async {
