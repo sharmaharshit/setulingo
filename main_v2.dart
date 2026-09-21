@@ -2,7 +2,6 @@ import 'package:flutter/material.dart';
 
 import 'v2/pages.dart';
 import 'v2/store.dart';
-import 'v2/tts_service.dart';
 
 Future<void> main() async {
   WidgetsFlutterBinding.ensureInitialized();
