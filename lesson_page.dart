@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'content.dart';
 import 'store.dart';
-import 'widgets.dart';
+import 'tts_service.dart';
 
 class LessonPage extends StatefulWidget {
   final Lesson lesson;
@@ -16,11 +16,11 @@ class _LessonPageState extends State<LessonPage> {
   int _index = 0;
   bool _done = false;
 
-  // Sentence-builder state
+  // Unscramble tile state
   List<String> _placed = <String>[];
   bool? _buildResult;
 
-  // "Use it" step state
+  // Quiz state
   int? _picked;
 
   LessonStep get _step => widget.lesson.steps[_index];
@@ -46,16 +46,15 @@ class _LessonPageState extends State<LessonPage> {
     return true;
   }
 
-  void _place(BuildStep s, String tile) {
-    if (_buildResult == true ||
-        _placed.contains(tile) ||
-        _placed.length >= s.answer.length) {
+  void _place(BuildStep s, String tile, bool isDeva) {
+    final target = isDeva ? s.answerDeva : s.answerRoman;
+    if (_buildResult == true || _placed.contains(tile) || _placed.length >= target.length) {
       return;
     }
     setState(() {
       _placed = [..._placed, tile];
-      if (_placed.length == s.answer.length) {
-        _buildResult = _sameList(_placed, s.answer);
+      if (_placed.length == target.length) {
+        _buildResult = _sameList(_placed, target);
       }
     });
   }
@@ -65,6 +64,7 @@ class _LessonPageState extends State<LessonPage> {
     if (_done) return _buildDone();
 
     final total = widget.lesson.steps.length;
+    final settings = AppSettingsStore.instance;
 
     return Scaffold(
       appBar: AppBar(
@@ -76,13 +76,20 @@ class _LessonPageState extends State<LessonPage> {
           borderRadius: BorderRadius.circular(8),
           child: LinearProgressIndicator(
             value: (_index + 1) / total,
-            minHeight: 8,
+            minHeight: 6,
           ),
         ),
+        actions: [
+          IconButton(
+            icon: Icon(settings.isDevanagari ? Icons.translate : Icons.language),
+            tooltip: 'भाषा बदलें',
+            onPressed: () => settings.toggleMode(),
+          ),
+        ],
       ),
       body: SafeArea(
         child: Padding(
-          padding: const EdgeInsets.fromLTRB(20, 8, 20, 16),
+          padding: const EdgeInsets.fromLTRB(16, 8, 16, 16),
           child: Column(
             children: [
               Expanded(
@@ -100,10 +107,7 @@ class _LessonPageState extends State<LessonPage> {
 
   Widget _stepBody() {
     final s = _step;
-    if (s is WordStep) return _wordBody(s);
     if (s is PhraseStep) return _phraseBody(s);
-    if (s is PatternStep) return _patternBody(s);
-    if (s is ContrastStep) return _contrastBody(s);
     if (s is BuildStep) return _buildBody(s);
     if (s is UseStep) return _useBody(s);
     return const SizedBox.shrink();
@@ -115,11 +119,14 @@ class _LessonPageState extends State<LessonPage> {
     if (s is BuildStep) {
       final result = _buildResult;
       if (result == null) return const SizedBox.shrink();
+      final isDeva = AppSettingsStore.instance.isDevanagari;
+      final reveal = isDeva ? s.revealDeva : s.revealRoman;
+
       if (result) {
         return _feedback(
           ok: true,
           title: 'बहुत बढ़िया!',
-          body: s.reveal,
+          body: reveal,
           buttonLabel: 'आगे बढ़ें',
           onPressed: _next,
         );
@@ -142,12 +149,13 @@ class _LessonPageState extends State<LessonPage> {
       final picked = _picked;
       if (picked == null) return const SizedBox.shrink();
       final ok = picked == s.answerIndex;
+      final isDeva = AppSettingsStore.instance.isDevanagari;
+      final answerStr = isDeva ? s.optionsDeva[s.answerIndex] : s.optionsRoman[s.answerIndex];
+
       return _feedback(
         ok: ok,
         title: ok ? 'शानदार!' : 'एक बार फिर देखिए',
-        body: ok
-            ? s.reveal
-            : 'सही जवाब:\n${s.options[s.answerIndex]}\n${s.reveal}',
+        body: ok ? s.reveal : 'सही उत्तर: $answerStr\n${s.reveal}',
         buttonLabel: 'आगे बढ़ें',
         onPressed: _next,
       );
@@ -162,30 +170,6 @@ class _LessonPageState extends State<LessonPage> {
     );
   }
 
-  Widget _label(String text) {
-    return Text(
-      text,
-      style: TextStyle(
-        fontSize: 13,
-        fontWeight: FontWeight.w800,
-        letterSpacing: 0.5,
-        color: Theme.of(context).colorScheme.primary,
-      ),
-    );
-  }
-
-  Widget _noteBox(String text) {
-    return Container(
-      width: double.infinity,
-      padding: const EdgeInsets.all(14),
-      decoration: BoxDecoration(
-        color: Theme.of(context).colorScheme.surfaceContainerHighest,
-        borderRadius: BorderRadius.circular(14),
-      ),
-      child: Text('💡 $text', style: const TextStyle(fontSize: 15)),
-    );
-  }
-
   Widget _feedback({
     required bool ok,
     required String title,
@@ -195,11 +179,11 @@ class _LessonPageState extends State<LessonPage> {
   }) {
     return Container(
       width: double.infinity,
-      margin: const EdgeInsets.only(top: 12),
-      padding: const EdgeInsets.all(16),
+      margin: const EdgeInsets.only(top: 10),
+      padding: const EdgeInsets.all(14),
       decoration: BoxDecoration(
         color: ok ? const Color(0xFF1B382B) : const Color(0xFF3E2723),
-        borderRadius: BorderRadius.circular(16),
+        borderRadius: BorderRadius.circular(14),
         border: Border.all(
           color: ok ? Colors.greenAccent : Colors.orangeAccent,
           width: 1,
@@ -213,13 +197,13 @@ class _LessonPageState extends State<LessonPage> {
             title,
             style: TextStyle(
               fontWeight: FontWeight.w800,
-              fontSize: 17,
+              fontSize: 16,
               color: ok ? Colors.greenAccent : Colors.orangeAccent,
             ),
           ),
-          const SizedBox(height: 6),
-          Text(body, style: const TextStyle(fontSize: 15)),
-          const SizedBox(height: 12),
+          const SizedBox(height: 4),
+          Text(body, style: const TextStyle(fontSize: 14)),
+          const SizedBox(height: 10),
           SizedBox(
             width: double.infinity,
             child: FilledButton(
@@ -232,315 +216,167 @@ class _LessonPageState extends State<LessonPage> {
     );
   }
 
-  Widget _wordBody(WordStep s) {
-    final word = wordsById[s.wordId];
-    if (word == null) return const SizedBox.shrink();
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        _label('नया शब्द'),
-        const SizedBox(height: 12),
-        WordCard(word: word),
-      ],
-    );
-  }
-
-  Widget _chunkBox(Chunk c) {
-    return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 10),
-      decoration: BoxDecoration(
-        color: Theme.of(context).colorScheme.surfaceContainerHighest,
-        borderRadius: BorderRadius.circular(12),
-      ),
-      child: Column(
-        mainAxisSize: MainAxisSize.min,
-        children: [
-          Text(
-            c.roman,
-            style: const TextStyle(fontSize: 17, fontWeight: FontWeight.w800),
-          ),
-          const SizedBox(height: 2),
-          Text(
-            c.hindi,
-            style: TextStyle(
-              fontSize: 14,
-              color: Theme.of(context).colorScheme.onSurfaceVariant,
-            ),
-          ),
-        ],
-      ),
-    );
-  }
-
   Widget _phraseBody(PhraseStep s) {
+    final settings = AppSettingsStore.instance;
+    final primary = settings.isDevanagari ? s.deva : s.roman;
+    final secondary = settings.isDevanagari ? s.roman : s.deva;
+
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        _label('वाक्य सीखिए'),
-        const SizedBox(height: 12),
+        Row(
+          children: [
+            Text(
+              'वाक्य सीखिए',
+              style: TextStyle(
+                fontSize: 13,
+                fontWeight: FontWeight.w800,
+                color: Theme.of(context).colorScheme.primary,
+              ),
+            ),
+            const Spacer(),
+            IconButton(
+              icon: const Icon(Icons.volume_up_outlined),
+              tooltip: 'उच्चारण सुनें',
+              onPressed: () => TtsService.instance.speak(s.roman),
+            ),
+          ],
+        ),
+        const SizedBox(height: 8),
         Card(
           margin: EdgeInsets.zero,
           child: Padding(
-            padding: const EdgeInsets.all(20),
+            padding: const EdgeInsets.all(18),
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 Text(
-                  s.roman,
-                  style: const TextStyle(
-                    fontSize: 26,
-                    fontWeight: FontWeight.w900,
-                  ),
+                  primary,
+                  style: const TextStyle(fontSize: 24, fontWeight: FontWeight.w900),
                 ),
-                const SizedBox(height: 4),
+                const SizedBox(height: 2),
                 Text(
-                  s.deva,
+                  secondary,
                   style: TextStyle(
-                    fontSize: 17,
+                    fontSize: 15,
                     color: Theme.of(context).colorScheme.onSurfaceVariant,
                   ),
                 ),
-                const Divider(height: 24),
+                const Divider(height: 20),
                 Text(
                   s.hindi,
-                  style: const TextStyle(
-                    fontSize: 20,
-                    fontWeight: FontWeight.w700,
-                  ),
+                  style: const TextStyle(fontSize: 19, fontWeight: FontWeight.w700),
                 ),
               ],
             ),
           ),
         ),
-        const SizedBox(height: 20),
+        const SizedBox(height: 16),
         const Text(
-          'टुकड़ों में समझिए',
-          style: TextStyle(fontSize: 16, fontWeight: FontWeight.w800),
-        ),
-        const SizedBox(height: 10),
-        Wrap(
-          spacing: 10,
-          runSpacing: 10,
-          children: s.chunks.map(_chunkBox).toList(),
-        ),
-        if (s.note != null) ...[
-          const SizedBox(height: 18),
-          _noteBox(s.note!),
-        ],
-      ],
-    );
-  }
-
-  Widget _patternBody(PatternStep s) {
-    final scheme = Theme.of(context).colorScheme;
-
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        _label('पैटर्न'),
-        const SizedBox(height: 12),
-        Container(
-          width: double.infinity,
-          padding: const EdgeInsets.all(20),
-          decoration: BoxDecoration(
-            color: scheme.surfaceContainerHighest,
-            borderRadius: BorderRadius.circular(18),
-          ),
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              Text(
-                s.romanPattern,
-                style: TextStyle(
-                  fontSize: 22,
-                  fontWeight: FontWeight.w900,
-                  color: scheme.primary,
-                ),
-              ),
-              const SizedBox(height: 6),
-              Text(
-                s.hindiPattern,
-                style: const TextStyle(fontSize: 17),
-              ),
-            ],
-          ),
-        ),
-        const SizedBox(height: 20),
-        const Text(
-          'उदाहरण',
-          style: TextStyle(fontSize: 16, fontWeight: FontWeight.w800),
+          'टुकड़ों में समझिए (Breakdown)',
+          style: TextStyle(fontSize: 15, fontWeight: FontWeight.w800),
         ),
         const SizedBox(height: 8),
-        for (final e in s.examples)
-          Card(
-            margin: const EdgeInsets.only(bottom: 8),
-            child: Padding(
-              padding: const EdgeInsets.all(14),
+        Wrap(
+          spacing: 8,
+          runSpacing: 8,
+          children: s.chunks.map((c) {
+            final chunkText = settings.isDevanagari ? c.deva : c.roman;
+            return Container(
+              padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+              decoration: BoxDecoration(
+                color: Theme.of(context).colorScheme.surfaceContainerHighest,
+                borderRadius: BorderRadius.circular(10),
+              ),
               child: Column(
+                mainAxisSize: MainAxisSize.min,
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
                   Text(
-                    e.roman,
-                    style: const TextStyle(
-                      fontSize: 18,
-                      fontWeight: FontWeight.w800,
-                    ),
+                    chunkText,
+                    style: const TextStyle(fontSize: 16, fontWeight: FontWeight.w800),
                   ),
                   Text(
-                    e.hindi,
+                    c.hindi,
                     style: TextStyle(
-                      fontSize: 15,
-                      color: scheme.onSurfaceVariant,
+                      fontSize: 13,
+                      color: Theme.of(context).colorScheme.onSurfaceVariant,
                     ),
                   ),
                 ],
               ),
-            ),
-          ),
-        if (s.note != null) ...[
-          const SizedBox(height: 10),
-          _noteBox(s.note!),
-        ],
-      ],
-    );
-  }
-
-  Widget _contrastCard(Chunk c, Example e, Color color) {
-    return Card(
-      margin: EdgeInsets.zero,
-      color: color,
-      child: Padding(
-        padding: const EdgeInsets.all(14),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Text(
-              c.roman,
-              style: const TextStyle(fontSize: 22, fontWeight: FontWeight.w900),
-            ),
-            Text(
-              c.hindi,
-              style: const TextStyle(fontSize: 15, fontWeight: FontWeight.w700),
-            ),
-            const Divider(height: 20),
-            Text(
-              e.roman,
-              style: const TextStyle(fontSize: 15, fontWeight: FontWeight.w800),
-            ),
-            const SizedBox(height: 2),
-            Text(e.hindi, style: const TextStyle(fontSize: 13)),
-          ],
-        ),
-      ),
-    );
-  }
-
-  Widget _contrastBody(ContrastStep s) {
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        _label('फ़र्क़ समझिए'),
-        const SizedBox(height: 12),
-        Text(
-          s.title,
-          style: const TextStyle(fontSize: 22, fontWeight: FontWeight.w900),
-        ),
-        const SizedBox(height: 16),
-        IntrinsicHeight(
-          child: Row(
-            crossAxisAlignment: CrossAxisAlignment.stretch,
-            children: [
-              Expanded(
-                child: _contrastCard(s.a, s.exampleA, const Color(0xFF1B382B)),
-              ),
-              const SizedBox(width: 12),
-              Expanded(
-                child: _contrastCard(s.b, s.exampleB, const Color(0xFF3E2723)),
-              ),
-            ],
-          ),
+            );
+          }).toList(),
         ),
         if (s.note != null) ...[
           const SizedBox(height: 16),
-          _noteBox(s.note!),
+          Container(
+            width: double.infinity,
+            padding: const EdgeInsets.all(12),
+            decoration: BoxDecoration(
+              color: Theme.of(context).colorScheme.surfaceContainerHighest,
+              borderRadius: BorderRadius.circular(12),
+            ),
+            child: Text('💡 ${s.note!}', style: const TextStyle(fontSize: 14)),
+          ),
         ],
       ],
-    );
-  }
-
-  Widget _tileChip(String text, {bool lifted = false}) {
-    return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
-      decoration: BoxDecoration(
-        color: Theme.of(context).colorScheme.surfaceContainerHighest,
-        borderRadius: BorderRadius.circular(12),
-        border: Border.all(
-          color: Theme.of(context).colorScheme.outlineVariant,
-        ),
-      ),
-      child: Text(
-        text,
-        style: const TextStyle(
-          fontSize: 17,
-          fontWeight: FontWeight.w700,
-        ),
-      ),
-    );
-  }
-
-  Widget _tile(BuildStep s, String text, bool locked) {
-    final chip = _tileChip(text);
-    if (locked) return chip;
-    return GestureDetector(
-      onTap: () => _place(s, text),
-      child: chip,
     );
   }
 
   Widget _buildBody(BuildStep s) {
-    final locked = _buildResult == true;
-    final remaining = s.tiles.where((t) => !_placed.contains(t)).toList();
+    final settings = AppSettingsStore.instance;
+    final isDeva = settings.isDevanagari;
+    final tiles = isDeva ? s.tilesDeva : s.tilesRoman;
+    final remaining = tiles.where((t) => !_placed.contains(t)).toList();
     final scheme = Theme.of(context).colorScheme;
 
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        _label('वाक्य बनाइए'),
-        const SizedBox(height: 12),
+        Text(
+          'वाक्य बनाइए',
+          style: TextStyle(
+            fontSize: 13,
+            fontWeight: FontWeight.w800,
+            color: scheme.primary,
+          ),
+        ),
+        const SizedBox(height: 10),
         Text(
           s.promptHindi,
           style: const TextStyle(fontSize: 22, fontWeight: FontWeight.w800),
         ),
-        const SizedBox(height: 6),
+        const SizedBox(height: 4),
         Text(
-          'नीचे दिए गए शब्दों को छूकर सही क्रम में जोड़ें:',
-          style: TextStyle(color: scheme.onSurfaceVariant),
+          'सही क्रम में शब्दों को चुनें:',
+          style: TextStyle(fontSize: 14, color: scheme.onSurfaceVariant),
         ),
-        const SizedBox(height: 18),
+        const SizedBox(height: 16),
         Container(
           width: double.infinity,
-          constraints: const BoxConstraints(minHeight: 84),
-          padding: const EdgeInsets.all(12),
+          constraints: const BoxConstraints(minHeight: 76),
+          padding: const EdgeInsets.all(10),
           decoration: BoxDecoration(
             color: scheme.surfaceContainer,
-            border: Border.all(color: scheme.primary.withValues(alpha: 0.5), width: 1.5),
-            borderRadius: BorderRadius.circular(16),
+            border: Border.all(color: scheme.primary.withValues(alpha: 0.5)),
+            borderRadius: BorderRadius.circular(14),
           ),
           child: _placed.isEmpty
               ? Center(
                   child: Text(
                     'यहाँ शब्द जुड़ेंगे...',
-                    style: TextStyle(color: scheme.onSurfaceVariant, fontSize: 16),
+                    style: TextStyle(color: scheme.onSurfaceVariant, fontSize: 15),
                   ),
                 )
               : Wrap(
-                  spacing: 8,
-                  runSpacing: 8,
+                  spacing: 6,
+                  runSpacing: 6,
                   children: _placed
                       .map(
                         (t) => InputChip(
-                          label: Text(t, style: const TextStyle(fontSize: 16)),
-                          onDeleted: locked
+                          label: Text(t, style: const TextStyle(fontSize: 15)),
+                          onDeleted: _buildResult == true
                               ? null
                               : () {
                                   setState(() {
@@ -553,98 +389,71 @@ class _LessonPageState extends State<LessonPage> {
                       .toList(),
                 ),
         ),
-        const SizedBox(height: 22),
+        const SizedBox(height: 18),
         Wrap(
-          spacing: 10,
-          runSpacing: 10,
-          children: remaining.map((t) => _tile(s, t, locked)).toList(),
+          spacing: 8,
+          runSpacing: 8,
+          children: remaining.map((t) {
+            return ActionChip(
+              label: Text(t, style: const TextStyle(fontSize: 15, fontWeight: FontWeight.w700)),
+              onPressed: () => _place(s, t, isDeva),
+            );
+          }).toList(),
         ),
       ],
     );
   }
 
-  Widget _optionButton(UseStep s, int i) {
-    final answered = _picked != null;
-    final isAnswer = i == s.answerIndex;
-    final isPicked = _picked == i;
-
-    Color? bg;
-    if (answered && isAnswer) {
-      bg = const Color(0xFF1B382B);
-    } else if (answered && isPicked) {
-      bg = const Color(0xFF3E2723);
-    }
-
-    return Padding(
-      padding: const EdgeInsets.only(bottom: 10),
-      child: SizedBox(
-        width: double.infinity,
-        child: OutlinedButton(
-          style: OutlinedButton.styleFrom(
-            backgroundColor: bg,
-            disabledBackgroundColor: bg,
-            padding: const EdgeInsets.all(16),
-            alignment: Alignment.centerLeft,
-            shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
-          ),
-          onPressed: answered ? null : () => setState(() => _picked = i),
-          child: Text(
-            s.options[i],
-            style: const TextStyle(fontSize: 17),
-          ),
-        ),
-      ),
-    );
-  }
-
   Widget _useBody(UseStep s) {
+    final settings = AppSettingsStore.instance;
+    final options = settings.isDevanagari ? s.optionsDeva : s.optionsRoman;
+
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        _label('अब आप बोलिए'),
-        const SizedBox(height: 12),
-        Text(s.situation, style: const TextStyle(fontSize: 17)),
-        if (s.speakerRoman != null) ...[
-          const SizedBox(height: 14),
-          Card(
-            margin: EdgeInsets.zero,
-            child: Padding(
-              padding: const EdgeInsets.all(16),
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Text(
-                    'सामने वाला कहता है',
-                    style: TextStyle(
-                      fontSize: 13,
-                      color: Theme.of(context).colorScheme.onSurfaceVariant,
-                    ),
-                  ),
-                  const SizedBox(height: 6),
-                  Text(
-                    s.speakerRoman!,
-                    style: const TextStyle(
-                      fontSize: 20,
-                      fontWeight: FontWeight.w800,
-                    ),
-                  ),
-                  if (s.speakerHindi != null)
-                    Text(
-                      s.speakerHindi!,
-                      style: const TextStyle(fontSize: 15),
-                    ),
-                ],
-              ),
-            ),
+        Text(
+          'अब आप बोलिए',
+          style: TextStyle(
+            fontSize: 13,
+            fontWeight: FontWeight.w800,
+            color: Theme.of(context).colorScheme.primary,
           ),
-        ],
-        const SizedBox(height: 18),
+        ),
+        const SizedBox(height: 8),
         Text(
           s.question,
           style: const TextStyle(fontSize: 19, fontWeight: FontWeight.w800),
         ),
-        const SizedBox(height: 14),
-        for (var i = 0; i < s.options.length; i++) _optionButton(s, i),
+        const SizedBox(height: 4),
+        Text(
+          s.situation,
+          style: TextStyle(fontSize: 14, color: Theme.of(context).colorScheme.onSurfaceVariant),
+        ),
+        const SizedBox(height: 16),
+        for (var i = 0; i < options.length; i++)
+          Padding(
+            padding: const EdgeInsets.only(bottom: 10),
+            child: SizedBox(
+              width: double.infinity,
+              child: OutlinedButton(
+                style: OutlinedButton.styleFrom(
+                  backgroundColor: _picked == null
+                      ? null
+                      : (i == s.answerIndex
+                          ? const Color(0xFF1B382B)
+                          : (_picked == i ? const Color(0xFF3E2723) : null)),
+                  padding: const EdgeInsets.all(15),
+                  alignment: Alignment.centerLeft,
+                  shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+                ),
+                onPressed: _picked != null ? null : () => setState(() => _picked = i),
+                child: Text(
+                  options[i],
+                  style: const TextStyle(fontSize: 17, fontWeight: FontWeight.w600),
+                ),
+              ),
+            ),
+          ),
       ],
     );
   }
@@ -662,24 +471,23 @@ class _LessonPageState extends State<LessonPage> {
           padding: const EdgeInsets.all(24),
           child: Column(
             mainAxisAlignment: MainAxisAlignment.center,
-            crossAxisAlignment: CrossAxisAlignment.center,
             children: [
-              const Text('🎉', style: TextStyle(fontSize: 54)),
+              const Text('🎉', style: TextStyle(fontSize: 52)),
               const SizedBox(height: 12),
               const Text(
                 'अभ्यास पूरा हुआ!',
-                style: TextStyle(fontSize: 28, fontWeight: FontWeight.w900),
+                style: TextStyle(fontSize: 26, fontWeight: FontWeight.w900),
               ),
-              const SizedBox(height: 8),
+              const SizedBox(height: 6),
               Text(
-                'आपने "${widget.lesson.title}" के सभी वाक्यों का अभ्यास सफलतापूर्वक कर लिया है।',
+                'आपने "${widget.lesson.title}" के सभी वाक्यों का अभ्यास पूरा कर लिया है।',
                 textAlign: TextAlign.center,
                 style: TextStyle(
-                  fontSize: 16,
+                  fontSize: 15,
                   color: Theme.of(context).colorScheme.onSurfaceVariant,
                 ),
               ),
-              const SizedBox(height: 32),
+              const SizedBox(height: 28),
               SizedBox(
                 width: double.infinity,
                 child: FilledButton(
