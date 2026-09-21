@@ -2,17 +2,15 @@ import 'package:flutter/material.dart';
 import 'content.dart';
 import 'lesson_page.dart';
 import 'store.dart';
+import 'tts_service.dart';
 import 'widgets.dart';
 
 void _open(BuildContext context, Widget page) {
-  Navigator.push(
-    context,
-    MaterialPageRoute(builder: (_) => page),
-  );
+  Navigator.push(context, MaterialPageRoute(builder: (_) => page));
 }
 
 // ---------------------------------------------------------------------------
-// Home Navigation Root
+// Root Navigation Container
 // ---------------------------------------------------------------------------
 
 class HomePage extends StatefulWidget {
@@ -67,7 +65,7 @@ class _HomePageState extends State<HomePage> {
 }
 
 // ---------------------------------------------------------------------------
-// Communicate Categories Page
+// 1. Communicate Page (Categories)
 // ---------------------------------------------------------------------------
 
 class CommunicatePage extends StatelessWidget {
@@ -75,99 +73,60 @@ class CommunicatePage extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final scheme = Theme.of(context).colorScheme;
+    final settings = AppSettingsStore.instance;
 
-    return Scaffold(
-      appBar: AppBar(
-        title: const Text(
-          'SetuLingo',
-          style: TextStyle(fontWeight: FontWeight.w900),
-        ),
-      ),
-      body: ListView(
-        padding: const EdgeInsets.all(16),
-        children: [
-          Text(
-            'बेंगलुरु बोलचाल की कन्नड़',
-            style: TextStyle(
-              fontSize: 22,
-              fontWeight: FontWeight.w800,
-              color: scheme.primary,
-            ),
-          ),
-          const SizedBox(height: 4),
-          Text(
-            'कैटेगरी चुनें और रोज़मर्रा की स्थितियों के वाक्य सीखें:',
-            style: TextStyle(color: scheme.onSurfaceVariant),
-          ),
-          const SizedBox(height: 16),
-          for (final cat in categories) _CategoryCard(category: cat),
-        ],
-      ),
-    );
-  }
-}
-
-class _CategoryCard extends StatelessWidget {
-  final Category category;
-
-  const _CategoryCard({required this.category});
-
-  @override
-  Widget build(BuildContext context) {
-    return Card(
-      margin: const EdgeInsets.only(bottom: 12),
-      child: InkWell(
-        borderRadius: BorderRadius.circular(16),
-        onTap: () => _open(context, CategorySituationsPage(category: category)),
-        child: Padding(
-          padding: const EdgeInsets.all(16),
-          child: Row(
-            children: [
-              Text(category.emoji, style: const TextStyle(fontSize: 32)),
-              const SizedBox(width: 16),
-              Expanded(
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Text(
-                      category.title,
-                      style: const TextStyle(
-                        fontSize: 18,
-                        fontWeight: FontWeight.w800,
-                      ),
-                    ),
-                    Text(
-                      category.hindiTitle,
-                      style: TextStyle(
-                        fontSize: 14,
-                        color: Theme.of(context).colorScheme.onSurfaceVariant,
-                        fontWeight: FontWeight.w600,
-                      ),
-                    ),
-                    const SizedBox(height: 4),
-                    Text(
-                      category.blurb,
-                      style: TextStyle(
-                        fontSize: 13,
-                        color: Theme.of(context).colorScheme.onSurfaceVariant.withValues(alpha: 0.8),
-                      ),
-                    ),
-                  ],
+    return ListenableBuilder(
+      listenable: settings,
+      builder: (context, _) {
+        return Scaffold(
+          appBar: AppBar(
+            title: const Text('SetuLingo', style: TextStyle(fontWeight: FontWeight.w900)),
+            actions: [
+              TextButton.icon(
+                onPressed: () => settings.toggleMode(),
+                icon: const Icon(Icons.translate, size: 16),
+                label: Text(
+                  settings.isDevanagari ? 'अ Hindi' : '🔤 Eng',
+                  style: const TextStyle(fontWeight: FontWeight.w700),
                 ),
               ),
-              const Icon(Icons.chevron_right),
             ],
           ),
-        ),
-      ),
+          body: ListView(
+            padding: const EdgeInsets.all(16),
+            children: [
+              Text(
+                'बेंगलुरु बोलचाल की कन्नड़',
+                style: TextStyle(
+                  fontSize: 20,
+                  fontWeight: FontWeight.w800,
+                  color: Theme.of(context).colorScheme.primary,
+                ),
+              ),
+              const SizedBox(height: 2),
+              Text(
+                'कैटेगरी चुनें और 5 महत्वपूर्ण परिस्थितियों के वाक्य सीखें:',
+                style: TextStyle(color: Theme.of(context).colorScheme.onSurfaceVariant),
+              ),
+              const SizedBox(height: 14),
+              for (final cat in categories)
+                Card(
+                  margin: const EdgeInsets.only(bottom: 10),
+                  child: ListTile(
+                    leading: Text(cat.emoji, style: const TextStyle(fontSize: 28)),
+                    title: Text(cat.title, style: const TextStyle(fontWeight: FontWeight.w800)),
+                    subtitle: Text('${cat.hindiTitle} · ${cat.situations.length} परिस्थितियाँ'),
+                    trailing: const Icon(Icons.chevron_right),
+                    onTap: () => _open(context, CategorySituationsPage(category: cat)),
+                  ),
+                ),
+            ],
+          ),
+        );
+      },
     );
   }
 }
-
-// ---------------------------------------------------------------------------
-// Category → Situations List Page
-// ---------------------------------------------------------------------------
 
 class CategorySituationsPage extends StatelessWidget {
   final Category category;
@@ -177,9 +136,7 @@ class CategorySituationsPage extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(
-        title: Text('${category.emoji} ${category.title}'),
-      ),
+      appBar: AppBar(title: Text('${category.emoji} ${category.title}')),
       body: ListView(
         padding: const EdgeInsets.all(16),
         children: [
@@ -187,23 +144,15 @@ class CategorySituationsPage extends StatelessWidget {
             padding: const EdgeInsets.only(bottom: 12),
             child: Text(
               '${category.hindiTitle} — स्थिति चुनें:',
-              style: TextStyle(
-                fontSize: 16,
-                color: Theme.of(context).colorScheme.onSurfaceVariant,
-              ),
+              style: TextStyle(color: Theme.of(context).colorScheme.onSurfaceVariant),
             ),
           ),
           for (final situation in category.situations)
             Card(
-              margin: const EdgeInsets.only(bottom: 12),
+              margin: const EdgeInsets.only(bottom: 10),
               child: ListTile(
-                title: Text(
-                  situation.title,
-                  style: const TextStyle(fontWeight: FontWeight.w800, fontSize: 17),
-                ),
-                subtitle: Text(
-                  '${situation.hindiTitle} · ${situation.sentences.length} वाक्य',
-                ),
+                title: Text(situation.title, style: const TextStyle(fontWeight: FontWeight.w800)),
+                subtitle: Text('${situation.hindiTitle} · ${situation.sentences.length} वाक्य'),
                 trailing: const Icon(Icons.chevron_right),
                 onTap: () => _open(context, SituationDetailPage(situation: situation)),
               ),
@@ -214,10 +163,6 @@ class CategorySituationsPage extends StatelessWidget {
   }
 }
 
-// ---------------------------------------------------------------------------
-// Situation → Sentences List & Guided Practice
-// ---------------------------------------------------------------------------
-
 class SituationDetailPage extends StatelessWidget {
   final KSituation situation;
 
@@ -225,58 +170,72 @@ class SituationDetailPage extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
-      appBar: AppBar(
-        title: Text(situation.title),
-      ),
-      body: ListView(
-        padding: const EdgeInsets.all(16),
-        children: [
-          Container(
+    final settings = AppSettingsStore.instance;
+
+    return ListenableBuilder(
+      listenable: settings,
+      builder: (context, _) {
+        return Scaffold(
+          appBar: AppBar(
+            title: Text(situation.title),
+            actions: [
+              TextButton.icon(
+                onPressed: () => settings.toggleMode(),
+                icon: const Icon(Icons.translate, size: 16),
+                label: Text(settings.isDevanagari ? 'अ Hindi' : '🔤 Eng'),
+              ),
+            ],
+          ),
+          body: ListView(
             padding: const EdgeInsets.all(16),
-            decoration: BoxDecoration(
-              color: Theme.of(context).colorScheme.surfaceContainerHighest,
-              borderRadius: BorderRadius.circular(14),
-            ),
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Text(
-                  situation.hindiTitle,
-                  style: const TextStyle(fontSize: 18, fontWeight: FontWeight.w800),
+            children: [
+              Container(
+                padding: const EdgeInsets.all(14),
+                decoration: BoxDecoration(
+                  color: Theme.of(context).colorScheme.surfaceContainerHighest,
+                  borderRadius: BorderRadius.circular(12),
                 ),
-                const SizedBox(height: 4),
-                Text(situation.description),
-                const SizedBox(height: 14),
-                SizedBox(
-                  width: double.infinity,
-                  child: FilledButton.icon(
-                    onPressed: () {
-                      final lesson = generateLessonFromSituation(situation);
-                      _open(context, LessonPage(lesson: lesson));
-                    },
-                    icon: const Icon(Icons.play_arrow),
-                    label: const Text('Guided Practice शुरू करें'),
-                  ),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(
+                      situation.hindiTitle,
+                      style: const TextStyle(fontSize: 17, fontWeight: FontWeight.w800),
+                    ),
+                    const SizedBox(height: 2),
+                    Text(situation.description, style: const TextStyle(fontSize: 13)),
+                    const SizedBox(height: 10),
+                    SizedBox(
+                      width: double.infinity,
+                      child: FilledButton.icon(
+                        onPressed: () {
+                          final lesson = generateLessonFromSituation(situation);
+                          _open(context, LessonPage(lesson: lesson));
+                        },
+                        icon: const Icon(Icons.play_arrow, size: 18),
+                        label: const Text('Guided Practice शुरू करें'),
+                      ),
+                    ),
+                  ],
                 ),
-              ],
-            ),
+              ),
+              const SizedBox(height: 16),
+              const Text(
+                'वाक्य सूची (Sentences)',
+                style: TextStyle(fontSize: 17, fontWeight: FontWeight.w800),
+              ),
+              const SizedBox(height: 10),
+              for (final s in situation.sentences) SentenceCard(sentence: s),
+            ],
           ),
-          const SizedBox(height: 20),
-          const Text(
-            'इस स्थिति के वाक्य',
-            style: TextStyle(fontSize: 18, fontWeight: FontWeight.w800),
-          ),
-          const SizedBox(height: 12),
-          for (final s in situation.sentences) SentenceCard(sentence: s),
-        ],
-      ),
+        );
+      },
     );
   }
 }
 
 // ---------------------------------------------------------------------------
-// Sentence Lab Page (Pattern-based Sentence Builder)
+// 2. Sentence Lab (3 Modular Dropdowns)
 // ---------------------------------------------------------------------------
 
 class SentenceLabPage extends StatefulWidget {
@@ -287,175 +246,208 @@ class SentenceLabPage extends StatefulWidget {
 }
 
 class _SentenceLabPageState extends State<SentenceLabPage> {
-  int _selectedPatternIndex = 0;
-  LabSlotOption? _selectedOption;
+  int _starterIndex = 0;
+  int _topicIndex = 0;
+  int _endingIndex = 0;
 
-  LabPattern get _currentPattern => labPatterns[_selectedPatternIndex];
+  DropdownOption get _starter => startersList[_starterIndex];
+  DropdownOption get _topic => topicsList[_topicIndex];
+  DropdownOption get _ending => endingsList[_endingIndex];
 
-  @override
-  void initState() {
-    super.initState();
-    _selectedOption = _currentPattern.slotOptions.first;
-  }
-
-  void _onPatternChange(int index) {
-    setState(() {
-      _selectedPatternIndex = index;
-      _selectedOption = labPatterns[index].slotOptions.first;
-    });
-  }
+  String get _builtRoman => '${_starter.roman} ${_topic.roman} ${_ending.roman}';
+  String get _builtDeva => '${_starter.deva} ${_topic.deva} ${_ending.deva}';
+  String get _builtHindi => '${_starter.hindi} ${_topic.hindi} ${_ending.hindi}';
 
   @override
   Widget build(BuildContext context) {
     final scheme = Theme.of(context).colorScheme;
-    final slot = _selectedOption;
-
-    final resultRoman = slot == null
-        ? _currentPattern.templateRoman
-        : _currentPattern.templateRoman.replaceAll('{slot}', slot.kannada);
-
-    final resultHindi = slot == null
-        ? _currentPattern.templateHindi
-        : _currentPattern.templateHindi.replaceAll('{slot}', slot.hindi);
-
+    final settings = AppSettingsStore.instance;
     final sentencesStore = MySentencesStore.instance;
 
-    return Scaffold(
-      appBar: AppBar(title: const Text('Sentence Lab 🧪')),
-      body: ListView(
-        padding: const EdgeInsets.all(16),
-        children: [
-          Text(
-            'पैटर्न चुनकर नए वाक्य बनाएँ',
-            style: TextStyle(
-              fontSize: 20,
-              fontWeight: FontWeight.w800,
-              color: scheme.primary,
-            ),
+    return ListenableBuilder(
+      listenable: settings,
+      builder: (context, _) {
+        final displaySpoken = settings.isDevanagari ? _builtDeva : _builtRoman;
+        final secondarySpoken = settings.isDevanagari ? _builtRoman : _builtDeva;
+
+        return Scaffold(
+          appBar: AppBar(
+            title: const Text('Sentence Lab 🧪'),
+            actions: [
+              TextButton.icon(
+                onPressed: () => settings.toggleMode(),
+                icon: const Icon(Icons.translate, size: 16),
+                label: Text(settings.isDevanagari ? 'अ Hindi' : '🔤 Eng'),
+              ),
+            ],
           ),
-          const SizedBox(height: 4),
-          Text(
-            'कन्नड़ वाक्य संरचना को समझें और अपना वाक्य तैयार करें:',
-            style: TextStyle(color: scheme.onSurfaceVariant),
-          ),
-          const SizedBox(height: 16),
-          // Pattern dropdown
-          Card(
-            child: Padding(
-              padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 4),
-              child: DropdownButtonHideUnderline(
-                child: DropdownButton<int>(
-                  isExpanded: true,
-                  value: _selectedPatternIndex,
-                  items: [
-                    for (int i = 0; i < labPatterns.length; i++)
-                      DropdownMenuItem(
-                        value: i,
-                        child: Text(
-                          labPatterns[i].title,
-                          style: const TextStyle(fontWeight: FontWeight.w700),
-                        ),
-                      ),
-                  ],
-                  onChanged: (val) {
-                    if (val != null) _onPatternChange(val);
-                  },
+          body: ListView(
+            padding: const EdgeInsets.all(16),
+            children: [
+              Text(
+                '3 ड्रॉपडाउन से नया वाक्य बनाएँ',
+                style: TextStyle(
+                  fontSize: 20,
+                  fontWeight: FontWeight.w800,
+                  color: scheme.primary,
                 ),
+              ),
+              const SizedBox(height: 2),
+              Text(
+                'कर्ता, विषय और क्रिया चुनकर अपना व्यावहारिक वाक्य तैयार करें:',
+                style: TextStyle(fontSize: 13, color: scheme.onSurfaceVariant),
+              ),
+              const SizedBox(height: 16),
+
+              // Dropdown 1: Starter
+              _buildDropdownSection(
+                title: '1. कर्ता / शुरुआत (Subject)',
+                value: _starterIndex,
+                items: startersList,
+                onChanged: (val) => setState(() => _starterIndex = val!),
+                isDeva: settings.isDevanagari,
+              ),
+              const SizedBox(height: 10),
+
+              // Dropdown 2: Topic / Object
+              _buildDropdownSection(
+                title: '2. विषय / वस्तु / स्थान (Topic)',
+                value: _topicIndex,
+                items: topicsList,
+                onChanged: (val) => setState(() => _topicIndex = val!),
+                isDeva: settings.isDevanagari,
+              ),
+              const SizedBox(height: 10),
+
+              // Dropdown 3: Ending / Verb
+              _buildDropdownSection(
+                title: '3. क्रिया / अंत (Verb / Request)',
+                value: _endingIndex,
+                items: endingsList,
+                onChanged: (val) => setState(() => _endingIndex = val!),
+                isDeva: settings.isDevanagari,
+              ),
+              const SizedBox(height: 20),
+
+              // Live Preview Card
+              Container(
+                padding: const EdgeInsets.all(16),
+                decoration: BoxDecoration(
+                  color: scheme.surfaceContainerHighest,
+                  borderRadius: BorderRadius.circular(14),
+                  border: Border.all(color: scheme.primary.withValues(alpha: 0.5)),
+                ),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Row(
+                      children: [
+                        Text(
+                          'तैयार वाक्य (Generated Sentence)',
+                          style: TextStyle(
+                            fontSize: 12,
+                            fontWeight: FontWeight.w800,
+                            color: scheme.primary,
+                          ),
+                        ),
+                        const Spacer(),
+                        IconButton(
+                          icon: const Icon(Icons.volume_up_outlined, size: 20),
+                          tooltip: 'उच्चारण सुनें',
+                          onPressed: () => TtsService.instance.speak(_builtRoman),
+                        ),
+                        IconButton(
+                          icon: const Icon(Icons.bookmark_add, size: 20),
+                          tooltip: 'My Sentences में सहेजें',
+                          onPressed: () {
+                            final sentenceId = 'lab_${DateTime.now().millisecondsSinceEpoch}';
+                            sentencesStore.addSentence(
+                              SavedSentence(
+                                id: sentenceId,
+                                roman: _builtRoman,
+                                deva: _builtDeva,
+                                hindi: _builtHindi,
+                                createdAt: DateTime.now(),
+                              ),
+                            );
+                            ScaffoldMessenger.of(context).showSnackBar(
+                              const SnackBar(content: Text('वाक्य Saved Sentences में जुड़ गया!')),
+                            );
+                          },
+                        ),
+                      ],
+                    ),
+                    const SizedBox(height: 6),
+                    Text(
+                      displaySpoken,
+                      style: const TextStyle(fontSize: 22, fontWeight: FontWeight.w900),
+                    ),
+                    const SizedBox(height: 2),
+                    Text(
+                      secondarySpoken,
+                      style: TextStyle(fontSize: 14, color: scheme.onSurfaceVariant),
+                    ),
+                    const Divider(height: 18),
+                    Text(
+                      _builtHindi,
+                      style: TextStyle(
+                        fontSize: 17,
+                        color: scheme.primary,
+                        fontWeight: FontWeight.w700,
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+            ],
+          ),
+        );
+      },
+    );
+  }
+
+  Widget _buildDropdownSection({
+    required String title,
+    required int value,
+    required List<DropdownOption> items,
+    required ValueChanged<int?> onChanged,
+    required bool isDeva,
+  }) {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Text(title, style: const TextStyle(fontSize: 13, fontWeight: FontWeight.w700)),
+        const SizedBox(height: 4),
+        Card(
+          margin: EdgeInsets.zero,
+          child: Padding(
+            padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 2),
+            child: DropdownButtonHideUnderline(
+              child: DropdownButton<int>(
+                isExpanded: true,
+                value: value,
+                items: [
+                  for (int i = 0; i < items.length; i++)
+                    DropdownMenuItem(
+                      value: i,
+                      child: Text(
+                        '${isDeva ? items[i].deva : items[i].roman}  (${items[i].hindi})',
+                        style: const TextStyle(fontSize: 15, fontWeight: FontWeight.w600),
+                      ),
+                    ),
+                ],
+                onChanged: onChanged,
               ),
             ),
           ),
-          const SizedBox(height: 16),
-          Text(
-            '${_currentPattern.slotPlaceholder} चुनें:',
-            style: const TextStyle(fontSize: 16, fontWeight: FontWeight.w700),
-          ),
-          const SizedBox(height: 8),
-          Wrap(
-            spacing: 8,
-            runSpacing: 8,
-            children: _currentPattern.slotOptions.map((opt) {
-              final isSelected = _selectedOption?.id == opt.id;
-              return ChoiceChip(
-                label: Text('${opt.kannada} (${opt.hindi})'),
-                selected: isSelected,
-                onSelected: (val) {
-                  if (val) setState(() => _selectedOption = opt);
-                },
-              );
-            }).toList(),
-          ),
-          const SizedBox(height: 24),
-          // Live preview card
-          Container(
-            padding: const EdgeInsets.all(20),
-            decoration: BoxDecoration(
-              color: scheme.surfaceContainerHighest,
-              borderRadius: BorderRadius.circular(16),
-              border: Border.all(color: scheme.primary.withValues(alpha: 0.6)),
-            ),
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Row(
-                  children: [
-                    Text(
-                      'तैयार वाक्य',
-                      style: TextStyle(
-                        fontSize: 13,
-                        fontWeight: FontWeight.w800,
-                        color: scheme.primary,
-                      ),
-                    ),
-                    const Spacer(),
-                    IconButton(
-                      icon: const Icon(Icons.bookmark_add),
-                      tooltip: 'My Sentences में सहेजें',
-                      onPressed: () {
-                        final sentenceId = 'lab_${DateTime.now().millisecondsSinceEpoch}';
-                        sentencesStore.addSentence(
-                          SavedSentence(
-                            id: sentenceId,
-                            roman: resultRoman,
-                            script: '',
-                            hindi: resultHindi,
-                            createdAt: DateTime.now(),
-                          ),
-                        );
-                        ScaffoldMessenger.of(context).showSnackBar(
-                          const SnackBar(content: Text('वाक्य Saved Sentences में जुड़ गया!')),
-                        );
-                      },
-                    ),
-                  ],
-                ),
-                const SizedBox(height: 8),
-                Text(
-                  resultRoman,
-                  style: const TextStyle(
-                    fontSize: 24,
-                    fontWeight: FontWeight.w900,
-                  ),
-                ),
-                const Divider(height: 20),
-                Text(
-                  resultHindi,
-                  style: TextStyle(
-                    fontSize: 18,
-                    color: scheme.onSurfaceVariant,
-                    fontWeight: FontWeight.w700,
-                  ),
-                ),
-              ],
-            ),
-          ),
-        ],
-      ),
+        ),
+      ],
     );
   }
 }
 
 // ---------------------------------------------------------------------------
-// Learn New Words List
+// 3. Learn Words Page (Includes Sanskrit Cognates Segment)
 // ---------------------------------------------------------------------------
 
 class LearnWordsPage extends StatelessWidget {
@@ -463,101 +455,50 @@ class LearnWordsPage extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
-      appBar: AppBar(title: const Text('Learn New Words')),
-      body: ListView(
-        padding: const EdgeInsets.all(16),
-        children: [
-          Padding(
-            padding: const EdgeInsets.only(bottom: 12),
-            child: Text(
-              'बेंगलुरु में रोज़ काम आने वाले आवश्यक शब्द:',
-              style: TextStyle(
-                fontSize: 15,
-                color: Theme.of(context).colorScheme.onSurfaceVariant,
-              ),
-            ),
-          ),
-          for (final w in allWords) WordCard(word: w),
-        ],
-      ),
-    );
-  }
-}
-
-// ---------------------------------------------------------------------------
-// Saved Words & Saved Sentences Page
-// ---------------------------------------------------------------------------
-
-class MyWordsPage extends StatelessWidget {
-  const MyWordsPage({super.key});
-
-  @override
-  Widget build(BuildContext context) {
-    final wordsStore = MyWordsStore.instance;
-    final sentencesStore = MySentencesStore.instance;
+    final settings = AppSettingsStore.instance;
 
     return DefaultTabController(
       length: 2,
-      child: Scaffold(
-        appBar: AppBar(
-          title: const Text('My Saved Collection'),
-          bottom: const TabBar(
-            tabs: [
-              Tab(text: 'मेरे शब्द (Words)'),
-              Tab(text: 'मेरे वाक्य (Sentences)'),
-            ],
-          ),
-        ),
-        body: TabBarView(
-          children: [
-            // Words Tab
-            ListenableBuilder(
-              listenable: wordsStore,
-              builder: (context, _) {
-                final saved = allWords.where((w) => wordsStore.contains(w.id)).toList();
-
-                return ListView(
+      child: ListenableBuilder(
+        listenable: settings,
+        builder: (context, _) {
+          return Scaffold(
+            appBar: AppBar(
+              title: const Text('Words & Connections'),
+              actions: [
+                TextButton.icon(
+                  onPressed: () => settings.toggleMode(),
+                  icon: const Icon(Icons.translate, size: 16),
+                  label: Text(settings.isDevanagari ? 'अ Hindi' : '🔤 Eng'),
+                ),
+              ],
+              bottom: const TabBar(
+                tabs: [
+                  Tab(text: 'शब्दावली (Words)'),
+                  Tab(text: 'संस्कृत संबंध (Cognates)'),
+                ],
+              ),
+            ),
+            body: TabBarView(
+              children: [
+                // Daily Words
+                ListView(
                   padding: const EdgeInsets.all(16),
                   children: [
-                    if (saved.isEmpty)
-                      const Card(
-                        child: Padding(
-                          padding: EdgeInsets.all(16),
-                          child: Text(
-                            'अभी कोई शब्द सहेजा नहीं है। Words टैब में जाकर शब्द जोड़ें।',
-                          ),
-                        ),
-                      ),
-                    for (final w in saved)
-                      Card(
-                        margin: const EdgeInsets.only(bottom: 8),
-                        child: ListTile(
-                          title: Text(
-                            '${w.roman}  ·  ${w.script}',
-                            style: const TextStyle(fontWeight: FontWeight.w800),
-                          ),
-                          subtitle: Text(w.hindi),
-                          trailing: IconButton(
-                            icon: const Icon(Icons.delete_outline),
-                            onPressed: () => wordsStore.remove(w.id),
-                          ),
-                        ),
-                      ),
-                    const SizedBox(height: 28),
-                    const Text(
-                      'संस्कृत संबंध (Tatsama / Cognates)',
-                      style: TextStyle(fontSize: 18, fontWeight: FontWeight.w800),
-                    ),
-                    const SizedBox(height: 6),
-                    Text(
-                      'हिंदी और कन्नड़ दोनों में संस्कृत से आए कई शब्द बिल्कुल एक जैसे हैं:',
-                      style: TextStyle(
-                        fontSize: 14,
-                        color: Theme.of(context).colorScheme.onSurfaceVariant,
+                    for (final w in allWords) WordCard(word: w),
+                  ],
+                ),
+                // Sanskrit Connections
+                ListView(
+                  padding: const EdgeInsets.all(16),
+                  children: [
+                    Padding(
+                      padding: const EdgeInsets.only(bottom: 12),
+                      child: Text(
+                        'हिंदी और कन्नड़ दोनों में संस्कृत से आए कई शब्द बिल्कुल समान हैं:',
+                        style: TextStyle(color: Theme.of(context).colorScheme.onSurfaceVariant),
                       ),
                     ),
-                    const SizedBox(height: 12),
                     for (final c in connections)
                       Card(
                         margin: const EdgeInsets.only(bottom: 10),
@@ -567,75 +508,141 @@ class MyWordsPage extends StatelessWidget {
                             crossAxisAlignment: CrossAxisAlignment.start,
                             children: [
                               Text(
-                                '${c.hindi}  →  ${c.kannada}',
-                                style: const TextStyle(
-                                  fontSize: 18,
-                                  fontWeight: FontWeight.w800,
-                                ),
+                                '${c.hindi}  →  ${settings.isDevanagari ? c.kannadaDeva : c.kannadaRoman}',
+                                style: const TextStyle(fontSize: 18, fontWeight: FontWeight.w800),
                               ),
                               const SizedBox(height: 2),
                               Text(
-                                '${c.hindiRoman}  ·  ${c.kannadaRoman}',
+                                c.type,
                                 style: TextStyle(
-                                  color: Theme.of(context).colorScheme.onSurfaceVariant,
+                                  fontSize: 12,
+                                  fontWeight: FontWeight.w700,
+                                  color: Theme.of(context).colorScheme.primary,
                                 ),
                               ),
                               const SizedBox(height: 6),
-                              Text(c.note),
+                              Text(c.note, style: const TextStyle(fontSize: 13)),
                             ],
                           ),
                         ),
                       ),
                   ],
-                );
-              },
+                ),
+              ],
             ),
-            // Sentences Tab
-            ListenableBuilder(
-              listenable: sentencesStore,
-              builder: (context, _) {
-                final saved = sentencesStore.sentences;
+          );
+        },
+      ),
+    );
+  }
+}
 
-                if (saved.isEmpty) {
-                  return const Center(
-                    child: Padding(
-                      padding: EdgeInsets.all(24),
-                      child: Text(
-                        'अभी कोई वाक्य सहेजा नहीं है। Communicate या Sentence Lab में बुकमार्क का निशान दबाएँ।',
-                        textAlign: TextAlign.center,
-                      ),
-                    ),
-                  );
-                }
+// ---------------------------------------------------------------------------
+// 4. Saved Collection Page (Clean Personal Bookmarks Only)
+// ---------------------------------------------------------------------------
 
-                return ListView.builder(
-                  padding: const EdgeInsets.all(16),
-                  itemCount: saved.length,
-                  itemBuilder: (context, i) {
-                    final item = saved[i];
-                    return Card(
-                      margin: const EdgeInsets.only(bottom: 10),
-                      child: ListTile(
-                        title: Text(
-                          item.roman,
-                          style: const TextStyle(
-                            fontWeight: FontWeight.w800,
-                            fontSize: 17,
+class MyWordsPage extends StatelessWidget {
+  const MyWordsPage({super.key});
+
+  @override
+  Widget build(BuildContext context) {
+    final wordsStore = MyWordsStore.instance;
+    final sentencesStore = MySentencesStore.instance;
+    final settings = AppSettingsStore.instance;
+
+    return DefaultTabController(
+      length: 2,
+      child: ListenableBuilder(
+        listenable: settings,
+        builder: (context, _) {
+          return Scaffold(
+            appBar: AppBar(
+              title: const Text('Saved Bookmarks'),
+              actions: [
+                TextButton.icon(
+                  onPressed: () => settings.toggleMode(),
+                  icon: const Icon(Icons.translate, size: 16),
+                  label: Text(settings.isDevanagari ? 'अ Hindi' : '🔤 Eng'),
+                ),
+              ],
+              bottom: const TabBar(
+                tabs: [
+                  Tab(text: 'सहेजे शब्द (Words)'),
+                  Tab(text: 'सहेजे वाक्य (Sentences)'),
+                ],
+              ),
+            ),
+            body: TabBarView(
+              children: [
+                // Bookmarked Words
+                ListenableBuilder(
+                  listenable: wordsStore,
+                  builder: (context, _) {
+                    final saved = allWords.where((w) => wordsStore.contains(w.id)).toList();
+                    if (saved.isEmpty) {
+                      return const Center(
+                        child: Text('अभी कोई शब्द सहेजा नहीं है।'),
+                      );
+                    }
+                    return ListView(
+                      padding: const EdgeInsets.all(16),
+                      children: [
+                        for (final w in saved)
+                          Card(
+                            margin: const EdgeInsets.only(bottom: 8),
+                            child: ListTile(
+                              title: Text(
+                                settings.isDevanagari ? w.deva : w.roman,
+                                style: const TextStyle(fontWeight: FontWeight.w800),
+                              ),
+                              subtitle: Text(w.hindi),
+                              trailing: IconButton(
+                                icon: const Icon(Icons.delete_outline),
+                                onPressed: () => wordsStore.remove(w.id),
+                              ),
+                            ),
                           ),
-                        ),
-                        subtitle: Text(item.hindi),
-                        trailing: IconButton(
-                          icon: const Icon(Icons.delete_outline),
-                          onPressed: () => sentencesStore.removeSentence(item.id),
-                        ),
-                      ),
+                      ],
                     );
                   },
-                );
-              },
+                ),
+                // Bookmarked Sentences
+                ListenableBuilder(
+                  listenable: sentencesStore,
+                  builder: (context, _) {
+                    final saved = sentencesStore.sentences;
+                    if (saved.isEmpty) {
+                      return const Center(
+                        child: Text('अभी कोई वाक्य सहेजा नहीं है।'),
+                      );
+                    }
+                    return ListView.builder(
+                      padding: const EdgeInsets.all(16),
+                      itemCount: saved.length,
+                      itemBuilder: (context, i) {
+                        final item = saved[i];
+                        return Card(
+                          margin: const EdgeInsets.only(bottom: 8),
+                          child: ListTile(
+                            title: Text(
+                              settings.isDevanagari ? item.deva : item.roman,
+                              style: const TextStyle(fontWeight: FontWeight.w800),
+                            ),
+                            subtitle: Text(item.hindi),
+                            trailing: IconButton(
+                              icon: const Icon(Icons.delete_outline),
+                              onPressed: () => sentencesStore.removeSentence(item.id),
+                            ),
+                          ),
+                        );
+                      },
+                    );
+                  },
+                ),
+              ],
             ),
-          ],
-        ),
+          );
+        },
       ),
     );
   }
