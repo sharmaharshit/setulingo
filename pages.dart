@@ -2,7 +2,6 @@ import 'package:flutter/material.dart';
 import 'content.dart';
 import 'lesson_page.dart';
 import 'store.dart';
-import 'tts_service.dart';
 import 'widgets.dart';
 
 void _open(BuildContext context, Widget page) {
@@ -299,7 +298,6 @@ class _SentenceLabPageState extends State<SentenceLabPage> {
               ),
               const SizedBox(height: 16),
 
-              // Dropdown 1: Starter
               _buildDropdownSection(
                 title: '1. कर्ता / शुरुआत (Subject)',
                 value: _starterIndex,
@@ -309,7 +307,6 @@ class _SentenceLabPageState extends State<SentenceLabPage> {
               ),
               const SizedBox(height: 10),
 
-              // Dropdown 2: Topic / Object
               _buildDropdownSection(
                 title: '2. विषय / वस्तु / स्थान (Topic)',
                 value: _topicIndex,
@@ -319,7 +316,6 @@ class _SentenceLabPageState extends State<SentenceLabPage> {
               ),
               const SizedBox(height: 10),
 
-              // Dropdown 3: Ending / Verb
               _buildDropdownSection(
                 title: '3. क्रिया / अंत (Verb / Request)',
                 value: _endingIndex,
@@ -329,7 +325,6 @@ class _SentenceLabPageState extends State<SentenceLabPage> {
               ),
               const SizedBox(height: 20),
 
-              // Live Preview Card
               Container(
                 padding: const EdgeInsets.all(16),
                 decoration: BoxDecoration(
@@ -481,14 +476,12 @@ class LearnWordsPage extends StatelessWidget {
             ),
             body: TabBarView(
               children: [
-                // Daily Words
                 ListView(
                   padding: const EdgeInsets.all(16),
                   children: [
                     for (final w in allWords) WordCard(word: w),
                   ],
                 ),
-                // Sanskrit Connections
                 ListView(
                   padding: const EdgeInsets.all(16),
                   children: [
@@ -574,15 +567,12 @@ class MyWordsPage extends StatelessWidget {
             ),
             body: TabBarView(
               children: [
-                // Bookmarked Words
                 ListenableBuilder(
                   listenable: wordsStore,
                   builder: (context, _) {
                     final saved = allWords.where((w) => wordsStore.contains(w.id)).toList();
                     if (saved.isEmpty) {
-                      return const Center(
-                        child: Text('अभी कोई शब्द सहेजा नहीं है।'),
-                      );
+                      return const Center(child: Text('अभी कोई शब्द सहेजा नहीं है।'));
                     }
                     return ListView(
                       padding: const EdgeInsets.all(16),
@@ -606,15 +596,12 @@ class MyWordsPage extends StatelessWidget {
                     );
                   },
                 ),
-                // Bookmarked Sentences
                 ListenableBuilder(
                   listenable: sentencesStore,
                   builder: (context, _) {
                     final saved = sentencesStore.sentences;
                     if (saved.isEmpty) {
-                      return const Center(
-                        child: Text('अभी कोई वाक्य सहेजा नहीं है।'),
-                      );
+                      return const Center(child: Text('अभी कोई वाक्य सहेजा नहीं है।'));
                     }
                     return ListView.builder(
                       padding: const EdgeInsets.all(16),
