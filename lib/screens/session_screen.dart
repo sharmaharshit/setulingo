@@ -1,4 +1,3 @@
-```dart
 import 'dart:convert';
 
 import 'package:flutter/material.dart';
@@ -355,4 +354,3 @@ class _SessionScreenState extends State<SessionScreen> {
     );
   }
 }
-```
