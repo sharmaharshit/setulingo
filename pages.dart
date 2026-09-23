@@ -8,6 +8,24 @@ void _open(BuildContext context, Widget page) {
   Navigator.push(context, MaterialPageRoute(builder: (_) => page));
 }
 
+/// Self-contained multi-script search helper
+List<KSentence> _searchSentences(String query) {
+  final clean = query.toLowerCase().trim();
+  if (clean.isEmpty) return [];
+
+  final all = categories.expand((c) => c.situations).expand((s) => s.sentences).toList();
+  return all.where((s) {
+    if (s.roman.toLowerCase().contains(clean)) return true;
+    if (s.deva.contains(clean)) return true;
+    if (s.hindi.contains(clean)) return true;
+    try {
+      return s.hinglishKeywords.any((k) => k.toLowerCase().contains(clean) || clean.contains(k.toLowerCase()));
+    } catch (_) {
+      return false;
+    }
+  }).toList();
+}
+
 class HomePage extends StatefulWidget {
   const HomePage({super.key});
 
@@ -112,7 +130,6 @@ class CommunicatePage extends StatelessWidget {
           body: ListView(
             padding: const EdgeInsets.all(16),
             children: [
-              // Premium 2-Minute Goal Card
               Container(
                 padding: const EdgeInsets.all(18),
                 decoration: BoxDecoration(
@@ -233,7 +250,7 @@ class _SentenceLabPageState extends State<SentenceLabPage> {
     final settings = AppSettingsStore.instance;
     final sentencesStore = MySentencesStore.instance;
 
-    final results = searchSentences(_input.isEmpty ? 'coffee' : _input);
+    final results = _searchSentences(_input.isEmpty ? 'coffee' : _input);
 
     return ListenableBuilder(
       listenable: settings,
@@ -268,7 +285,6 @@ class _SentenceLabPageState extends State<SentenceLabPage> {
               ),
               const SizedBox(height: 14),
 
-              // Spotlight-style Search Input
               Container(
                 decoration: BoxDecoration(
                   color: scheme.surfaceContainer,
@@ -299,7 +315,6 @@ class _SentenceLabPageState extends State<SentenceLabPage> {
               ),
               const SizedBox(height: 12),
 
-              // Quick suggestion pills
               SingleChildScrollView(
                 scrollDirection: Axis.horizontal,
                 child: Row(
@@ -427,7 +442,7 @@ class _SurvivalSearchSheetState extends State<SurvivalSearchSheet> {
 
   @override
   Widget build(BuildContext context) {
-    final results = searchSentences(_query);
+    final results = _searchSentences(_query);
 
     return Padding(
       padding: EdgeInsets.only(
