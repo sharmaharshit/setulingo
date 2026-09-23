@@ -30,12 +30,6 @@ class SetuLingoV2App extends StatelessWidget {
       darkTheme: ThemeData(
         useMaterial3: true,
         brightness: Brightness.dark,
-        pageTransitionsTheme: const PageTransitionsTheme(
-          builders: {
-            TargetPlatform.android: ZoomPageTransitionsBuilder(),
-            TargetPlatform.iOS: CupertinoPageTransitionsBuilder(),
-          },
-        ),
         colorScheme: const ColorScheme.dark(
           primary: primaryGold,
           onPrimary: Color(0xFF1F1200),
