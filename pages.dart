@@ -63,7 +63,7 @@ class _HomePageState extends State<HomePage> {
 }
 
 // ---------------------------------------------------------------------------
-// 1. Communicate Page
+// 1. Communicate Page (All 8 Categories Restored)
 // ---------------------------------------------------------------------------
 
 class CommunicatePage extends StatelessWidget {
@@ -209,7 +209,7 @@ class CommunicatePage extends StatelessWidget {
 }
 
 // ---------------------------------------------------------------------------
-// 2. Street Encounters Page (Distraction-Free Theater Mode)
+// 2. Street Encounters Page (15-Step Epic Story Runner)
 // ---------------------------------------------------------------------------
 
 class StreetEncountersPage extends StatelessWidget {
@@ -241,10 +241,10 @@ class StreetEncountersPage extends StatelessWidget {
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
-                      const Text('Social Self-Defense', style: TextStyle(fontSize: 14, fontWeight: FontWeight.w900, color: Colors.white)),
+                      const Text('Epic Choose-Your-Adventure', style: TextStyle(fontSize: 14, fontWeight: FontWeight.w900, color: Colors.white)),
                       const SizedBox(height: 2),
                       Text(
-                        'Step into real Bangalore scenarios. Overhear dialogue, choose your stance, and master local responses.',
+                        'A 15-decision branching simulation of a chaotic Bengaluru Monday. Make choices to shape your day.',
                         style: TextStyle(fontSize: 12, color: scheme.onSurfaceVariant),
                       ),
                     ],
@@ -254,120 +254,73 @@ class StreetEncountersPage extends StatelessWidget {
             ),
           ),
           const SizedBox(height: 18),
-          for (final enc in streetEncounters) ...[
-            Card(
-              margin: const EdgeInsets.only(bottom: 14),
-              child: Padding(
-                padding: const EdgeInsets.all(16),
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Row(
-                      children: [
-                        Container(
-                          padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
-                          decoration: BoxDecoration(
-                            color: scheme.primary.withValues(alpha: 0.12),
-                            borderRadius: BorderRadius.circular(8),
-                          ),
-                          child: Text(enc.tag, style: TextStyle(fontSize: 10, fontWeight: FontWeight.w800, color: scheme.primary)),
-                        ),
-                        const Spacer(),
-                        Text('${enc.choices.length} Stances', style: TextStyle(fontSize: 11, color: scheme.onSurfaceVariant, fontWeight: FontWeight.w700)),
-                      ],
+          Card(
+            child: Padding(
+              padding: const EdgeInsets.all(16),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Container(
+                    padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                    decoration: BoxDecoration(
+                      color: scheme.primary.withValues(alpha: 0.12),
+                      borderRadius: BorderRadius.circular(8),
                     ),
-                    const SizedBox(height: 10),
-                    Text(enc.title, style: const TextStyle(fontSize: 19, fontWeight: FontWeight.w900, letterSpacing: -0.3, color: Colors.white)),
-                    Text(enc.hindiTitle, style: TextStyle(fontSize: 13, color: scheme.onSurfaceVariant)),
-                    const SizedBox(height: 8),
-                    Row(
-                      children: [
-                        Icon(Icons.location_on_outlined, size: 14, color: scheme.primary),
-                        const SizedBox(width: 4),
-                        Expanded(
-                          child: Text(enc.location, style: TextStyle(fontSize: 11, color: scheme.primary, fontWeight: FontWeight.w600)),
-                        ),
-                      ],
-                    ),
-                    const SizedBox(height: 14),
-                    SizedBox(
-                      width: double.infinity,
-                      child: FilledButton.icon(
-                        style: FilledButton.styleFrom(
-                          backgroundColor: const Color(0xFF162035),
-                          foregroundColor: scheme.primary,
-                        ),
-                        onPressed: () => _open(context, TheaterModePlayerPage(encounter: enc)),
-                        icon: const Icon(Icons.play_circle_outline, size: 18),
-                        label: const Text('Enter Scene (Theater Mode)', style: TextStyle(fontWeight: FontWeight.w800)),
+                    child: Text('⚡ Epic Simulation', style: TextStyle(fontSize: 10, fontWeight: FontWeight.w800, color: scheme.primary)),
+                  ),
+                  const SizedBox(height: 10),
+                  const Text('A Chaotic Bengaluru Monday', style: TextStyle(fontSize: 19, fontWeight: FontWeight.w900, letterSpacing: -0.3, color: Colors.white)),
+                  const Text('एक अराजक बेंगलुरु सोमवार (15 Decision Story)', style: TextStyle(fontSize: 13, color: Color(0xFF94A3B8))),
+                  const SizedBox(height: 14),
+                  SizedBox(
+                    width: double.infinity,
+                    child: FilledButton.icon(
+                      style: FilledButton.styleFrom(
+                        backgroundColor: const Color(0xFF162035),
+                        foregroundColor: scheme.primary,
                       ),
+                      onPressed: () => _open(context, const EpicEncounterPlayerPage()),
+                      icon: const Icon(Icons.play_circle_outline, size: 18),
+                      label: const Text('Start 15-Step Epic Journey', style: TextStyle(fontWeight: FontWeight.w800)),
                     ),
-                  ],
-                ),
+                  ),
+                ],
               ),
             ),
-          ],
+          ),
         ],
       ),
     );
   }
 }
 
-class TheaterModePlayerPage extends StatefulWidget {
-  final StreetEncounter encounter;
-
-  const TheaterModePlayerPage({super.key, required this.encounter});
+class EpicEncounterPlayerPage extends StatefulWidget {
+  const EpicEncounterPlayerPage({super.key});
 
   @override
-  State<TheaterModePlayerPage> createState() => _TheaterModePlayerPageState();
+  State<EpicEncounterPlayerPage> createState() => _EpicEncounterPlayerPageState();
 }
 
-class _TheaterModePlayerPageState extends State<TheaterModePlayerPage> {
-  EncounterChoice? _selectedChoice;
-  bool _revealOverheardTranslation = false;
+class _EpicEncounterPlayerPageState extends State<EpicEncounterPlayerPage> {
+  int _currentStepNum = 1;
 
   @override
   Widget build(BuildContext context) {
-    final enc = widget.encounter;
     final scheme = Theme.of(context).colorScheme;
-    final settings = AppSettingsStore.instance;
+    final node = epicEncounterStory.firstWhere((n) => n.stepNumber == _currentStepNum, orElse: () => epicEncounterStory.last);
 
     return Scaffold(
-      backgroundColor: const Color(0xFF06080F), // True cinema dark mode
+      backgroundColor: const Color(0xFF06080F),
       appBar: AppBar(
         backgroundColor: Colors.transparent,
-        title: Text(enc.title, style: const TextStyle(fontSize: 18, fontWeight: FontWeight.w900)),
+        title: Text('Step ${node.stepNumber} / 15: ${node.title}', style: const TextStyle(fontSize: 16, fontWeight: FontWeight.w900)),
       ),
       body: ListView(
         padding: const EdgeInsets.all(20),
         children: [
-          // Act I: Atmospheric Context Card
+          // Narrative Box
           Container(
-            padding: const EdgeInsets.all(14),
-            decoration: BoxDecoration(
-              color: const Color(0xFF0F1526),
-              borderRadius: BorderRadius.circular(14),
-              border: Border.all(color: const Color(0xFF1E293B)),
-            ),
-            child: Row(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                const Text('🎬', style: TextStyle(fontSize: 20)),
-                const SizedBox(width: 10),
-                Expanded(
-                  child: Text(
-                    enc.atmosphere,
-                    style: const TextStyle(fontSize: 13, height: 1.4, color: Color(0xFFCBD5E1)),
-                  ),
-                ),
-              ],
-            ),
-          ),
-          const SizedBox(height: 20),
-
-          // Act II: Spoken Moment Overheard Card
-          Container(
-            padding: const EdgeInsets.all(18),
+            padding: const EdgeInsets.all(20),
             decoration: BoxDecoration(
               gradient: const LinearGradient(
                 colors: [Color(0xFF121B33), Color(0xFF0A1020)],
@@ -380,157 +333,74 @@ class _TheaterModePlayerPageState extends State<TheaterModePlayerPage> {
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                Row(
-                  children: [
-                    Text('👂 OVERHEARD FROM ${enc.overheardSpeaker.toUpperCase()}:',
-                        style: const TextStyle(fontSize: 10, fontWeight: FontWeight.w900, letterSpacing: 1.0, color: Color(0xFF38BDF8))),
-                    const Spacer(),
-                    IconButton(
-                      icon: const Icon(Icons.volume_up, size: 20, color: Color(0xFF38BDF8)),
-                      onPressed: () => TtsService.instance.speak(enc.overheardRoman),
-                    ),
-                  ],
-                ),
+                Text('📖 SCENARIO NARRATIVE', style: TextStyle(fontSize: 10, fontWeight: FontWeight.w900, color: scheme.primary)),
                 const SizedBox(height: 8),
-                Text(
-                  settings.isDevanagari ? enc.overheardDeva : enc.overheardRoman,
-                  style: const TextStyle(fontSize: 20, fontWeight: FontWeight.w900, color: Colors.white, letterSpacing: -0.3),
-                ),
-                const SizedBox(height: 10),
-                InkWell(
-                  onTap: () => setState(() => _revealOverheardTranslation = !_revealOverheardTranslation),
-                  child: Row(
-                    mainAxisSize: MainAxisSize.min,
-                    children: [
-                      Text(_revealOverheardTranslation ? 'Hide Meaning' : 'Tap to Reveal Hindi Meaning',
-                          style: TextStyle(fontSize: 12, fontWeight: FontWeight.w800, color: scheme.primary)),
-                      Icon(_revealOverheardTranslation ? Icons.arrow_drop_up : Icons.arrow_drop_down, size: 18, color: scheme.primary),
-                    ],
-                  ),
-                ),
-                if (_revealOverheardTranslation) ...[
-                  const SizedBox(height: 8),
-                  Text(enc.overheardHindi, style: const TextStyle(fontSize: 15, fontWeight: FontWeight.w700, color: Colors.white)),
-                ],
+                Text(node.narrativeEn, style: const TextStyle(fontSize: 16, fontWeight: FontWeight.w800, color: Colors.white, height: 1.4)),
+                const SizedBox(height: 8),
+                Text(node.narrativeHi, style: TextStyle(fontSize: 14, fontWeight: FontWeight.w600, color: scheme.onSurfaceVariant, height: 1.4)),
               ],
             ),
           ),
-          const SizedBox(height: 22),
+          const SizedBox(height: 24),
+          const Text('CHOOSE YOUR ACTION:', style: TextStyle(fontSize: 11, fontWeight: FontWeight.w900, letterSpacing: 1.2, color: Colors.white54)),
+          const SizedBox(height: 12),
 
-          // Act III: The Dilemma
-          Text('🎯 YOUR DILEMMA', style: TextStyle(fontSize: 11, fontWeight: FontWeight.w900, letterSpacing: 1.2, color: scheme.primary)),
-          const SizedBox(height: 6),
-          Text(enc.dilemma, style: const TextStyle(fontSize: 15, fontWeight: FontWeight.w700, height: 1.35, color: Colors.white)),
-          const SizedBox(height: 18),
-
-          // Act IV: Three Distinct Stances / Responses
-          const Text('CHOOSE YOUR STANCE:', style: TextStyle(fontSize: 11, fontWeight: FontWeight.w900, letterSpacing: 1.2, color: Colors.white54)),
-          const SizedBox(height: 10),
-
-          for (final choice in enc.choices) ...[
+          for (final opt in node.options) ...[
             Padding(
               padding: const EdgeInsets.only(bottom: 12),
               child: Material(
                 color: Colors.transparent,
                 child: InkWell(
                   borderRadius: BorderRadius.circular(16),
-                  onTap: () => setState(() => _selectedChoice = choice),
+                  onTap: () {
+                    if (opt.nextStep == 1) {
+                      Navigator.pop(context);
+                      ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Epic Journey Completed!')));
+                    } else {
+                      setState(() => _currentStepNum = opt.nextStep);
+                    }
+                  },
                   child: Container(
                     padding: const EdgeInsets.all(16),
                     decoration: BoxDecoration(
-                      color: _selectedChoice?.id == choice.id ? const Color(0xFF0B2E21) : const Color(0xFF0F1526),
+                      color: const Color(0xFF0F1526),
                       borderRadius: BorderRadius.circular(16),
-                      border: Border.all(
-                        color: _selectedChoice?.id == choice.id ? scheme.primary : const Color(0xFF1E293B),
-                        width: _selectedChoice?.id == choice.id ? 1.5 : 1.0,
-                      ),
+                      border: Border.all(color: const Color(0xFF1E293B)),
                     ),
                     child: Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
+                        Container(
+                          padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
+                          decoration: BoxDecoration(
+                            color: scheme.primary.withValues(alpha: 0.15),
+                            borderRadius: BorderRadius.circular(6),
+                          ),
+                          child: Text(opt.badge, style: TextStyle(fontSize: 10, fontWeight: FontWeight.w900, color: scheme.primary)),
+                        ),
+                        const SizedBox(height: 10),
                         Row(
                           children: [
-                            Text(choice.stanceTitle.toUpperCase(), style: TextStyle(fontSize: 11, fontWeight: FontWeight.w900, color: scheme.primary)),
-                            const Spacer(),
-                            Container(
-                              padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
-                              decoration: BoxDecoration(
-                                color: Colors.white.withValues(alpha: 0.08),
-                                borderRadius: BorderRadius.circular(6),
+                            Expanded(
+                              child: Text(
+                                opt.kannadaRoman,
+                                style: const TextStyle(fontSize: 18, fontWeight: FontWeight.w900, color: Colors.white),
                               ),
-                              child: Text(choice.stanceBadge, style: const TextStyle(fontSize: 10, fontWeight: FontWeight.w800)),
+                            ),
+                            IconButton(
+                              icon: const Icon(Icons.volume_up, size: 20),
+                              onPressed: () => TtsService.instance.speak(opt.kannadaRoman),
                             ),
                           ],
                         ),
-                        const SizedBox(height: 10),
-                        Text(
-                          settings.isDevanagari ? choice.deva : choice.roman,
-                          style: const TextStyle(fontSize: 18, fontWeight: FontWeight.w900, color: Colors.white),
-                        ),
+                        const SizedBox(height: 2),
+                        Text(opt.kannadaDeva, style: TextStyle(fontSize: 14, color: scheme.primary)),
                         const SizedBox(height: 4),
-                        Text(choice.hindi, style: TextStyle(fontSize: 14, fontWeight: FontWeight.w600, color: scheme.onSurfaceVariant)),
+                        Text(opt.hindiMeaning, style: TextStyle(fontSize: 13, fontWeight: FontWeight.w600, color: scheme.onSurfaceVariant)),
                       ],
                     ),
                   ),
                 ),
-              ),
-            ),
-          ],
-
-          // Resolution Outcome Panel
-          if (_selectedChoice != null) ...[
-            const SizedBox(height: 10),
-            Container(
-              padding: const EdgeInsets.all(18),
-              decoration: BoxDecoration(
-                color: const Color(0xFF0A2218),
-                borderRadius: BorderRadius.circular(20),
-                border: Border.all(color: scheme.primary.withValues(alpha: 0.5)),
-              ),
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Row(
-                    children: [
-                      Text('🎬 SCENE OUTCOME', style: TextStyle(fontSize: 11, fontWeight: FontWeight.w900, color: scheme.primary)),
-                      const Spacer(),
-                      IconButton(
-                        icon: const Icon(Icons.volume_up, size: 20),
-                        onPressed: () => TtsService.instance.speak(_selectedChoice!.roman),
-                      ),
-                    ],
-                  ),
-                  const SizedBox(height: 4),
-                  Text(_selectedChoice!.outcomeTitle, style: const TextStyle(fontSize: 17, fontWeight: FontWeight.w900, color: Colors.white)),
-                  const SizedBox(height: 6),
-                  Text(_selectedChoice!.outcomeBody, style: const TextStyle(fontSize: 14, height: 1.45, color: Color(0xFFE2E8F0))),
-                  const Divider(height: 24, color: Color(0xFF153F2E)),
-                  Text(_selectedChoice!.culturalRule, style: const TextStyle(fontSize: 13, fontWeight: FontWeight.w700, color: Color(0xFF38BDF8))),
-                  const SizedBox(height: 16),
-                  SizedBox(
-                    width: double.infinity,
-                    child: FilledButton.icon(
-                      style: FilledButton.styleFrom(backgroundColor: scheme.primary, foregroundColor: Colors.black, padding: const EdgeInsets.symmetric(vertical: 14)),
-                      onPressed: () {
-                        MySentencesStore.instance.addSentence(
-                          SavedSentence(
-                            id: 'enc_${DateTime.now().millisecondsSinceEpoch}',
-                            roman: _selectedChoice!.roman,
-                            deva: _selectedChoice!.deva,
-                            hindi: _selectedChoice!.hindi,
-                            createdAt: DateTime.now(),
-                          ),
-                        );
-                        Navigator.pop(context);
-                        ScaffoldMessenger.of(context).showSnackBar(
-                          const SnackBar(content: Text('Sentence saved to Vault!')),
-                        );
-                      },
-                      icon: const Icon(Icons.bookmark_add, size: 18),
-                      label: const Text('Save Sentence to Vault & Finish', style: TextStyle(fontWeight: FontWeight.w900)),
-                    ),
-                  ),
-                ],
               ),
             ),
           ],
@@ -541,7 +411,7 @@ class _TheaterModePlayerPageState extends State<TheaterModePlayerPage> {
 }
 
 // ---------------------------------------------------------------------------
-// 3. Sentence Lab: Constraint-Based Cascading Studio
+// 3. Sentence Lab: Bilingual Dropdowns (Kannada + Hindi Meaning)
 // ---------------------------------------------------------------------------
 
 class SentenceLabPage extends StatefulWidget {
@@ -552,43 +422,73 @@ class SentenceLabPage extends StatefulWidget {
 }
 
 class _SentenceLabPageState extends State<SentenceLabPage> {
-  // Cascading Builder state
-  String _slot1 = 'Ondu';
-  String _slot2 = 'dose';
-  String _slot3 = 'kodi';
+  String _slot1Key = 'Ondu';
+  String _slot2Key = 'dose';
+  String _slot3Key = 'kodi';
 
-  final List<String> _slot1Options = ['Ondu', 'Swalpa', 'Nanage', 'Illi', 'Innondu'];
+  final Map<String, String> _slot1Map = {
+    'Ondu': 'ओन्दु (एक)',
+    'Swalpa': 'स्वल्प (थोड़ा)',
+    'Nanage': 'ननगे (मुझे)',
+    'Illi': 'इल्लि (यहाँ)',
+    'Innondu': 'इन्नोन्दु (एक और)',
+  };
 
-  List<String> get _slot2Options {
-    switch (_slot1) {
+  Map<String, String> get _slot2Map {
+    switch (_slot1Key) {
       case 'Ondu':
       case 'Innondu':
-        return ['dose', 'coffee', 'tea', 'cover', 'bill'];
+        return {
+          'dose': 'dose — डोसा',
+          'coffee': 'coffee — कॉफ़ी',
+          'tea': 'tea — चाय',
+          'cover': 'cover — थैली',
+          'bill': 'bill — बिल',
+        };
       case 'Swalpa':
-        return ['neeru', 'sambar', 'jaga', 'samaya'];
+        return {
+          'neeru': 'neeru — पानी',
+          'sambar': 'sambar — सांभर',
+          'jaga': 'jaga — जगह',
+          'samaya': 'samaya — समय',
+        };
       case 'Nanage':
-        return ['coffee', 'tea', 'sahaya', 'bill'];
+        return {
+          'coffee': 'coffee — कॉफ़ी',
+          'tea': 'tea — चाय',
+          'sahaya': 'sahaya — मदद',
+          'bill': 'bill — बिल',
+        };
       case 'Illi':
-        return ['nilisi', 'banni'];
+        return {
+          'nilisi': 'nilisi — रोकिए',
+          'banni': 'banni — आइए',
+        };
       default:
-        return ['dose', 'coffee'];
+        return {'dose': 'dose — डोसा'};
     }
   }
 
-  List<String> get _slot3Options {
-    if (_slot2 == 'dose' || _slot2 == 'coffee' || _slot2 == 'tea' || _slot2 == 'cover' || _slot2 == 'bill') {
-      return ['kodi', 'beku', 'beda'];
+  Map<String, String> get _slot3Map {
+    if (['dose', 'coffee', 'tea', 'cover', 'bill'].contains(_slot2Key)) {
+      return {
+        'kodi': 'kodi (दीजिए)',
+        'beku': 'beku (चाहिए)',
+        'beda': 'beda (नहीं चाहिए)',
+      };
     }
-    if (_slot2 == 'neeru' || _slot2 == 'sambar') {
-      return ['haaki', 'kodi', 'saaku', 'beda'];
+    if (['neeru', 'sambar'].contains(_slot2Key)) {
+      return {
+        'haaki': 'haaki (डालिए)',
+        'kodi': 'kodi (दीजिए)',
+        'saaku': 'saaku (बस)',
+        'beda': 'beda (नहीं चाहिए)',
+      };
     }
-    if (_slot2 == 'jaga' || _slot2 == 'samaya' || _slot2 == 'sahaya') {
-      return ['kodi', 'beku'];
-    }
-    if (_slot2 == 'nilisi') {
-      return ['boss', 'anna'];
-    }
-    return ['kodi', 'beku'];
+    return {
+      'kodi': 'kodi (दीजिए)',
+      'beku': 'beku (चाहिए)',
+    };
   }
 
   @override
@@ -598,23 +498,22 @@ class _SentenceLabPageState extends State<SentenceLabPage> {
   }
 
   void _validateSlots() {
-    if (!_slot2Options.contains(_slot2)) {
-      _slot2 = _slot2Options.first;
+    if (!_slot2Map.containsKey(_slot2Key)) {
+      _slot2Key = _slot2Map.keys.first;
     }
-    if (!_slot3Options.contains(_slot3)) {
-      _slot3 = _slot3Options.first;
+    if (!_slot3Map.containsKey(_slot3Key)) {
+      _slot3Key = _slot3Map.keys.first;
     }
   }
 
-  String get _currentRoman {
-    return '$_slot1 $_slot2 $_slot3.';
-  }
+  String get _currentRoman => '$_slot1Key $_slot2Key $_slot3Key.';
 
   String get _currentHindi {
-    if (_slot1 == 'Ondu' && _slot3 == 'kodi') return 'एक ${_slot2} दीजिए';
-    if (_slot1 == 'Nanage' && _slot3 == 'beku') return 'मुझे एक ${_slot2} चाहिए';
-    if (_slot1 == 'Swalpa' && _slot3 == 'haaki') return 'थोड़ा ${_slot2} डालिए';
-    return '$_slot1 $_slot2 $_slot3';
+    final nounName = _slot2Map[_slot2Key]!.split('—').last.trim();
+    if (_slot1Key == 'Ondu' && _slot3Key == 'kodi') return 'एक $nounName दीजिए';
+    if (_slot1Key == 'Nanage' && _slot3Key == 'beku') return 'मुझे एक $nounName चाहिए';
+    if (_slot1Key == 'Swalpa' && _slot3Key == 'haaki') return 'थोड़ा $nounName डालिए';
+    return '$_slot1Key $_slot2Key $_slot3Key';
   }
 
   @override
@@ -637,12 +536,12 @@ class _SentenceLabPageState extends State<SentenceLabPage> {
           ),
           const SizedBox(height: 4),
           Text(
-            'Select words step-by-step. The engine automatically filters out grammar mismatches so every sentence is 100% natural.',
+            'Select bilingual options. The engine locks incompatible grammar pairings so every sentence is 100% natural.',
             style: TextStyle(fontSize: 13, color: scheme.onSurfaceVariant),
           ),
           const SizedBox(height: 20),
 
-          // Interactive 3-Slot Builder Card
+          // 3 Slot Builder
           Container(
             padding: const EdgeInsets.all(20),
             decoration: BoxDecoration(
@@ -656,7 +555,7 @@ class _SentenceLabPageState extends State<SentenceLabPage> {
                 const Text('1. QUANTITY / ANCHOR', style: TextStyle(fontSize: 10, fontWeight: FontWeight.w900, color: Color(0xFF38BDF8))),
                 const SizedBox(height: 6),
                 DropdownButtonFormField<String>(
-                  value: _slot1,
+                  value: _slot1Key,
                   dropdownColor: const Color(0xFF161F36),
                   decoration: InputDecoration(
                     filled: true,
@@ -664,11 +563,11 @@ class _SentenceLabPageState extends State<SentenceLabPage> {
                     border: OutlineInputBorder(borderRadius: BorderRadius.circular(12), borderSide: BorderSide.none),
                     contentPadding: const EdgeInsets.symmetric(horizontal: 14, vertical: 12),
                   ),
-                  items: _slot1Options.map((val) => DropdownMenuItem(value: val, child: Text(val, style: const TextStyle(fontWeight: FontWeight.w800)))).toList(),
+                  items: _slot1Map.entries.map((e) => DropdownMenuItem(value: e.key, child: Text(e.value, style: const TextStyle(fontWeight: FontWeight.w800)))).toList(),
                   onChanged: (val) {
                     if (val != null) {
                       setState(() {
-                        _slot1 = val;
+                        _slot1Key = val;
                         _validateSlots();
                       });
                     }
@@ -679,7 +578,7 @@ class _SentenceLabPageState extends State<SentenceLabPage> {
                 const Text('2. OBJECT / NOUN (Filtered)', style: TextStyle(fontSize: 10, fontWeight: FontWeight.w900, color: Color(0xFF38BDF8))),
                 const SizedBox(height: 6),
                 DropdownButtonFormField<String>(
-                  value: _slot2,
+                  value: _slot2Key,
                   dropdownColor: const Color(0xFF161F36),
                   decoration: InputDecoration(
                     filled: true,
@@ -687,11 +586,11 @@ class _SentenceLabPageState extends State<SentenceLabPage> {
                     border: OutlineInputBorder(borderRadius: BorderRadius.circular(12), borderSide: BorderSide.none),
                     contentPadding: const EdgeInsets.symmetric(horizontal: 14, vertical: 12),
                   ),
-                  items: _slot2Options.map((val) => DropdownMenuItem(value: val, child: Text(val, style: const TextStyle(fontWeight: FontWeight.w800)))).toList(),
+                  items: _slot2Map.entries.map((e) => DropdownMenuItem(value: e.key, child: Text(e.value, style: const TextStyle(fontWeight: FontWeight.w800)))).toList(),
                   onChanged: (val) {
                     if (val != null) {
                       setState(() {
-                        _slot2 = val;
+                        _slot2Key = val;
                         _validateSlots();
                       });
                     }
@@ -702,7 +601,7 @@ class _SentenceLabPageState extends State<SentenceLabPage> {
                 const Text('3. PREDICATE / VERB (Grammar Locked)', style: TextStyle(fontSize: 10, fontWeight: FontWeight.w900, color: Color(0xFF38BDF8))),
                 const SizedBox(height: 6),
                 DropdownButtonFormField<String>(
-                  value: _slot3,
+                  value: _slot3Key,
                   dropdownColor: const Color(0xFF161F36),
                   decoration: InputDecoration(
                     filled: true,
@@ -710,10 +609,10 @@ class _SentenceLabPageState extends State<SentenceLabPage> {
                     border: OutlineInputBorder(borderRadius: BorderRadius.circular(12), borderSide: BorderSide.none),
                     contentPadding: const EdgeInsets.symmetric(horizontal: 14, vertical: 12),
                   ),
-                  items: _slot3Options.map((val) => DropdownMenuItem(value: val, child: Text(val, style: const TextStyle(fontWeight: FontWeight.w800)))).toList(),
+                  items: _slot3Map.entries.map((e) => DropdownMenuItem(value: e.key, child: Text(e.value, style: const TextStyle(fontWeight: FontWeight.w800)))).toList(),
                   onChanged: (val) {
                     if (val != null) {
-                      setState(() => _slot3 = val);
+                      setState(() => _slot3Key = val);
                     }
                   },
                 ),
@@ -722,7 +621,7 @@ class _SentenceLabPageState extends State<SentenceLabPage> {
           ),
           const SizedBox(height: 20),
 
-          // Live Generated Output Card
+          // Output Card
           Container(
             padding: const EdgeInsets.all(20),
             decoration: BoxDecoration(
@@ -784,7 +683,7 @@ class _SentenceLabPageState extends State<SentenceLabPage> {
 }
 
 // ---------------------------------------------------------------------------
-// 4. Saved Vault
+// 4. Saved Vault & Sanskrit Cognates Tab
 // ---------------------------------------------------------------------------
 
 class MyWordsPage extends StatelessWidget {
@@ -793,167 +692,81 @@ class MyWordsPage extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final sentencesStore = MySentencesStore.instance;
-    final settings = AppSettingsStore.instance;
 
     return DefaultTabController(
       length: 2,
-      child: ListenableBuilder(
-        listenable: settings,
-        builder: (context, _) {
-          return Scaffold(
-            appBar: AppBar(
-              title: const Text('Vault & Practice'),
-              bottom: const TabBar(
-                tabs: [
-                  Tab(text: 'Saved Sentences'),
-                  Tab(text: '🎯 Flashcards'),
-                ],
-              ),
-            ),
-            body: TabBarView(
-              children: [
-                ListenableBuilder(
-                  listenable: sentencesStore,
-                  builder: (context, _) {
-                    final saved = sentencesStore.sentences;
-                    if (saved.isEmpty) return const Center(child: Text('No sentences saved yet. Use Vault buttons in Encounters or Sentence Lab.'));
-                    return ListView.builder(
-                      padding: const EdgeInsets.all(16),
-                      itemCount: saved.length,
-                      itemBuilder: (context, i) {
-                        final item = saved[i];
-                        return Card(
-                          margin: const EdgeInsets.only(bottom: 10),
-                          child: ListTile(
-                            title: Text(item.roman, style: const TextStyle(fontWeight: FontWeight.w800, color: Colors.white)),
-                            subtitle: Text(item.hindi),
-                            trailing: IconButton(icon: const Icon(Icons.delete_outline), onPressed: () => sentencesStore.removeSentence(item.id)),
-                          ),
-                        );
-                      },
+      child: Scaffold(
+        appBar: AppBar(
+          title: const Text('Vault & Sanskrit Roots'),
+          bottom: const TabBar(
+            tabs: [
+              Tab(text: 'Saved Sentences'),
+              Tab(text: '🏛️ Sanskrit Cognates'),
+            ],
+          ),
+        ),
+        body: TabBarView(
+          children: [
+            ListenableBuilder(
+              listenable: sentencesStore,
+              builder: (context, _) {
+                final saved = sentencesStore.sentences;
+                if (saved.isEmpty) return const Center(child: Text('No sentences saved yet. Use Vault buttons in Encounters or Sentence Lab.'));
+                return ListView.builder(
+                  padding: const EdgeInsets.all(16),
+                  itemCount: saved.length,
+                  itemBuilder: (context, i) {
+                    final item = saved[i];
+                    return Card(
+                      margin: const EdgeInsets.only(bottom: 10),
+                      child: ListTile(
+                        title: Text(item.roman, style: const TextStyle(fontWeight: FontWeight.w800, color: Colors.white)),
+                        subtitle: Text(item.hindi),
+                        trailing: IconButton(icon: const Icon(Icons.delete_outline), onPressed: () => sentencesStore.removeSentence(item.id)),
+                      ),
                     );
                   },
+                );
+              },
+            ),
+            ListView(
+              padding: const EdgeInsets.all(16),
+              children: [
+                const Text(
+                  'Sanskrit Cognates (Tatsama Words)',
+                  style: TextStyle(fontSize: 18, fontWeight: FontWeight.w900, color: Colors.white),
                 ),
-                const ActiveRecallFlashcards(),
+                const SizedBox(height: 4),
+                const Text('Many Hindi and Kannada words share identical Sanskrit roots, making them instantly recognizable:', style: TextStyle(fontSize: 13, color: Color(0xFF94A3B8))),
+                const SizedBox(height: 14),
+                for (final c in connections)
+                  Card(
+                    margin: const EdgeInsets.only(bottom: 10),
+                    child: Padding(
+                      padding: const EdgeInsets.all(16),
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Text('${c.hindi}  →  ${c.kannadaRoman} (${c.kannadaDeva})', style: const TextStyle(fontSize: 18, fontWeight: FontWeight.w900, color: Colors.white)),
+                          const SizedBox(height: 4),
+                          Text(c.type, style: const TextStyle(fontSize: 12, fontWeight: FontWeight.w700, color: Color(0xFF00E5A3))),
+                          const SizedBox(height: 4),
+                          Text(c.note, style: const TextStyle(fontSize: 13, color: Color(0xFF94A3B8))),
+                        ],
+                      ),
+                    ),
+                  ),
               ],
             ),
-          );
-        },
-      ),
-    );
-  }
-}
-
-class ActiveRecallFlashcards extends StatefulWidget {
-  const ActiveRecallFlashcards({super.key});
-
-  @override
-  State<ActiveRecallFlashcards> createState() => _ActiveRecallFlashcardsState();
-}
-
-class _ActiveRecallFlashcardsState extends State<ActiveRecallFlashcards> {
-  int _cardIndex = 0;
-  bool _revealed = false;
-
-  @override
-  Widget build(BuildContext context) {
-    final sentences = MySentencesStore.instance.sentences;
-    final scheme = Theme.of(context).colorScheme;
-
-    if (sentences.isEmpty) {
-      return const Center(
-        child: Padding(
-          padding: EdgeInsets.all(24),
-          child: Text('Save sentences to your Vault first to practice flashcards!', textAlign: TextAlign.center),
+          ],
         ),
-      );
-    }
-
-    final current = sentences[_cardIndex % sentences.length];
-
-    return Padding(
-      padding: const EdgeInsets.all(20),
-      child: Column(
-        children: [
-          Row(
-            children: [
-              Text('Card ${_cardIndex + 1} / ${sentences.length}', style: TextStyle(fontWeight: FontWeight.w800, color: scheme.primary)),
-            ],
-          ),
-          const SizedBox(height: 16),
-          Expanded(
-            child: GestureDetector(
-              onTap: () => setState(() => _revealed = !_revealed),
-              child: Card(
-                elevation: 2,
-                child: Container(
-                  width: double.infinity,
-                  padding: const EdgeInsets.all(24),
-                  child: Column(
-                    mainAxisAlignment: MainAxisAlignment.center,
-                    children: [
-                      const Text('Hindi Meaning (Recall):', style: TextStyle(fontSize: 13)),
-                      const SizedBox(height: 8),
-                      Text(current.hindi,
-                          textAlign: TextAlign.center, style: const TextStyle(fontSize: 22, fontWeight: FontWeight.w900, color: Colors.white)),
-                      const Divider(height: 36, color: Color(0xFF1E293B)),
-                      if (!_revealed) ...[
-                        const Icon(Icons.touch_app, size: 36, color: Colors.white38),
-                        const SizedBox(height: 8),
-                        const Text('Tap to Reveal Kannada', style: TextStyle(fontSize: 13, color: Colors.white54)),
-                      ] else ...[
-                        Text(current.roman,
-                            textAlign: TextAlign.center,
-                            style: TextStyle(fontSize: 26, fontWeight: FontWeight.w900, color: scheme.primary)),
-                        const SizedBox(height: 14),
-                        IconButton.filledTonal(
-                          icon: const Icon(Icons.volume_up),
-                          onPressed: () => TtsService.instance.speak(current.roman),
-                        ),
-                      ],
-                    ],
-                  ),
-                ),
-              ),
-            ),
-          ),
-          const SizedBox(height: 16),
-          Row(
-            children: [
-              Expanded(
-                child: OutlinedButton(
-                  onPressed: () {
-                    setState(() {
-                      _revealed = false;
-                      _cardIndex = (_cardIndex + 1) % sentences.length;
-                    });
-                  },
-                  child: const Text('Practice Again'),
-                ),
-              ),
-              const SizedBox(width: 12),
-              Expanded(
-                child: FilledButton(
-                  style: FilledButton.styleFrom(backgroundColor: scheme.primary, foregroundColor: Colors.black),
-                  onPressed: () {
-                    setState(() {
-                      _revealed = false;
-                      _cardIndex = (_cardIndex + 1) % sentences.length;
-                    });
-                  },
-                  child: const Text('Got It ✓', style: TextStyle(fontWeight: FontWeight.w900)),
-                ),
-              ),
-            ],
-          ),
-        ],
       ),
     );
   }
 }
 
 // ---------------------------------------------------------------------------
-// Category & Situation Details (Stub)
+// Category & Situation Details Stubs
 // ---------------------------------------------------------------------------
 
 class CategorySituationsPage extends StatelessWidget {
