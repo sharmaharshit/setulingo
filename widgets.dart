@@ -62,19 +62,28 @@ class WordCard extends StatelessWidget {
                 const Divider(height: 18),
                 Text(
                   word.hindi,
-                  style: const TextStyle(
-                    fontSize: 18,
-                    fontWeight: FontWeight.w700,
-                  ),
+                  style: const TextStyle(fontSize: 18, fontWeight: FontWeight.w700),
                 ),
-                if (word.note != null) ...[
+                if (word.streetCode != null) ...[
                   const SizedBox(height: 8),
+                  Container(
+                    padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
+                    decoration: BoxDecoration(
+                      color: const Color(0xFF261D12),
+                      borderRadius: BorderRadius.circular(8),
+                      border: Border.all(color: const Color(0xFFFF9800).withValues(alpha: 0.3)),
+                    ),
+                    child: Text(
+                      word.streetCode!,
+                      style: const TextStyle(fontSize: 12, color: Color(0xFFFFB74D)),
+                    ),
+                  ),
+                ],
+                if (word.note != null) ...[
+                  const SizedBox(height: 6),
                   Text(
                     '💡 ${word.note!}',
-                    style: TextStyle(
-                      fontSize: 13,
-                      color: Theme.of(context).colorScheme.onSurfaceVariant,
-                    ),
+                    style: TextStyle(fontSize: 13, color: Theme.of(context).colorScheme.onSurfaceVariant),
                   ),
                 ],
                 const SizedBox(height: 12),
@@ -196,6 +205,21 @@ class _SentenceCardState extends State<SentenceCard> {
                     color: Theme.of(context).colorScheme.primary,
                   ),
                 ),
+                if (s.streetCode != null) ...[
+                  const SizedBox(height: 8),
+                  Container(
+                    padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                    decoration: BoxDecoration(
+                      color: const Color(0xFF1E281F),
+                      borderRadius: BorderRadius.circular(6),
+                      border: Border.all(color: const Color(0xFF66BB6A).withValues(alpha: 0.4)),
+                    ),
+                    child: Text(
+                      s.streetCode!,
+                      style: const TextStyle(fontSize: 11, color: Color(0xFFA5D6A7), fontWeight: FontWeight.w600),
+                    ),
+                  ),
+                ],
                 const SizedBox(height: 8),
                 InkWell(
                   borderRadius: BorderRadius.circular(8),
@@ -243,21 +267,107 @@ class _SentenceCardState extends State<SentenceCard> {
                     }).toList(),
                   ),
                 ],
-                if (s.note != null) ...[
-                  const SizedBox(height: 6),
-                  Text(
-                    '💡 ${s.note!}',
-                    style: TextStyle(
-                      fontSize: 12,
-                      color: Theme.of(context).colorScheme.onSurfaceVariant,
-                    ),
-                  ),
-                ],
               ],
             ),
           ),
         );
       },
+    );
+  }
+}
+
+class RoleplayDialogueWidget extends StatelessWidget {
+  final RoleplayDialogue dialogue;
+
+  const RoleplayDialogueWidget({super.key, required this.dialogue});
+
+  @override
+  Widget build(BuildContext context) {
+    final settings = AppSettingsStore.instance;
+
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Container(
+          width: double.infinity,
+          padding: const EdgeInsets.all(12),
+          decoration: BoxDecoration(
+            color: Theme.of(context).colorScheme.surfaceContainerHighest,
+            borderRadius: BorderRadius.circular(12),
+          ),
+          child: Text(
+            '📍 परिस्थिति: ${dialogue.contextDescription}',
+            style: const TextStyle(fontSize: 13, fontStyle: FontStyle.italic),
+          ),
+        ),
+        const SizedBox(height: 16),
+        for (final turn in dialogue.turns) ...[
+          Align(
+            alignment: turn.isUser ? Alignment.centerRight : Alignment.centerLeft,
+            child: Container(
+              margin: const EdgeInsets.only(bottom: 12),
+              constraints: BoxConstraints(maxWidth: MediaQuery.of(context).size.width * 0.82),
+              padding: const EdgeInsets.all(14),
+              decoration: BoxDecoration(
+                color: turn.isUser
+                    ? Theme.of(context).colorScheme.primaryContainer
+                    : Theme.of(context).colorScheme.surfaceContainer,
+                borderRadius: BorderRadius.circular(14),
+                border: Border.all(
+                  color: turn.isUser
+                      ? Theme.of(context).colorScheme.primary.withValues(alpha: 0.5)
+                      : Theme.of(context).colorScheme.outlineVariant,
+                ),
+              ),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Row(
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      Text(
+                        turn.speaker,
+                        style: TextStyle(
+                          fontSize: 11,
+                          fontWeight: FontWeight.w800,
+                          color: turn.isUser
+                              ? Theme.of(context).colorScheme.primary
+                              : Theme.of(context).colorScheme.onSurfaceVariant,
+                        ),
+                      ),
+                      const SizedBox(width: 8),
+                      GestureDetector(
+                        onTap: () => TtsService.instance.speak(turn.roman),
+                        child: const Icon(Icons.volume_up_outlined, size: 16),
+                      ),
+                    ],
+                  ),
+                  const SizedBox(height: 4),
+                  Text(
+                    settings.isDevanagari ? turn.deva : turn.roman,
+                    style: const TextStyle(fontSize: 16, fontWeight: FontWeight.w800),
+                  ),
+                  const SizedBox(height: 2),
+                  Text(
+                    turn.hindi,
+                    style: TextStyle(
+                      fontSize: 13,
+                      color: Theme.of(context).colorScheme.onSurfaceVariant,
+                    ),
+                  ),
+                  if (turn.tip != null) ...[
+                    const SizedBox(height: 6),
+                    Text(
+                      '💡 ${turn.tip!}',
+                      style: const TextStyle(fontSize: 11, color: Color(0xFFFFB74D)),
+                    ),
+                  ],
+                ],
+              ),
+            ),
+          ),
+        ],
+      ],
     );
   }
 }
