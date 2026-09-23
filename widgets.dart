@@ -2,6 +2,92 @@ import 'package:flutter/material.dart';
 import 'content.dart';
 import 'store.dart';
 
+class BentoCategoryCard extends StatelessWidget {
+  final Category category;
+  final VoidCallback onTap;
+
+  const BentoCategoryCard({
+    super.key,
+    required this.category,
+    required this.onTap,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    final scheme = Theme.of(context).colorScheme;
+
+    return Material(
+      color: Colors.transparent,
+      child: InkWell(
+        borderRadius: BorderRadius.circular(20),
+        onTap: onTap,
+        child: Container(
+          padding: const EdgeInsets.all(16),
+          decoration: BoxDecoration(
+            gradient: LinearGradient(
+              colors: [const Color(0xFF161726), const Color(0xFF10111B)],
+              begin: Alignment.topLeft,
+              end: Alignment.bottomRight,
+            ),
+            borderRadius: BorderRadius.circular(20),
+            border: Border.all(color: const Color(0xFF26283C), width: 0.9),
+          ),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Row(
+                children: [
+                  Container(
+                    width: 44,
+                    height: 44,
+                    decoration: BoxDecoration(
+                      color: const Color(0xFF1F2236),
+                      borderRadius: BorderRadius.circular(14),
+                      border: Border.all(color: Colors.white.withValues(alpha: 0.08)),
+                    ),
+                    alignment: Alignment.center,
+                    child: Text(category.emoji, style: const TextStyle(fontSize: 22)),
+                  ),
+                  const Spacer(),
+                  Container(
+                    padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
+                    decoration: BoxDecoration(
+                      color: scheme.primary.withValues(alpha: 0.12),
+                      borderRadius: BorderRadius.circular(10),
+                    ),
+                    child: Text(
+                      '${category.situations.length}',
+                      style: TextStyle(
+                        fontSize: 11,
+                        fontWeight: FontWeight.w900,
+                        color: scheme.primary,
+                      ),
+                    ),
+                  ),
+                ],
+              ),
+              const Spacer(),
+              Text(
+                category.title,
+                maxLines: 1,
+                overflow: TextOverflow.ellipsis,
+                style: const TextStyle(fontSize: 15, fontWeight: FontWeight.w900, letterSpacing: -0.2),
+              ),
+              const SizedBox(height: 2),
+              Text(
+                category.hindiTitle,
+                maxLines: 1,
+                overflow: TextOverflow.ellipsis,
+                style: TextStyle(fontSize: 12, color: scheme.onSurfaceVariant),
+              ),
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+}
+
 class WordCard extends StatelessWidget {
   final KWord word;
 
@@ -16,8 +102,8 @@ class WordCard extends StatelessWidget {
       listenable: Listenable.merge([store, settings]),
       builder: (context, _) {
         final saved = store.contains(word.id);
-        final primarySpoken = settings.isDevanagari ? word.deva : word.roman;
-        final secondarySpoken = settings.isDevanagari ? word.roman : word.deva;
+        final primary = settings.isDevanagari ? word.deva : word.roman;
+        final secondary = settings.isDevanagari ? word.roman : word.deva;
 
         return Card(
           margin: const EdgeInsets.only(bottom: 10),
@@ -33,22 +119,9 @@ class WordCard extends StatelessWidget {
                       child: Column(
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
-                          Text(
-                            primarySpoken,
-                            style: const TextStyle(
-                              fontSize: 22,
-                              fontWeight: FontWeight.w900,
-                              letterSpacing: -0.3,
-                            ),
-                          ),
+                          Text(primary, style: const TextStyle(fontSize: 22, fontWeight: FontWeight.w900, letterSpacing: -0.3)),
                           const SizedBox(height: 2),
-                          Text(
-                            secondarySpoken,
-                            style: TextStyle(
-                              fontSize: 13,
-                              color: Theme.of(context).colorScheme.onSurfaceVariant,
-                            ),
-                          ),
+                          Text(secondary, style: TextStyle(fontSize: 13, color: Theme.of(context).colorScheme.onSurfaceVariant)),
                         ],
                       ),
                     ),
@@ -59,50 +132,32 @@ class WordCard extends StatelessWidget {
                     ),
                   ],
                 ),
-                const Divider(height: 18, color: Color(0xFF272733)),
-                Text(
-                  word.hindi,
-                  style: const TextStyle(fontSize: 17, fontWeight: FontWeight.w700),
-                ),
+                const Divider(height: 18, color: Color(0xFF222436)),
+                Text(word.hindi, style: const TextStyle(fontSize: 16, fontWeight: FontWeight.w700)),
                 if (word.streetCode != null) ...[
                   const SizedBox(height: 8),
                   Container(
-                    padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 5),
+                    padding: const EdgeInsets.symmetric(horizontal: 9, vertical: 4),
                     decoration: BoxDecoration(
-                      color: const Color(0xFF261D12),
-                      borderRadius: BorderRadius.circular(8),
-                      border: Border.all(color: const Color(0xFFFF9800).withValues(alpha: 0.25)),
+                      color: const Color(0xFF1E281F),
+                      borderRadius: BorderRadius.circular(6),
+                      border: Border.all(color: const Color(0xFF00E599).withValues(alpha: 0.3)),
                     ),
-                    child: Text(
-                      word.streetCode!,
-                      style: const TextStyle(fontSize: 12, color: Color(0xFFFFB74D), fontWeight: FontWeight.w600),
-                    ),
-                  ),
-                ],
-                if (word.note != null) ...[
-                  const SizedBox(height: 6),
-                  Text(
-                    '💡 ${word.note!}',
-                    style: TextStyle(fontSize: 13, color: Theme.of(context).colorScheme.onSurfaceVariant),
+                    child: Text(word.streetCode!, style: const TextStyle(fontSize: 11, color: Color(0xFF00E599), fontWeight: FontWeight.w700)),
                   ),
                 ],
                 const SizedBox(height: 12),
-                AnimatedSwitcher(
-                  duration: const Duration(milliseconds: 200),
-                  child: saved
-                      ? OutlinedButton.icon(
-                          key: const ValueKey('saved'),
-                          onPressed: () => store.remove(word.id),
-                          icon: const Icon(Icons.check, size: 16),
-                          label: const Text('My Words में है'),
-                        )
-                      : FilledButton.icon(
-                          key: const ValueKey('add'),
-                          onPressed: () => store.add(word.id),
-                          icon: const Icon(Icons.add, size: 16),
-                          label: const Text('Add to My Words'),
-                        ),
-                ),
+                saved
+                    ? OutlinedButton.icon(
+                        onPressed: () => store.remove(word.id),
+                        icon: const Icon(Icons.check, size: 15),
+                        label: const Text('My Words में है'),
+                      )
+                    : FilledButton.icon(
+                        onPressed: () => store.add(word.id),
+                        icon: const Icon(Icons.add, size: 15),
+                        label: const Text('Add to My Words'),
+                      ),
               ],
             ),
           ),
@@ -126,16 +181,16 @@ class _SentenceCardState extends State<SentenceCard> {
 
   @override
   Widget build(BuildContext context) {
-    final sentencesStore = MySentencesStore.instance;
+    final store = MySentencesStore.instance;
     final settings = AppSettingsStore.instance;
 
     return ListenableBuilder(
-      listenable: Listenable.merge([sentencesStore, settings]),
+      listenable: Listenable.merge([store, settings]),
       builder: (context, _) {
         final s = widget.sentence;
-        final isSaved = sentencesStore.contains(s.id);
-        final primarySpoken = settings.isDevanagari ? s.deva : s.roman;
-        final secondarySpoken = settings.isDevanagari ? s.roman : s.deva;
+        final isSaved = store.contains(s.id);
+        final primary = settings.isDevanagari ? s.deva : s.roman;
+        final secondary = settings.isDevanagari ? s.roman : s.deva;
 
         return Card(
           margin: const EdgeInsets.only(bottom: 10),
@@ -151,22 +206,9 @@ class _SentenceCardState extends State<SentenceCard> {
                       child: Column(
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
-                          Text(
-                            primarySpoken,
-                            style: const TextStyle(
-                              fontSize: 19,
-                              fontWeight: FontWeight.w900,
-                              letterSpacing: -0.3,
-                            ),
-                          ),
+                          Text(primary, style: const TextStyle(fontSize: 19, fontWeight: FontWeight.w900, letterSpacing: -0.3)),
                           const SizedBox(height: 2),
-                          Text(
-                            secondarySpoken,
-                            style: TextStyle(
-                              fontSize: 13,
-                              color: Theme.of(context).colorScheme.onSurfaceVariant,
-                            ),
-                          ),
+                          Text(secondary, style: TextStyle(fontSize: 13, color: Theme.of(context).colorScheme.onSurfaceVariant)),
                         ],
                       ),
                     ),
@@ -176,21 +218,14 @@ class _SentenceCardState extends State<SentenceCard> {
                       onPressed: () => TtsService.instance.speak(s.roman),
                     ),
                     IconButton(
-                      icon: AnimatedSwitcher(
-                        duration: const Duration(milliseconds: 200),
-                        child: Icon(
-                          isSaved ? Icons.bookmark : Icons.bookmark_border,
-                          key: ValueKey<bool>(isSaved),
-                          color: isSaved ? Theme.of(context).colorScheme.primary : null,
-                          size: 21,
-                        ),
-                      ),
+                      icon: Icon(isSaved ? Icons.bookmark : Icons.bookmark_border,
+                          color: isSaved ? Theme.of(context).colorScheme.primary : null, size: 21),
                       tooltip: isSaved ? 'सहेजा गया' : 'My Sentences में सहेजें',
                       onPressed: () {
                         if (isSaved) {
-                          sentencesStore.removeSentence(s.id);
+                          store.removeSentence(s.id);
                         } else {
-                          sentencesStore.addSentence(
+                          store.addSentence(
                             SavedSentence(
                               id: s.id,
                               roman: s.roman,
@@ -204,15 +239,8 @@ class _SentenceCardState extends State<SentenceCard> {
                     ),
                   ],
                 ),
-                const SizedBox(height: 5),
-                Text(
-                  s.hindi,
-                  style: TextStyle(
-                    fontSize: 15,
-                    fontWeight: FontWeight.w700,
-                    color: Theme.of(context).colorScheme.primary,
-                  ),
-                ),
+                const SizedBox(height: 6),
+                Text(s.hindi, style: TextStyle(fontSize: 15, fontWeight: FontWeight.w700, color: Theme.of(context).colorScheme.primary)),
                 if (s.streetCode != null) ...[
                   const SizedBox(height: 8),
                   Container(
@@ -220,12 +248,9 @@ class _SentenceCardState extends State<SentenceCard> {
                     decoration: BoxDecoration(
                       color: const Color(0xFF1E281F),
                       borderRadius: BorderRadius.circular(6),
-                      border: Border.all(color: const Color(0xFF66BB6A).withValues(alpha: 0.3)),
+                      border: Border.all(color: const Color(0xFF00E599).withValues(alpha: 0.3)),
                     ),
-                    child: Text(
-                      s.streetCode!,
-                      style: const TextStyle(fontSize: 11, color: Color(0xFFA5D6A7), fontWeight: FontWeight.w600),
-                    ),
+                    child: Text(s.streetCode!, style: const TextStyle(fontSize: 11, color: Color(0xFF00E599), fontWeight: FontWeight.w600)),
                   ),
                 ],
                 const SizedBox(height: 8),
@@ -239,26 +264,17 @@ class _SentenceCardState extends State<SentenceCard> {
                       children: [
                         Text(
                           _expanded ? 'टुकड़े छिपाएँ' : 'टुकड़े देखें (Breakdown)',
-                          style: TextStyle(
-                            fontSize: 12,
-                            fontWeight: FontWeight.w700,
-                            color: Theme.of(context).colorScheme.onSurfaceVariant,
-                          ),
+                          style: TextStyle(fontSize: 12, fontWeight: FontWeight.w700, color: Theme.of(context).colorScheme.onSurfaceVariant),
                         ),
                         AnimatedRotation(
                           turns: _expanded ? 0.5 : 0.0,
                           duration: const Duration(milliseconds: 220),
-                          child: Icon(
-                            Icons.keyboard_arrow_down,
-                            size: 16,
-                            color: Theme.of(context).colorScheme.onSurfaceVariant,
-                          ),
+                          child: Icon(Icons.keyboard_arrow_down, size: 16, color: Theme.of(context).colorScheme.onSurfaceVariant),
                         ),
                       ],
                     ),
                   ),
                 ),
-                // Smooth accordion expansion
                 AnimatedSize(
                   duration: const Duration(milliseconds: 240),
                   curve: Curves.easeInOutCubic,
@@ -276,10 +292,7 @@ class _SentenceCardState extends State<SentenceCard> {
                                   color: Theme.of(context).colorScheme.surfaceContainerHighest,
                                   borderRadius: BorderRadius.circular(6),
                                 ),
-                                child: Text(
-                                  '$chunkText = ${c.hindi}',
-                                  style: const TextStyle(fontSize: 12, fontWeight: FontWeight.w600),
-                                ),
+                                child: Text('$chunkText = ${c.hindi}', style: const TextStyle(fontSize: 12, fontWeight: FontWeight.w600)),
                               );
                             }).toList(),
                           ),
@@ -329,9 +342,7 @@ class RoleplayDialogueWidget extends StatelessWidget {
               constraints: BoxConstraints(maxWidth: MediaQuery.of(context).size.width * 0.82),
               padding: const EdgeInsets.all(14),
               decoration: BoxDecoration(
-                color: turn.isUser
-                    ? Theme.of(context).colorScheme.primaryContainer
-                    : Theme.of(context).colorScheme.surfaceContainer,
+                color: turn.isUser ? Theme.of(context).colorScheme.primaryContainer : Theme.of(context).colorScheme.surfaceContainer,
                 borderRadius: BorderRadius.only(
                   topLeft: const Radius.circular(16),
                   topRight: const Radius.circular(16),
@@ -339,9 +350,7 @@ class RoleplayDialogueWidget extends StatelessWidget {
                   bottomRight: Radius.circular(turn.isUser ? 4 : 16),
                 ),
                 border: Border.all(
-                  color: turn.isUser
-                      ? Theme.of(context).colorScheme.primary.withValues(alpha: 0.35)
-                      : Theme.of(context).colorScheme.outlineVariant,
+                  color: turn.isUser ? Theme.of(context).colorScheme.primary.withValues(alpha: 0.35) : Theme.of(context).colorScheme.outlineVariant,
                 ),
               ),
               child: Column(
@@ -356,9 +365,7 @@ class RoleplayDialogueWidget extends StatelessWidget {
                           fontSize: 11,
                           fontWeight: FontWeight.w800,
                           letterSpacing: 0.5,
-                          color: turn.isUser
-                              ? Theme.of(context).colorScheme.primary
-                              : Theme.of(context).colorScheme.onSurfaceVariant,
+                          color: turn.isUser ? Theme.of(context).colorScheme.primary : Theme.of(context).colorScheme.onSurfaceVariant,
                         ),
                       ),
                       const SizedBox(width: 8),
@@ -369,24 +376,13 @@ class RoleplayDialogueWidget extends StatelessWidget {
                     ],
                   ),
                   const SizedBox(height: 4),
-                  Text(
-                    settings.isDevanagari ? turn.deva : turn.roman,
-                    style: const TextStyle(fontSize: 16, fontWeight: FontWeight.w800, letterSpacing: -0.2),
-                  ),
+                  Text(settings.isDevanagari ? turn.deva : turn.roman,
+                      style: const TextStyle(fontSize: 16, fontWeight: FontWeight.w800, letterSpacing: -0.2)),
                   const SizedBox(height: 2),
-                  Text(
-                    turn.hindi,
-                    style: TextStyle(
-                      fontSize: 13,
-                      color: Theme.of(context).colorScheme.onSurfaceVariant,
-                    ),
-                  ),
+                  Text(turn.hindi, style: TextStyle(fontSize: 13, color: Theme.of(context).colorScheme.onSurfaceVariant)),
                   if (turn.tip != null) ...[
                     const SizedBox(height: 6),
-                    Text(
-                      '💡 ${turn.tip!}',
-                      style: const TextStyle(fontSize: 11, color: Color(0xFFFFB74D)),
-                    ),
+                    Text('💡 ${turn.tip!}', style: const TextStyle(fontSize: 11, color: Color(0xFFFFB74D))),
                   ],
                 ],
               ),
