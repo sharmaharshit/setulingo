@@ -109,17 +109,6 @@ class MyWordsStore extends ChangeNotifier {
     }
   }
 
-  Future<void> addAll(Iterable<String> ids) async {
-    var changed = false;
-    for (final id in ids) {
-      if (_ids.add(id)) changed = true;
-    }
-    if (changed) {
-      notifyListeners();
-      await _save();
-    }
-  }
-
   Future<void> remove(String id) async {
     if (_ids.remove(id)) {
       notifyListeners();
@@ -181,7 +170,6 @@ class MySentencesStore extends ChangeNotifier {
   }
 }
 
-/// Offline-safe Text-to-Speech wrapper.
 class TtsService {
   TtsService._();
   static final TtsService instance = TtsService._();
