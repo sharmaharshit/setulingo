@@ -1,5 +1,4 @@
 import 'package:flutter/material.dart';
-
 import 'v2/pages.dart';
 import 'v2/store.dart';
 
@@ -17,11 +16,11 @@ class SetuLingoV2App extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    const primaryGold = Color(0xFFF3A762);
-    const bgObsidian = Color(0xFF0C0C0E);
-    const cardSurface = Color(0xFF16161B);
-    const textHigh = Color(0xFFF4F4F7);
-    const textMid = Color(0xFFA2A2AE);
+    const primaryAmber = Color(0xFFFF9E44);
+    const bgVoid = Color(0xFF090A10);
+    const cardSurface = Color(0xFF13141F);
+    const textHigh = Color(0xFFF4F4F8);
+    const textMid = Color(0xFF8E92A8);
 
     return MaterialApp(
       title: 'SetuLingo',
@@ -31,89 +30,47 @@ class SetuLingoV2App extends StatelessWidget {
         useMaterial3: true,
         brightness: Brightness.dark,
         colorScheme: const ColorScheme.dark(
-          primary: primaryGold,
-          onPrimary: Color(0xFF1F1200),
-          primaryContainer: Color(0xFF2E1C0F),
-          onPrimaryContainer: Color(0xFFFFDBC0),
+          primary: primaryAmber,
+          onPrimary: Color(0xFF1A0E00),
+          primaryContainer: Color(0xFF2E1908),
+          onPrimaryContainer: Color(0xFFFFD7B3),
           surface: cardSurface,
           onSurface: textHigh,
-          surfaceContainer: Color(0xFF1A1A21),
-          surfaceContainerHighest: Color(0xFF24242E),
+          surfaceContainer: Color(0xFF191A28),
+          surfaceContainerHighest: Color(0xFF222436),
           onSurfaceVariant: textMid,
-          outline: Color(0xFF2F2F3B),
-          outlineVariant: Color(0xFF23232D),
+          outline: Color(0xFF282B3E),
+          outlineVariant: Color(0xFF1E2030),
         ),
-        scaffoldBackgroundColor: bgObsidian,
+        scaffoldBackgroundColor: bgVoid,
         cardTheme: CardThemeData(
           color: cardSurface,
           elevation: 0,
           shape: RoundedRectangleBorder(
-            borderRadius: BorderRadius.circular(16),
-            side: const BorderSide(color: Color(0xFF272733), width: 0.8),
-          ),
-        ),
-        textTheme: const TextTheme(
-          displayLarge: TextStyle(
-            fontSize: 32,
-            fontWeight: FontWeight.w900,
-            letterSpacing: -1.0,
-            color: textHigh,
-            height: 1.15,
-          ),
-          headlineMedium: TextStyle(
-            fontSize: 22,
-            fontWeight: FontWeight.w800,
-            letterSpacing: -0.5,
-            color: textHigh,
-            height: 1.25,
-          ),
-          titleMedium: TextStyle(
-            fontSize: 17,
-            fontWeight: FontWeight.w700,
-            letterSpacing: -0.2,
-            color: textHigh,
-          ),
-          bodyLarge: TextStyle(
-            fontSize: 15,
-            fontWeight: FontWeight.w400,
-            letterSpacing: 0.1,
-            color: Color(0xFFDCDCE2),
-            height: 1.45,
-          ),
-          bodyMedium: TextStyle(
-            fontSize: 13,
-            fontWeight: FontWeight.w400,
-            letterSpacing: 0.1,
-            color: textMid,
-            height: 1.4,
-          ),
-          labelSmall: TextStyle(
-            fontSize: 10,
-            fontWeight: FontWeight.w800,
-            letterSpacing: 1.2,
-            color: primaryGold,
+            borderRadius: BorderRadius.circular(18),
+            side: const BorderSide(color: Color(0xFF242738), width: 0.9),
           ),
         ),
         appBarTheme: const AppBarTheme(
-          backgroundColor: bgObsidian,
+          backgroundColor: bgVoid,
           elevation: 0,
           scrolledUnderElevation: 0,
           titleTextStyle: TextStyle(
-            fontSize: 20,
+            fontSize: 22,
             fontWeight: FontWeight.w900,
             color: textHigh,
-            letterSpacing: -0.5,
+            letterSpacing: -0.6,
           ),
         ),
         navigationBarTheme: NavigationBarThemeData(
-          backgroundColor: const Color(0xFF101014),
-          indicatorColor: primaryGold.withValues(alpha: 0.18),
+          backgroundColor: const Color(0xFF0D0E17),
+          indicatorColor: primaryAmber.withValues(alpha: 0.18),
           labelTextStyle: WidgetStateProperty.resolveWith(
             (states) => TextStyle(
-              fontSize: 12,
+              fontSize: 11,
               fontWeight: states.contains(WidgetState.selected) ? FontWeight.w800 : FontWeight.w500,
               letterSpacing: 0.2,
-              color: states.contains(WidgetState.selected) ? primaryGold : textMid,
+              color: states.contains(WidgetState.selected) ? primaryAmber : textMid,
             ),
           ),
         ),
