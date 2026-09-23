@@ -18,6 +18,7 @@ class _LessonPageState extends State<LessonPage> {
   List<String> _placed = <String>[];
   bool? _buildResult;
   int? _picked;
+  bool _spokenMirrorTapped = false;
 
   LessonStep get _step => widget.lesson.steps[_index];
 
@@ -31,6 +32,7 @@ class _LessonPageState extends State<LessonPage> {
       _placed = <String>[];
       _buildResult = null;
       _picked = null;
+      _spokenMirrorTapped = false;
     });
   }
 
@@ -104,6 +106,7 @@ class _LessonPageState extends State<LessonPage> {
   Widget _stepBody() {
     final s = _step;
     if (s is PhraseStep) return _phraseBody(s);
+    if (s is SpeakPracticeStep) return _speakPracticeBody(s);
     if (s is BuildStep) return _buildBody(s);
     if (s is UseStep) return _useBody(s);
     return const SizedBox.shrink();
@@ -111,6 +114,17 @@ class _LessonPageState extends State<LessonPage> {
 
   Widget _bottomBar() {
     final s = _step;
+
+    if (s is SpeakPracticeStep) {
+      return SizedBox(
+        width: double.infinity,
+        child: FilledButton.icon(
+          onPressed: _next,
+          icon: const Icon(Icons.check),
+          label: const Text('मैंने बोल लिया · आगे बढ़ें'),
+        ),
+      );
+    }
 
     if (s is BuildStep) {
       final result = _buildResult;
@@ -267,6 +281,22 @@ class _LessonPageState extends State<LessonPage> {
             ),
           ),
         ),
+        if (s.streetCode != null) ...[
+          const SizedBox(height: 12),
+          Container(
+            width: double.infinity,
+            padding: const EdgeInsets.all(12),
+            decoration: BoxDecoration(
+              color: const Color(0xFF1E281F),
+              borderRadius: BorderRadius.circular(10),
+              border: Border.all(color: const Color(0xFF66BB6A).withValues(alpha: 0.4)),
+            ),
+            child: Text(
+              s.streetCode!,
+              style: const TextStyle(fontSize: 13, color: Color(0xFFA5D6A7), fontWeight: FontWeight.w600),
+            ),
+          ),
+        ],
         const SizedBox(height: 16),
         const Text(
           'टुकड़ों में समझिए (Breakdown)',
@@ -304,18 +334,66 @@ class _LessonPageState extends State<LessonPage> {
             );
           }).toList(),
         ),
-        if (s.note != null) ...[
-          const SizedBox(height: 16),
-          Container(
-            width: double.infinity,
-            padding: const EdgeInsets.all(12),
-            decoration: BoxDecoration(
-              color: Theme.of(context).colorScheme.surfaceContainerHighest,
-              borderRadius: BorderRadius.circular(12),
-            ),
-            child: Text('💡 ${s.note!}', style: const TextStyle(fontSize: 14)),
+      ],
+    );
+  }
+
+  Widget _speakPracticeBody(SpeakPracticeStep s) {
+    final settings = AppSettingsStore.instance;
+    final primary = settings.isDevanagari ? s.targetDeva : s.targetRoman;
+
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Text(
+          'बोलकर अभ्यास करें (Listen & Speak)',
+          style: TextStyle(
+            fontSize: 13,
+            fontWeight: FontWeight.w800,
+            color: Theme.of(context).colorScheme.primary,
           ),
-        ],
+        ),
+        const SizedBox(height: 14),
+        Container(
+          width: double.infinity,
+          padding: const EdgeInsets.all(20),
+          decoration: BoxDecoration(
+            color: Theme.of(context).colorScheme.surfaceContainerHighest,
+            borderRadius: BorderRadius.circular(16),
+          ),
+          child: Column(
+            children: [
+              Text(
+                'अर्थ: "${s.promptHindi}"',
+                style: const TextStyle(fontSize: 16, fontWeight: FontWeight.w600),
+              ),
+              const SizedBox(height: 16),
+              Text(
+                primary,
+                textAlign: TextAlign.center,
+                style: const TextStyle(fontSize: 26, fontWeight: FontWeight.w900),
+              ),
+              const SizedBox(height: 16),
+              IconButton.filledTonal(
+                iconSize: 34,
+                icon: const Icon(Icons.volume_up),
+                onPressed: () => TtsService.instance.speak(s.targetRoman),
+              ),
+              const SizedBox(height: 6),
+              const Text('उच्चारण सुनें और 2 बार ज़ोर से बोलें', style: TextStyle(fontSize: 12)),
+            ],
+          ),
+        ),
+        const SizedBox(height: 16),
+        Container(
+          width: double.infinity,
+          padding: const EdgeInsets.all(12),
+          decoration: BoxDecoration(
+            color: const Color(0xFF261D12),
+            borderRadius: BorderRadius.circular(10),
+          ),
+          child: Text('💡 ${s.tip}', style: const TextStyle(fontSize: 13, color: Color(0xFFFFB74D))),
+        ),
       ],
     );
   }
