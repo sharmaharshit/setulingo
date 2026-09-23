@@ -8,10 +8,6 @@ void _open(BuildContext context, Widget page) {
   Navigator.push(context, MaterialPageRoute(builder: (_) => page));
 }
 
-// ---------------------------------------------------------------------------
-// Root Navigation Container
-// ---------------------------------------------------------------------------
-
 class HomePage extends StatefulWidget {
   const HomePage({super.key});
 
@@ -32,7 +28,10 @@ class _HomePageState extends State<HomePage> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      body: _pages[_tab],
+      body: AnimatedSwitcher(
+        duration: const Duration(milliseconds: 200),
+        child: _pages[_tab],
+      ),
       bottomNavigationBar: NavigationBar(
         selectedIndex: _tab,
         onDestinationSelected: (i) => setState(() => _tab = i),
@@ -43,8 +42,8 @@ class _HomePageState extends State<HomePage> {
             label: 'Communicate',
           ),
           NavigationDestination(
-            icon: Icon(Icons.science_outlined),
-            selectedIcon: Icon(Icons.science),
+            icon: Icon(Icons.auto_awesome_outlined),
+            selectedIcon: Icon(Icons.auto_awesome),
             label: 'Sentence Lab',
           ),
           NavigationDestination(
@@ -64,7 +63,7 @@ class _HomePageState extends State<HomePage> {
 }
 
 // ---------------------------------------------------------------------------
-// 1. Communicate Page (Daily Scenario + Categories + Quick Search)
+// 1. Communicate Page
 // ---------------------------------------------------------------------------
 
 class CommunicatePage extends StatelessWidget {
@@ -76,7 +75,7 @@ class CommunicatePage extends StatelessWidget {
       isScrollControlled: true,
       backgroundColor: Theme.of(context).scaffoldBackgroundColor,
       shape: const RoundedRectangleBorder(
-        borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
+        borderRadius: BorderRadius.vertical(top: Radius.circular(24)),
       ),
       builder: (_) => const SurvivalSearchSheet(),
     );
@@ -86,13 +85,14 @@ class CommunicatePage extends StatelessWidget {
   Widget build(BuildContext context) {
     final settings = AppSettingsStore.instance;
     final dailyScenario = getDailyScenario();
+    final scheme = Theme.of(context).colorScheme;
 
     return ListenableBuilder(
       listenable: settings,
       builder: (context, _) {
         return Scaffold(
           appBar: AppBar(
-            title: const Text('SetuLingo', style: TextStyle(fontWeight: FontWeight.w900)),
+            title: const Text('SetuLingo', style: TextStyle(fontWeight: FontWeight.w900, letterSpacing: -0.6)),
             actions: [
               IconButton(
                 icon: const Icon(Icons.search),
@@ -104,7 +104,7 @@ class CommunicatePage extends StatelessWidget {
                 icon: const Icon(Icons.translate, size: 16),
                 label: Text(
                   settings.isDevanagari ? 'अ Hindi' : '🔤 Eng',
-                  style: const TextStyle(fontWeight: FontWeight.w700),
+                  style: const TextStyle(fontWeight: FontWeight.w800),
                 ),
               ),
             ],
@@ -112,78 +112,82 @@ class CommunicatePage extends StatelessWidget {
           body: ListView(
             padding: const EdgeInsets.all(16),
             children: [
-              // Daily Scenario Banner
+              // Premium 2-Minute Goal Card
               Container(
-                padding: const EdgeInsets.all(16),
+                padding: const EdgeInsets.all(18),
                 decoration: BoxDecoration(
-                  gradient: const LinearGradient(
-                    colors: [Color(0xFF2E1C0C), Color(0xFF1B1B1E)],
+                  gradient: LinearGradient(
+                    colors: [const Color(0xFF2A1B0E), scheme.surfaceContainer],
                     begin: Alignment.topLeft,
                     end: Alignment.bottomRight,
                   ),
-                  borderRadius: BorderRadius.circular(16),
-                  border: Border.all(color: const Color(0xFFFF9800).withValues(alpha: 0.4)),
+                  borderRadius: BorderRadius.circular(18),
+                  border: Border.all(color: scheme.primary.withValues(alpha: 0.35)),
                 ),
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
                     Row(
                       children: [
-                        const Text('🔥 आज का परिदृश्य (Daily 2-min Goal)',
-                            style: TextStyle(fontSize: 12, fontWeight: FontWeight.w800, color: Color(0xFFFFB74D))),
+                        Text('🔥 2-MIN DAILY GOAL',
+                            style: TextStyle(fontSize: 10, fontWeight: FontWeight.w900, letterSpacing: 1.2, color: scheme.primary)),
                         const Spacer(),
                         Container(
-                          padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
+                          padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
                           decoration: BoxDecoration(
-                            color: const Color(0xFFFF9800),
-                            borderRadius: BorderRadius.circular(4),
+                            color: scheme.primary,
+                            borderRadius: BorderRadius.circular(12),
                           ),
-                          child: const Text('New', style: TextStyle(fontSize: 10, fontWeight: FontWeight.w900, color: Colors.black)),
+                          child: const Text('Today', style: TextStyle(fontSize: 10, fontWeight: FontWeight.w900, color: Colors.black)),
                         ),
                       ],
                     ),
-                    const SizedBox(height: 6),
-                    Text(dailyScenario.title, style: const TextStyle(fontSize: 18, fontWeight: FontWeight.w900)),
-                    Text(dailyScenario.hindiTitle, style: TextStyle(fontSize: 14, color: Theme.of(context).colorScheme.onSurfaceVariant)),
-                    const SizedBox(height: 12),
+                    const SizedBox(height: 8),
+                    Text(dailyScenario.title, style: const TextStyle(fontSize: 20, fontWeight: FontWeight.w900, letterSpacing: -0.3)),
+                    Text(dailyScenario.hindiTitle, style: TextStyle(fontSize: 14, color: scheme.onSurfaceVariant)),
+                    const SizedBox(height: 14),
                     SizedBox(
                       width: double.infinity,
                       child: FilledButton.icon(
                         style: FilledButton.styleFrom(
-                          backgroundColor: const Color(0xFFFF9800),
+                          backgroundColor: scheme.primary,
                           foregroundColor: Colors.black,
+                          padding: const EdgeInsets.symmetric(vertical: 13),
                         ),
                         onPressed: () => _open(context, SituationDetailPage(situation: dailyScenario)),
-                        icon: const Icon(Icons.play_arrow, size: 18),
-                        label: const Text('2-Minute Practice शुरू करें', style: TextStyle(fontWeight: FontWeight.w800)),
+                        icon: const Icon(Icons.play_arrow_rounded, size: 20),
+                        label: const Text('Start 2-Min Practice', style: TextStyle(fontWeight: FontWeight.w800)),
                       ),
                     ),
                   ],
                 ),
               ),
-              const SizedBox(height: 20),
+              const SizedBox(height: 22),
               Text(
-                'परिस्थितियाँ (Categories)',
+                'Situations (परिस्थितियाँ)',
                 style: TextStyle(
                   fontSize: 18,
                   fontWeight: FontWeight.w800,
-                  color: Theme.of(context).colorScheme.primary,
+                  letterSpacing: -0.3,
+                  color: scheme.onSurface,
                 ),
               ),
-              const SizedBox(height: 2),
+              const SizedBox(height: 4),
               Text(
-                'ज़रूरत के अनुसार कैटेगरी चुनें:',
-                style: TextStyle(fontSize: 13, color: Theme.of(context).colorScheme.onSurfaceVariant),
+                'ज़रूरत के अनुसार रियल-लाइफ़ कैटेगरी चुनें:',
+                style: TextStyle(fontSize: 13, color: scheme.onSurfaceVariant),
               ),
               const SizedBox(height: 12),
               for (final cat in categories)
                 Card(
                   margin: const EdgeInsets.only(bottom: 10),
                   child: ListTile(
+                    contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 4),
                     leading: Text(cat.emoji, style: const TextStyle(fontSize: 28)),
-                    title: Text(cat.title, style: const TextStyle(fontWeight: FontWeight.w800)),
-                    subtitle: Text('${cat.hindiTitle} · ${cat.situations.length} परिस्थितियाँ'),
-                    trailing: const Icon(Icons.chevron_right),
+                    title: Text(cat.title, style: const TextStyle(fontWeight: FontWeight.w800, fontSize: 16, letterSpacing: -0.2)),
+                    subtitle: Text('${cat.hindiTitle} · ${cat.situations.length} परिस्थितियाँ',
+                        style: TextStyle(fontSize: 13, color: scheme.onSurfaceVariant)),
+                    trailing: const Icon(Icons.chevron_right, size: 20),
                     onTap: () => _open(context, CategorySituationsPage(category: cat)),
                   ),
                 ),
@@ -196,7 +200,217 @@ class CommunicatePage extends StatelessWidget {
 }
 
 // ---------------------------------------------------------------------------
-// Street Survival Quick-Search Sheet
+// 2. Sentence Lab: Instant Hinglish-to-Kannada Generator
+// ---------------------------------------------------------------------------
+
+class SentenceLabPage extends StatefulWidget {
+  const SentenceLabPage({super.key});
+
+  @override
+  State<SentenceLabPage> createState() => _SentenceLabPageState();
+}
+
+class _SentenceLabPageState extends State<SentenceLabPage> {
+  final TextEditingController _controller = TextEditingController();
+  String _input = '';
+
+  final List<String> _promptPills = [
+    'paani chahiye',
+    'chalo',
+    'kitna hua',
+    'bill kodi',
+    'yahan roko',
+    'coffee beku',
+    'thoda kam karo',
+    'i love you',
+    'miss you',
+    'chhutti chahiye',
+  ];
+
+  @override
+  Widget build(BuildContext context) {
+    final scheme = Theme.of(context).colorScheme;
+    final settings = AppSettingsStore.instance;
+    final sentencesStore = MySentencesStore.instance;
+
+    final results = searchSentences(_input.isEmpty ? 'coffee' : _input);
+
+    return ListenableBuilder(
+      listenable: settings,
+      builder: (context, _) {
+        return Scaffold(
+          appBar: AppBar(
+            title: const Text('Sentence Lab ⚡', style: TextStyle(fontWeight: FontWeight.w900, letterSpacing: -0.4)),
+            actions: [
+              TextButton.icon(
+                onPressed: () => settings.toggleMode(),
+                icon: const Icon(Icons.translate, size: 16),
+                label: Text(settings.isDevanagari ? 'अ Hindi' : '🔤 Eng'),
+              ),
+            ],
+          ),
+          body: ListView(
+            padding: const EdgeInsets.all(16),
+            children: [
+              Text(
+                'Type in Hinglish (हिंग्लिश में लिखें)',
+                style: TextStyle(
+                  fontSize: 20,
+                  fontWeight: FontWeight.w800,
+                  letterSpacing: -0.3,
+                  color: scheme.primary,
+                ),
+              ),
+              const SizedBox(height: 4),
+              Text(
+                'रोमन हिंदी में लिखें (उदा: "paani chahiye", "yahan roko", "i love you"):',
+                style: TextStyle(fontSize: 13, color: scheme.onSurfaceVariant),
+              ),
+              const SizedBox(height: 14),
+
+              // Spotlight-style Search Input
+              Container(
+                decoration: BoxDecoration(
+                  color: scheme.surfaceContainer,
+                  borderRadius: BorderRadius.circular(16),
+                  border: Border.all(color: scheme.primary.withValues(alpha: 0.4), width: 1.2),
+                ),
+                child: TextField(
+                  controller: _controller,
+                  style: const TextStyle(fontSize: 17, fontWeight: FontWeight.w700),
+                  decoration: InputDecoration(
+                    hintText: 'उदा. "chalo", "paani do", "kitna hua"...',
+                    hintStyle: TextStyle(color: scheme.onSurfaceVariant.withValues(alpha: 0.6), fontSize: 15),
+                    prefixIcon: Icon(Icons.keyboard_outlined, color: scheme.primary),
+                    suffixIcon: _input.isNotEmpty
+                        ? IconButton(
+                            icon: const Icon(Icons.close),
+                            onPressed: () {
+                              _controller.clear();
+                              setState(() => _input = '');
+                            },
+                          )
+                        : null,
+                    border: InputBorder.none,
+                    contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
+                  ),
+                  onChanged: (val) => setState(() => _input = val),
+                ),
+              ),
+              const SizedBox(height: 12),
+
+              // Quick suggestion pills
+              SingleChildScrollView(
+                scrollDirection: Axis.horizontal,
+                child: Row(
+                  children: _promptPills.map((pill) {
+                    return Padding(
+                      padding: const EdgeInsets.only(right: 8),
+                      child: ActionChip(
+                        label: Text(pill, style: const TextStyle(fontSize: 13, fontWeight: FontWeight.w600)),
+                        onPressed: () {
+                          _controller.text = pill;
+                          setState(() => _input = pill);
+                        },
+                      ),
+                    );
+                  }).toList(),
+                ),
+              ),
+              const SizedBox(height: 20),
+
+              Text(
+                'कन्नड़ अनुवाद व उच्चारण',
+                style: TextStyle(fontSize: 16, fontWeight: FontWeight.w800, letterSpacing: -0.2, color: scheme.onSurface),
+              ),
+              const SizedBox(height: 10),
+
+              if (results.isEmpty) ...[
+                Container(
+                  padding: const EdgeInsets.all(24),
+                  decoration: BoxDecoration(
+                    color: scheme.surfaceContainer,
+                    borderRadius: BorderRadius.circular(16),
+                  ),
+                  child: Center(
+                    child: Text(
+                      'कोई मिलता-जुलता वाक्य नहीं मिला। ऊपर दिए गए किसी शब्द पर टैप करें।',
+                      textAlign: TextAlign.center,
+                      style: TextStyle(color: scheme.onSurfaceVariant),
+                    ),
+                  ),
+                ),
+              ] else ...[
+                for (final item in results) ...[
+                  Card(
+                    margin: const EdgeInsets.only(bottom: 12),
+                    child: Padding(
+                      padding: const EdgeInsets.all(16),
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Row(
+                            children: [
+                              Expanded(
+                                child: Text(
+                                  settings.isDevanagari ? item.deva : item.roman,
+                                  style: const TextStyle(fontSize: 20, fontWeight: FontWeight.w900, letterSpacing: -0.3),
+                                ),
+                              ),
+                              IconButton(
+                                icon: const Icon(Icons.volume_up_outlined),
+                                tooltip: 'उच्चारण सुनें',
+                                onPressed: () => TtsService.instance.speak(item.roman),
+                              ),
+                              IconButton(
+                                icon: const Icon(Icons.bookmark_add_outlined),
+                                tooltip: 'Save to My Sentences',
+                                onPressed: () {
+                                  sentencesStore.addSentence(
+                                    SavedSentence(
+                                      id: 'lab_${DateTime.now().millisecondsSinceEpoch}',
+                                      roman: item.roman,
+                                      deva: item.deva,
+                                      hindi: item.hindi,
+                                      createdAt: DateTime.now(),
+                                    ),
+                                  );
+                                  ScaffoldMessenger.of(context).showSnackBar(
+                                    const SnackBar(content: Text('Saved to My Sentences!')),
+                                  );
+                                },
+                              ),
+                            ],
+                          ),
+                          Text(
+                            settings.isDevanagari ? item.roman : item.deva,
+                            style: TextStyle(fontSize: 13, color: scheme.onSurfaceVariant),
+                          ),
+                          const Divider(height: 18, color: Color(0xFF272733)),
+                          Text(
+                            item.hindi,
+                            style: TextStyle(fontSize: 15, fontWeight: FontWeight.w700, color: scheme.primary),
+                          ),
+                          if (item.streetCode != null) ...[
+                            const SizedBox(height: 8),
+                            Text(item.streetCode!, style: const TextStyle(fontSize: 11, color: Color(0xFFFFB74D))),
+                          ],
+                        ],
+                      ),
+                    ),
+                  ),
+                ],
+              ],
+            ],
+          ),
+        );
+      },
+    );
+  }
+}
+
+// ---------------------------------------------------------------------------
+// Street Survival Search Bottom Sheet
 // ---------------------------------------------------------------------------
 
 class SurvivalSearchSheet extends StatefulWidget {
@@ -209,21 +423,11 @@ class SurvivalSearchSheet extends StatefulWidget {
 class _SurvivalSearchSheetState extends State<SurvivalSearchSheet> {
   String _query = '';
   final TextEditingController _controller = TextEditingController();
-
-  final List<String> _quickTags = ['Auto', 'Coffee', 'Stop', 'Chutta', 'Help', 'Price'];
+  final List<String> _quickTags = ['Auto', 'Coffee', 'Stop', 'Chutta', 'Help', 'Price', 'Love'];
 
   @override
   Widget build(BuildContext context) {
-    final allSentences = categories.expand((c) => c.situations).expand((s) => s.sentences).toList();
-
-    final results = allSentences.where((s) {
-      final q = _query.toLowerCase().trim();
-      if (q.isEmpty) return false;
-      return s.roman.toLowerCase().contains(q) ||
-          s.deva.contains(q) ||
-          s.hindi.contains(q) ||
-          s.searchTags.any((t) => t.toLowerCase().contains(q));
-    }).toList();
+    final results = searchSentences(_query);
 
     return Padding(
       padding: EdgeInsets.only(
@@ -238,7 +442,7 @@ class _SurvivalSearchSheetState extends State<SurvivalSearchSheet> {
         children: [
           Row(
             children: [
-              const Text('⚡ Street Survival Search', style: TextStyle(fontSize: 18, fontWeight: FontWeight.w900)),
+              const Text('⚡ Street Survival Search', style: TextStyle(fontSize: 18, fontWeight: FontWeight.w900, letterSpacing: -0.3)),
               const Spacer(),
               IconButton(icon: const Icon(Icons.close), onPressed: () => Navigator.pop(context)),
             ],
@@ -248,10 +452,10 @@ class _SurvivalSearchSheetState extends State<SurvivalSearchSheet> {
             controller: _controller,
             autofocus: true,
             decoration: InputDecoration(
-              hintText: 'सर्च करें: "meter", "chutta", "stop", "कॉफ़ी"...',
+              hintText: 'सर्च करें: "meter", "chutta", "stop", "coffee"...',
               prefixIcon: const Icon(Icons.search),
               filled: true,
-              border: OutlineInputBorder(borderRadius: BorderRadius.circular(12), borderSide: BorderSide.none),
+              border: OutlineInputBorder(borderRadius: BorderRadius.circular(14), borderSide: BorderSide.none),
             ),
             onChanged: (val) => setState(() => _query = val),
           ),
@@ -299,7 +503,7 @@ class _SurvivalSearchSheetState extends State<SurvivalSearchSheet> {
 }
 
 // ---------------------------------------------------------------------------
-// Category & Situation Details
+// Category Situations & Detail Pages
 // ---------------------------------------------------------------------------
 
 class CategorySituationsPage extends StatelessWidget {
@@ -325,7 +529,7 @@ class CategorySituationsPage extends StatelessWidget {
             Card(
               margin: const EdgeInsets.only(bottom: 10),
               child: ListTile(
-                title: Text(situation.title, style: const TextStyle(fontWeight: FontWeight.w800)),
+                title: Text(situation.title, style: const TextStyle(fontWeight: FontWeight.w800, letterSpacing: -0.2)),
                 subtitle: Text('${situation.hindiTitle} · ${situation.sentences.length} वाक्य'),
                 trailing: const Icon(Icons.chevron_right),
                 onTap: () => _open(context, SituationDetailPage(situation: situation)),
@@ -347,7 +551,7 @@ class SituationDetailPage extends StatefulWidget {
 }
 
 class _SituationDetailPageState extends State<SituationDetailPage> {
-  int _viewIndex = 0; // 0: Sentences, 1: Roleplay Dialogue
+  int _viewIndex = 0;
 
   @override
   Widget build(BuildContext context) {
@@ -373,21 +577,22 @@ class _SituationDetailPageState extends State<SituationDetailPage> {
             padding: const EdgeInsets.all(16),
             children: [
               Container(
-                padding: const EdgeInsets.all(14),
+                padding: const EdgeInsets.all(16),
                 decoration: BoxDecoration(
-                  color: Theme.of(context).colorScheme.surfaceContainerHighest,
-                  borderRadius: BorderRadius.circular(12),
+                  color: Theme.of(context).colorScheme.surfaceContainer,
+                  borderRadius: BorderRadius.circular(16),
+                  border: Border.all(color: Theme.of(context).colorScheme.outlineVariant),
                 ),
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
                     Text(
                       situation.hindiTitle,
-                      style: const TextStyle(fontSize: 17, fontWeight: FontWeight.w800),
+                      style: const TextStyle(fontSize: 18, fontWeight: FontWeight.w900, letterSpacing: -0.2),
                     ),
-                    const SizedBox(height: 2),
+                    const SizedBox(height: 3),
                     Text(situation.description, style: const TextStyle(fontSize: 13)),
-                    const SizedBox(height: 10),
+                    const SizedBox(height: 12),
                     SizedBox(
                       width: double.infinity,
                       child: FilledButton.icon(
@@ -395,8 +600,8 @@ class _SituationDetailPageState extends State<SituationDetailPage> {
                           final lesson = generateLessonFromSituation(situation);
                           _open(context, LessonPage(lesson: lesson));
                         },
-                        icon: const Icon(Icons.play_arrow, size: 18),
-                        label: const Text('Guided Practice शुरू करें'),
+                        icon: const Icon(Icons.play_arrow_rounded, size: 20),
+                        label: const Text('Guided Practice शुरू करें', style: TextStyle(fontWeight: FontWeight.w800)),
                       ),
                     ),
                   ],
@@ -407,226 +612,30 @@ class _SituationDetailPageState extends State<SituationDetailPage> {
                 SegmentedButton<int>(
                   segments: const [
                     ButtonSegment(value: 0, label: Text('वाक्य सूची')),
-                    ButtonSegment(value: 1, label: Text('रोलप्ले बातचीत (Dialogue)')),
+                    ButtonSegment(value: 1, label: Text('रोलप्ले (Dialogue)')),
                   ],
                   selected: {_viewIndex},
                   onSelectionChanged: (val) => setState(() => _viewIndex = val.first),
                 ),
-                const SizedBox(height: 16),
+                const SizedBox(height: 14),
               ],
-              if (_viewIndex == 0 || !hasDialogue) ...[
-                for (final s in situation.sentences) SentenceCard(sentence: s),
-              ] else ...[
-                RoleplayDialogueWidget(dialogue: situation.dialogue!),
-              ],
-            ],
-          ),
-        );
-      },
-    );
-  }
-}
-
-// ---------------------------------------------------------------------------
-// 2. Sentence Lab (3 Dropdowns)
-// ---------------------------------------------------------------------------
-
-class SentenceLabPage extends StatefulWidget {
-  const SentenceLabPage({super.key});
-
-  @override
-  State<SentenceLabPage> createState() => _SentenceLabPageState();
-}
-
-class _SentenceLabPageState extends State<SentenceLabPage> {
-  int _starterIndex = 0;
-  int _topicIndex = 0;
-  int _endingIndex = 0;
-
-  DropdownOption get _starter => startersList[_starterIndex];
-  DropdownOption get _topic => topicsList[_topicIndex];
-  DropdownOption get _ending => endingsList[_endingIndex];
-
-  String get _builtRoman => '${_starter.roman} ${_topic.roman} ${_ending.roman}';
-  String get _builtDeva => '${_starter.deva} ${_topic.deva} ${_ending.deva}';
-  String get _builtHindi => '${_starter.hindi} ${_topic.hindi} ${_ending.hindi}';
-
-  @override
-  Widget build(BuildContext context) {
-    final scheme = Theme.of(context).colorScheme;
-    final settings = AppSettingsStore.instance;
-    final sentencesStore = MySentencesStore.instance;
-
-    return ListenableBuilder(
-      listenable: settings,
-      builder: (context, _) {
-        final displaySpoken = settings.isDevanagari ? _builtDeva : _builtRoman;
-        final secondarySpoken = settings.isDevanagari ? _builtRoman : _builtDeva;
-
-        return Scaffold(
-          appBar: AppBar(
-            title: const Text('Sentence Lab 🧪'),
-            actions: [
-              TextButton.icon(
-                onPressed: () => settings.toggleMode(),
-                icon: const Icon(Icons.translate, size: 16),
-                label: Text(settings.isDevanagari ? 'अ Hindi' : '🔤 Eng'),
-              ),
-            ],
-          ),
-          body: ListView(
-            padding: const EdgeInsets.all(16),
-            children: [
-              Text(
-                '3 ड्रॉपडाउन से नया वाक्य बनाएँ',
-                style: TextStyle(
-                  fontSize: 20,
-                  fontWeight: FontWeight.w800,
-                  color: scheme.primary,
-                ),
-              ),
-              const SizedBox(height: 2),
-              Text(
-                'कर्ता, विषय और क्रिया चुनकर अपना व्यावहारिक वाक्य तैयार करें:',
-                style: TextStyle(fontSize: 13, color: scheme.onSurfaceVariant),
-              ),
-              const SizedBox(height: 16),
-              _buildDropdownSection(
-                title: '1. कर्ता / शुरुआत (Subject)',
-                value: _starterIndex,
-                items: startersList,
-                onChanged: (val) => setState(() => _starterIndex = val!),
-                isDeva: settings.isDevanagari,
-              ),
-              const SizedBox(height: 10),
-              _buildDropdownSection(
-                title: '2. विषय / वस्तु / स्थान (Topic)',
-                value: _topicIndex,
-                items: topicsList,
-                onChanged: (val) => setState(() => _topicIndex = val!),
-                isDeva: settings.isDevanagari,
-              ),
-              const SizedBox(height: 10),
-              _buildDropdownSection(
-                title: '3. क्रिया / अंत (Verb / Request)',
-                value: _endingIndex,
-                items: endingsList,
-                onChanged: (val) => setState(() => _endingIndex = val!),
-                isDeva: settings.isDevanagari,
-              ),
-              const SizedBox(height: 20),
-              Container(
-                padding: const EdgeInsets.all(16),
-                decoration: BoxDecoration(
-                  color: scheme.surfaceContainerHighest,
-                  borderRadius: BorderRadius.circular(14),
-                  border: Border.all(color: scheme.primary.withValues(alpha: 0.5)),
-                ),
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Row(
-                      children: [
-                        Text(
-                          'तैयार वाक्य (Generated Sentence)',
-                          style: TextStyle(
-                            fontSize: 12,
-                            fontWeight: FontWeight.w800,
-                            color: scheme.primary,
-                          ),
-                        ),
-                        const Spacer(),
-                        IconButton(
-                          icon: const Icon(Icons.volume_up_outlined, size: 20),
-                          tooltip: 'उच्चारण सुनें',
-                          onPressed: () => TtsService.instance.speak(_builtRoman),
-                        ),
-                        IconButton(
-                          icon: const Icon(Icons.bookmark_add, size: 20),
-                          tooltip: 'My Sentences में सहेजें',
-                          onPressed: () {
-                            final sentenceId = 'lab_${DateTime.now().millisecondsSinceEpoch}';
-                            sentencesStore.addSentence(
-                              SavedSentence(
-                                id: sentenceId,
-                                roman: _builtRoman,
-                                deva: _builtDeva,
-                                hindi: _builtHindi,
-                                createdAt: DateTime.now(),
-                              ),
-                            );
-                            ScaffoldMessenger.of(context).showSnackBar(
-                              const SnackBar(content: Text('वाक्य Saved Sentences में जुड़ गया!')),
-                            );
-                          },
-                        ),
-                      ],
-                    ),
-                    const SizedBox(height: 6),
-                    Text(
-                      displaySpoken,
-                      style: const TextStyle(fontSize: 22, fontWeight: FontWeight.w900),
-                    ),
-                    const SizedBox(height: 2),
-                    Text(
-                      secondarySpoken,
-                      style: TextStyle(fontSize: 14, color: scheme.onSurfaceVariant),
-                    ),
-                    const Divider(height: 18),
-                    Text(
-                      _builtHindi,
-                      style: TextStyle(
-                        fontSize: 17,
-                        color: scheme.primary,
-                        fontWeight: FontWeight.w700,
-                      ),
-                    ),
-                  ],
+              AnimatedSwitcher(
+                duration: const Duration(milliseconds: 220),
+                child: KeyedSubtree(
+                  key: ValueKey<int>(_viewIndex),
+                  child: (_viewIndex == 0 || !hasDialogue)
+                      ? Column(
+                          children: [
+                            for (final s in situation.sentences) SentenceCard(sentence: s),
+                          ],
+                        )
+                      : RoleplayDialogueWidget(dialogue: situation.dialogue!),
                 ),
               ),
             ],
           ),
         );
       },
-    );
-  }
-
-  Widget _buildDropdownSection({
-    required String title,
-    required int value,
-    required List<DropdownOption> items,
-    required ValueChanged<int?> onChanged,
-    required bool isDeva,
-  }) {
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        Text(title, style: const TextStyle(fontSize: 13, fontWeight: FontWeight.w700)),
-        const SizedBox(height: 4),
-        Card(
-          margin: EdgeInsets.zero,
-          child: Padding(
-            padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 2),
-            child: DropdownButtonHideUnderline(
-              child: DropdownButton<int>(
-                isExpanded: true,
-                value: value,
-                items: [
-                  for (int i = 0; i < items.length; i++)
-                    DropdownMenuItem(
-                      value: i,
-                      child: Text(
-                        '${isDeva ? items[i].deva : items[i].roman}  (${items[i].hindi})',
-                        style: const TextStyle(fontSize: 15, fontWeight: FontWeight.w600),
-                      ),
-                    ),
-                ],
-                onChanged: onChanged,
-              ),
-            ),
-          ),
-        ),
-      ],
     );
   }
 }
@@ -753,13 +762,12 @@ class MyWordsPage extends StatelessWidget {
                 tabs: [
                   Tab(text: 'सहेजे शब्द'),
                   Tab(text: 'सहेजे वाक्य'),
-                  Tab(text: '🎯 फ़्लैशकार्ड अभ्यास'),
+                  Tab(text: '🎯 फ़्लैशकार्ड'),
                 ],
               ),
             ),
             body: TabBarView(
               children: [
-                // Words
                 ListenableBuilder(
                   listenable: wordsStore,
                   builder: (context, _) {
@@ -789,7 +797,6 @@ class MyWordsPage extends StatelessWidget {
                     );
                   },
                 ),
-                // Sentences
                 ListenableBuilder(
                   listenable: sentencesStore,
                   builder: (context, _) {
@@ -820,7 +827,6 @@ class MyWordsPage extends StatelessWidget {
                     );
                   },
                 ),
-                // Flashcards Active Recall Mode
                 const ActiveRecallFlashcards(),
               ],
             ),
@@ -884,39 +890,49 @@ class _ActiveRecallFlashcardsState extends State<ActiveRecallFlashcards> {
           Expanded(
             child: GestureDetector(
               onTap: () => setState(() => _revealed = !_revealed),
-              child: Card(
-                elevation: 2,
-                child: Container(
-                  width: double.infinity,
-                  padding: const EdgeInsets.all(24),
-                  child: Column(
-                    mainAxisAlignment: MainAxisAlignment.center,
-                    children: [
-                      const Text('हिंदी अर्थ (दिमाग पर ज़ोर दें):', style: TextStyle(fontSize: 13)),
-                      const SizedBox(height: 8),
-                      Text(
-                        current.hindi,
-                        textAlign: TextAlign.center,
-                        style: const TextStyle(fontSize: 22, fontWeight: FontWeight.w800),
-                      ),
-                      const Divider(height: 36),
-                      if (!_revealed) ...[
-                        const Icon(Icons.touch_app, size: 36, color: Colors.white38),
+              child: AnimatedSwitcher(
+                duration: const Duration(milliseconds: 280),
+                transitionBuilder: (child, animation) {
+                  return FadeTransition(
+                    opacity: animation,
+                    child: ScaleTransition(scale: Tween<double>(begin: 0.95, end: 1.0).animate(animation), child: child),
+                  );
+                },
+                child: Card(
+                  key: ValueKey<bool>(_revealed),
+                  elevation: 2,
+                  child: Container(
+                    width: double.infinity,
+                    padding: const EdgeInsets.all(24),
+                    child: Column(
+                      mainAxisAlignment: MainAxisAlignment.center,
+                      children: [
+                        const Text('हिंदी अर्थ (दिमाग पर ज़ोर दें):', style: TextStyle(fontSize: 13)),
                         const SizedBox(height: 8),
-                        const Text('कन्नड़ देखने के लिए टैप करें', style: TextStyle(fontSize: 13, color: Colors.white54)),
-                      ] else ...[
                         Text(
-                          displaySpoken,
+                          current.hindi,
                           textAlign: TextAlign.center,
-                          style: TextStyle(fontSize: 26, fontWeight: FontWeight.w900, color: Theme.of(context).colorScheme.primary),
+                          style: const TextStyle(fontSize: 22, fontWeight: FontWeight.w800, letterSpacing: -0.3),
                         ),
-                        const SizedBox(height: 14),
-                        IconButton.filledTonal(
-                          icon: const Icon(Icons.volume_up),
-                          onPressed: () => TtsService.instance.speak(current.roman),
-                        ),
+                        const Divider(height: 36, color: Color(0xFF272733)),
+                        if (!_revealed) ...[
+                          const Icon(Icons.touch_app, size: 36, color: Colors.white38),
+                          const SizedBox(height: 8),
+                          const Text('कन्नड़ देखने के लिए टैप करें', style: TextStyle(fontSize: 13, color: Colors.white54)),
+                        ] else ...[
+                          Text(
+                            displaySpoken,
+                            textAlign: TextAlign.center,
+                            style: TextStyle(fontSize: 26, fontWeight: FontWeight.w900, letterSpacing: -0.4, color: Theme.of(context).colorScheme.primary),
+                          ),
+                          const SizedBox(height: 14),
+                          IconButton.filledTonal(
+                            icon: const Icon(Icons.volume_up),
+                            onPressed: () => TtsService.instance.speak(current.roman),
+                          ),
+                        ],
                       ],
-                    ],
+                    ),
                   ),
                 ),
               ),
