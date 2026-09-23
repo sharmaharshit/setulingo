@@ -261,8 +261,8 @@ final List<EncounterStepNode> epicEncounterStory = [
     narrativeEn: '7:30 AM. Your alarm rings. You look at the clock and realize you are late for office. What do you decide?',
     narrativeHi: 'सुबह ७:३० बजे अलार्म बजा। आपने घड़ी देखी और पाया कि आप ऑफ़िस के लिए लेट हो रहे हैं। आप क्या तय करते हैं?',
     options: [
-      EncounterOption(badge: 'Skip Shower', kannada_roman: 'Snana beda, bega hogona.', kannadaDeva: 'स्नान बेडा, बेग होगोणा।', hindiMeaning: 'स्नान नहीं, जल्दी चलते हैं।', nextStep: 2),
-      EncounterOption(badge: 'Take Leave', kannada_roman: 'Inru office-ge chhutti.', kannadaDeva: 'इंद्रू ऑफ़िस-गे छुरी।', hindiMeaning: 'आज ऑफ़िस की छुट्टी।', nextStep: 3),
+      EncounterOption(badge: 'Skip Shower', kannadaRoman: 'Snana beda, bega hogona.', kannadaDeva: 'स्नान बेडा, बेग होगोणा।', hindiMeaning: 'स्नान नहीं, जल्दी चलते हैं।', nextStep: 2),
+      EncounterOption(badge: 'Take Leave', kannadaRoman: 'Inru office-ge chhutti.', kannadaDeva: 'इंद्रू ऑफ़िस-गे छुरी।', hindiMeaning: 'आज ऑफ़िस की छुट्टी।', nextStep: 3),
     ],
   ),
   const EncounterStepNode(
@@ -271,8 +271,8 @@ final List<EncounterStepNode> epicEncounterStory = [
     narrativeEn: 'You rush out without breakfast. On the street corner, you spot a crowded Darshini. Do you stop?',
     narrativeHi: 'आप बिना नाश्ते के भागे। गली के नुक्कड़ पर एक भीड़भाड़ वाली दर्शिनी दिखी। क्या आप रुकेंगे?',
     options: [
-      EncounterOption(badge: 'Order Coffee', kannada_roman: 'Nanage ondu coffee beku.', kannadaDeva: 'ननगे ओन्दु कॉफ़ी बेकु।', hindiMeaning: 'मुझे एक कॉफ़ी चाहिए।', nextStep: 4),
-      EncounterOption(badge: 'Skip & Walk', kannada_roman: 'Beda, naanu hogtheeni.', kannadaDeva: 'बेड़ा, नानु होग्तीनी।', hindiMeaning: 'नहीं, मैं जा रहा हूँ।', nextStep: 5),
+      EncounterOption(badge: 'Order Coffee', kannadaRoman: 'Nanage ondu coffee beku.', kannadaDeva: 'ननगे ओन्दु कॉफ़ी बेकु।', hindiMeaning: 'मुझे एक कॉफ़ी चाहिए।', nextStep: 4),
+      EncounterOption(badge: 'Skip & Walk', kannadaRoman: 'Beda, naanu hogtheeni.', kannadaDeva: 'बेड़ा, नानु होग्तीनी।', hindiMeaning: 'नहीं, मैं जा रहा हूँ।', nextStep: 5),
     ],
   ),
   const EncounterStepNode(
@@ -281,8 +281,8 @@ final List<EncounterStepNode> epicEncounterStory = [
     narrativeEn: 'You decide to take a leave. Your manager picks up the phone sounding annoyed. What excuse do you give?',
     narrativeHi: 'आपने छुट्टी लेने का फैसला किया। मैनेजर ने नाराज़ आवाज़ में फ़ोन उठाया। आप क्या बहाना देंगे?',
     options: [
-      EncounterOption(badge: 'Fever Excuse', kannada_roman: 'Nanage jwara bandide.', kannadaDeva: 'ननगे ज्वर बंदिदे।', hindiMeaning: 'मुझे बुख़ार आ गया है।', nextStep: 6),
-      EncounterOption(badge: 'Family Work',_roman: 'Maneli kelasa ide.', kannadaDeva: 'मनेलि कलस इदे।', hindiMeaning: 'घर पर काम है।', nextStep: 6),
+      EncounterOption(badge: 'Fever Excuse', kannadaRoman: 'Nanage jwara bandide.', kannadaDeva: 'ननगे ज्वर बंदिदे।', hindiMeaning: 'मुझे बुख़ार आ गया है।', nextStep: 6),
+      EncounterOption(badge: 'Family Work', kannadaRoman: 'Maneli kelasa ide.', kannadaDeva: 'मनेलि कलस इदे।', hindiMeaning: 'घर पर काम है।', nextStep: 6),
     ],
   ),
   const EncounterStepNode(
@@ -291,8 +291,8 @@ final List<EncounterStepNode> epicEncounterStory = [
     narrativeEn: 'You ask for coffee. The counter guy asks if you want anything else to eat.',
     narrativeHi: 'आपने कॉफ़ी माँगी। काउंटर वाले ने पूछा कि क्या खाने के लिए कुछ और चाहिए?',
     options: [
-      EncounterOption(badge: 'Add Dosa', kannada_roman: 'Ondu masala dose kodi.', kannadaDeva: 'ओन्दु मसाला दोसे कोडि।', hindiMeaning: 'एक मसाला डोसा दीजिए।', nextStep: 7),
-      EncounterOption(badge: 'Only Coffee', kannada_roman: 'Coffee mathra saaku.', kannadaDeva: 'कॉफ़ी मात्र साकु।', hindiMeaning: 'बस कॉफ़ी काफ़ी है।', nextStep: 7),
+      EncounterOption(badge: 'Add Dosa', kannadaRoman: 'Ondu masala dose kodi.', kannadaDeva: 'ओन्दु मसाला दोसे कोडि।', hindiMeaning: 'एक मसाला डोसा दीजिए।', nextStep: 7),
+      EncounterOption(badge: 'Only Coffee', kannadaRoman: 'Coffee mathra saaku.', kannadaDeva: 'कॉफ़ी मात्र साकु।', hindiMeaning: 'बस कॉफ़ी काफ़ी है।', nextStep: 7),
     ],
   ),
   const EncounterStepNode(
@@ -301,8 +301,8 @@ final List<EncounterStepNode> epicEncounterStory = [
     narrativeEn: 'You walk toward the main road and wave down an auto. The driver looks at you.',
     narrativeHi: 'आप मुख्य सड़क की तरफ़ चले और ऑटो वाले को हाथ दिया। ड्राइवर आपकी तरफ़ देखता है।',
     options: [
-      EncounterOption(badge: 'Ask Destination', kannada_roman: 'MG Road-ge barthira?', kannadaDeva: 'एमजी रोड-गे बर्तीरा?', hindiMeaning: 'एमजी रोड चलेंगे क्या?', nextStep: 8),
-      EncounterOption(badge: 'Ask Meter', kannada_roman: 'Meter haaki anna.', kannadaDeva: 'मीटर हाकि अण्णा।', hindiMeaning: 'मीटर लगाइए भैया।', nextStep: 8),
+      EncounterOption(badge: 'Ask Destination', kannadaRoman: 'MG Road-ge barthira?', kannadaDeva: 'एमजी रोड-गे बर्तीरा?', hindiMeaning: 'एमजी रोड चलेंगे क्या?', nextStep: 8),
+      EncounterOption(badge: 'Ask Meter', kannadaRoman: 'Meter haaki anna.', kannadaDeva: 'मीटर हाकि अण्णा।', hindiMeaning: 'मीटर लगाइए भैया।', nextStep: 8),
     ],
   ),
   const EncounterStepNode(
@@ -311,8 +311,8 @@ final List<EncounterStepNode> epicEncounterStory = [
     narrativeEn: 'Your manager sighs on the phone and asks you to send a message on WhatsApp instead.',
     narrativeHi: 'मैनेजर ने फ़ोन पर आह भरी और WhatsApp पर मैसेज भेजने को कहा।',
     options: [
-      EncounterOption(badge: 'Okay Sir', kannada_roman: 'Aythu sir, kalsutheeni.', kannadaDeva: 'आयतु सर, कल्सुतीनी।', hindiMeaning: 'ठीक है सर, भेजता हूँ।', nextStep: 10),
-      EncounterOption(badge: 'Will Rest', kannada_roman: 'Naanu rest maadtheeni.', kannadaDeva: 'नानु रेस्ट माद्तीनी।', hindiMeaning: 'मैं आराम करूँगा।', nextStep: 10),
+      EncounterOption(badge: 'Okay Sir', kannadaRoman: 'Aythu sir, kalsutheeni.', kannadaDeva: 'आयतु सर, कल्सुतीनी।', hindiMeaning: 'ठीक है सर, भेजता हूँ।', nextStep: 10),
+      EncounterOption(badge: 'Will Rest', kannadaRoman: 'Naanu rest maadtheeni.', kannadaDeva: 'नानु रेस्ट माद्तीनी।', hindiMeaning: 'मैं आराम करूँगा।', nextStep: 10),
     ],
   ),
   const EncounterStepNode(
@@ -321,8 +321,8 @@ final List<EncounterStepNode> epicEncounterStory = [
     narrativeEn: 'You finish your quick breakfast and ask for the total bill amount.',
     narrativeHi: 'आपने अपना नाश्ता ख़त्म किया और कुल बिल का अमाउंट पूछा।',
     options: [
-      EncounterOption(badge: 'Ask Total', kannada_roman: 'Eshtu aaytu anna?', kannadaDeva: 'एष्टु आयतु अण्णा?', hindiMeaning: 'कितना हुआ भैया?', nextStep: 9),
-      EncounterOption(badge: 'UPI Payment', kannada_roman: 'Scanner illi ideyaa?', kannadaDeva: 'स्कैनर इल्लि इदिया?', hindiMeaning: 'स्कैनर यहाँ है क्या?', nextStep: 9),
+      EncounterOption(badge: 'Ask Total', kannadaRoman: 'Eshtu aaytu anna?', kannadaDeva: 'एष्टु आयतु अण्णा?', hindiMeaning: 'कितना हुआ भैया?', nextStep: 9),
+      EncounterOption(badge: 'UPI Payment', kannadaRoman: 'Scanner illi ideyaa?', kannadaDeva: 'स्कैनर इल्लि इदिया?', hindiMeaning: 'स्कैनर यहाँ है क्या?', nextStep: 9),
     ],
   ),
   const EncounterStepNode(
@@ -331,8 +331,8 @@ final List<EncounterStepNode> epicEncounterStory = [
     narrativeEn: 'The auto driver demands double the price due to traffic. How do you respond?',
     narrativeHi: 'ट्रैफिक का हवाला देकर ऑटो ड्राइवर दोगुना किराया माँग रहा है। आप क्या जवाब देंगे?',
     options: [
-      EncounterOption(badge: 'Negotiate', kannada_roman: 'Swalpa kammi maadi anna.', kannadaDeva: 'स्वल्प कम्मि माडि अण्णा।', hindiMeaning: 'थोड़ा कम कीजिए भैया।', nextStep: 11),
-      EncounterOption(badge: 'Walk Away', kannada_roman: 'Beda anna, namaskara.', kannadaDeva: 'बेडा अण्णा, नमस्कार।', hindiMeaning: 'नहीं चाहिए भैया, नमस्कार।', nextStep: 11),
+      EncounterOption(badge: 'Negotiate', kannadaRoman: 'Swalpa kammi maadi anna.', kannadaDeva: 'स्वल्प कम्मि माडि अण्णा।', hindiMeaning: 'थोड़ा कम कीजिए भैया।', nextStep: 11),
+      EncounterOption(badge: 'Walk Away', kannadaRoman: 'Beda anna, namaskara.', kannadaDeva: 'बेडा अण्णा, नमस्कार।', hindiMeaning: 'नहीं चाहिए भैया, नमस्कार।', nextStep: 11),
     ],
   ),
   const EncounterStepNode(
@@ -341,7 +341,7 @@ final List<EncounterStepNode> epicEncounterStory = [
     narrativeEn: 'You pay via UPI and step out onto the busy pavement, ready for your day.',
     narrativeHi: 'आपने UPI से भुगतान किया और अपने दिन की शुरुआत के लिए व्यस्त फ़ुटपाथ पर आ गए।',
     options: [
-      EncounterOption(badge: 'Let\'s go', kannada_roman: 'Chalo, hogona banni.', kannadaDeva: 'चलो, होगोणा बन्नि।', hindiMeaning: 'चलो, चलते हैं आइए।', nextStep: 12),
+      EncounterOption(badge: 'Let\'s go', kannadaRoman: 'Chalo, hogona banni.', kannadaDeva: 'चलो, होगोणा बन्नि।', hindiMeaning: 'चलो, चलते हैं आइए।', nextStep: 12),
     ],
   ),
   const EncounterStepNode(
@@ -350,7 +350,7 @@ final List<EncounterStepNode> epicEncounterStory = [
     narrativeEn: 'Since you took a leave, you decide to make a hot cup of tea at home.',
     narrativeHi: 'चूँकि आपने छुट्टी ले ली है, आपने घर पर ही गरम चाय बनाने का फ़ैसला किया।',
     options: [
-      EncounterOption(badge: 'Boil Water', kannada_roman: 'Swalpa neeru kayisi.', kannadaDeva: 'स्वल्प नीरु कयिसि।', hindiMeaning: 'थोड़ा पानी गरम करो।', nextStep: 13),
+      EncounterOption(badge: 'Boil Water', kannadaRoman: 'Swalpa neeru kayisi.', kannadaDeva: 'स्वल्प नीरु कयिसि।', hindiMeaning: 'थोड़ा पानी गरम करो।', nextStep: 13),
     ],
   ),
   const EncounterStepNode(
@@ -359,7 +359,7 @@ final List<EncounterStepNode> epicEncounterStory = [
     narrativeEn: 'You finally reach office late. The security guard at the gate stops you for your ID card.',
     narrativeHi: 'आप आख़िरकार ऑफ़िस लेट पहुँचे। गेट पर सिक्योरिटी गार्ड ने आईडी कार्ड के लिए आपको रोक लिया।',
     options: [
-      EncounterOption(badge: 'Show ID', kannada_roman: 'Id card illi ide.', kannadaDeva: 'आईडी कार्ड इल्लि इदे।', hindiMeaning: 'आईडी कार्ड यहाँ है।', nextStep: 14),
+      EncounterOption(badge: 'Show ID', kannadaRoman: 'Id card illi ide.', kannadaDeva: 'आईडी कार्ड इल्लि इदे।', hindiMeaning: 'आईडी कार्ड यहाँ है।', nextStep: 14),
     ],
   ),
   const EncounterStepNode(
@@ -368,7 +368,7 @@ final List<EncounterStepNode> epicEncounterStory = [
     narrativeEn: 'You walk into your floor and your teammate asks why you were running late.',
     narrativeHi: 'आप अपने फ़्लोर पर पहुँचे और आपके साथी ने पूछा कि आपको इतनी देर क्यों हुई।',
     options: [
-      EncounterOption(badge: 'Traffic Jam', kannada_roman: 'Traffic thumba ide anna.', kannadaDeva: 'ट्रैफिक तुंबा इदे अण्णा।', hindiMeaning: 'ट्रैफिक बहुत है भैया।', nextStep: 15),
+      EncounterOption(badge: 'Traffic Jam', kannadaRoman: 'Traffic thumba ide anna.', kannadaDeva: 'ट्रैफिक तुंबा इदे अण्णा।', hindiMeaning: 'ट्रैफिक बहुत है भैया।', nextStep: 15),
     ],
   ),
   const EncounterStepNode(
@@ -377,7 +377,7 @@ final List<EncounterStepNode> epicEncounterStory = [
     narrativeEn: 'You spend the afternoon reading a book and resting peacefully.',
     narrativeHi: 'आपने दोपहर का समय किताब पढ़ते हुए और शांति से आराम करते हुए बिताया।',
     options: [
-      EncounterOption(badge: 'Very Nice', kannada_roman: 'Tumba chennagide.', kannadaDeva: 'तुंबा चेन्नागिदे।', hindiMeaning: 'बहुत बढ़िया है।', nextStep: 15),
+      EncounterOption(badge: 'Very Nice', kannadaRoman: 'Tumba chennagide.', kannadaDeva: 'तुंबा चेन्नागिदे।', hindiMeaning: 'बहुत बढ़िया है।', nextStep: 15),
     ],
   ),
   const EncounterStepNode(
@@ -386,7 +386,7 @@ final List<EncounterStepNode> epicEncounterStory = [
     narrativeEn: 'You sit at your desk, boot up your laptop, and start the morning emails.',
     narrativeHi: 'आप अपनी डेस्क पर बैठे, लैपटॉप ऑन किया और सुबह के ईमेल देखने शुरू किए।',
     options: [
-      EncounterOption(badge: 'Start Work', kannada_roman: 'Kelsa shuru maadtheeni.', kannadaDeva: 'कलस सुरु माद्तीनी।', hindiMeaning: 'काम शुरू करता हूँ।', nextStep: 15),
+      EncounterOption(badge: 'Start Work', kannadaRoman: 'Kelsa shuru maadtheeni.', kannadaDeva: 'कलस सुरु माद्तीनी।', hindiMeaning: 'काम शुरू करता हूँ।', nextStep: 15),
     ],
   ),
   const EncounterStepNode(
@@ -395,7 +395,7 @@ final List<EncounterStepNode> epicEncounterStory = [
     narrativeEn: 'You successfully navigated your chaotic Bengaluru Monday! You earned the Street Survivor Badge.',
     narrativeHi: 'आपने अपने अराजक बेंगलुरु सोमवार को सफलतापूर्वक पार कर लिया! आपने स्ट्रीट सर्वाइवर बैज जीत लिया है।',
     options: [
-      EncounterOption(badge: 'Finish & Save', kannada_roman: 'Bahala khushi aaytu!', kannadaDeva: 'बहाल खुशी आयतु!', hindiMeaning: 'बहुत ख़ुशी हुई!', nextStep: 1),
+      EncounterOption(badge: 'Finish & Save', kannadaRoman: 'Bahala khushi aaytu!', kannadaDeva: 'बहाल खुशी आयतु!', hindiMeaning: 'बहुत ख़ुशी हुई!', nextStep: 1),
     ],
   ),
 ];
