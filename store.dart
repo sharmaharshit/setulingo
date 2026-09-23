@@ -5,7 +5,6 @@ import 'package:shared_preferences/shared_preferences.dart';
 
 enum ScriptDisplayMode { roman, deva }
 
-/// Controls whether spoken Kannada is displayed in English Roman or Devanagari.
 class AppSettingsStore extends ChangeNotifier {
   AppSettingsStore._();
   static final AppSettingsStore instance = AppSettingsStore._();
@@ -20,19 +19,13 @@ class AppSettingsStore extends ChangeNotifier {
     try {
       final prefs = await SharedPreferences.getInstance();
       final saved = prefs.getString(_prefKey);
-      if (saved == 'deva') {
-        _mode = ScriptDisplayMode.deva;
-      } else {
-        _mode = ScriptDisplayMode.roman;
-      }
+      _mode = (saved == 'deva') ? ScriptDisplayMode.deva : ScriptDisplayMode.roman;
     } catch (_) {}
     notifyListeners();
   }
 
   Future<void> toggleMode() async {
-    _mode = _mode == ScriptDisplayMode.roman
-        ? ScriptDisplayMode.deva
-        : ScriptDisplayMode.roman;
+    _mode = _mode == ScriptDisplayMode.roman ? ScriptDisplayMode.deva : ScriptDisplayMode.roman;
     notifyListeners();
     try {
       final prefs = await SharedPreferences.getInstance();
@@ -47,13 +40,17 @@ class SavedSentence {
   final String deva;
   final String hindi;
   final DateTime createdAt;
+  int reviewCount;
+  bool mastered;
 
-  const SavedSentence({
+  SavedSentence({
     required this.id,
     required this.roman,
     required this.deva,
     required this.hindi,
     required this.createdAt,
+    this.reviewCount = 0,
+    this.mastered = false,
   });
 
   Map<String, dynamic> toMap() => {
@@ -62,6 +59,8 @@ class SavedSentence {
         'deva': deva,
         'hindi': hindi,
         'createdAt': createdAt.toIso8601String(),
+        'reviewCount': reviewCount,
+        'mastered': mastered,
       };
 
   factory SavedSentence.fromMap(Map<String, dynamic> map) => SavedSentence(
@@ -70,6 +69,8 @@ class SavedSentence {
         deva: (map['deva'] ?? '') as String,
         hindi: map['hindi'] as String,
         createdAt: DateTime.tryParse(map['createdAt'] as String? ?? '') ?? DateTime.now(),
+        reviewCount: (map['reviewCount'] ?? 0) as int,
+        mastered: (map['mastered'] ?? false) as bool,
       );
 }
 
@@ -143,9 +144,7 @@ class MySentencesStore extends ChangeNotifier {
       final list = prefs.getStringList(_key) ?? <String>[];
       _sentences
         ..clear()
-        ..addAll(
-          list.map((str) => SavedSentence.fromMap(jsonDecode(str) as Map<String, dynamic>)),
-        );
+        ..addAll(list.map((str) => SavedSentence.fromMap(jsonDecode(str) as Map<String, dynamic>)));
     } catch (_) {}
     notifyListeners();
   }
@@ -165,6 +164,16 @@ class MySentencesStore extends ChangeNotifier {
     await _save();
   }
 
+  Future<void> markReviewed(String id, bool gotIt) async {
+    final idx = _sentences.indexWhere((s) => s.id == id);
+    if (idx != -1) {
+      _sentences[idx].reviewCount += 1;
+      _sentences[idx].mastered = gotIt;
+      notifyListeners();
+      await _save();
+    }
+  }
+
   Future<void> removeSentence(String id) async {
     _sentences.removeWhere((s) => s.id == id);
     notifyListeners();
@@ -172,7 +181,7 @@ class MySentencesStore extends ChangeNotifier {
   }
 }
 
-/// Offline-friendly Kannada Text-to-Speech service.
+/// Offline-safe Text-to-Speech wrapper.
 class TtsService {
   TtsService._();
   static final TtsService instance = TtsService._();
@@ -187,9 +196,7 @@ class TtsService {
       await _flutterTts.setSpeechRate(0.45);
       await _flutterTts.setPitch(1.0);
       _initialized = true;
-    } catch (e) {
-      debugPrint('TTS init error: $e');
-    }
+    } catch (_) {}
   }
 
   Future<void> speak(String text) async {
@@ -198,9 +205,7 @@ class TtsService {
       final clean = text.replaceAll(RegExp(r'[^\w\s\u0C80-\u0CFF]'), ' ').trim();
       await _flutterTts.stop();
       await _flutterTts.speak(clean);
-    } catch (e) {
-      debugPrint('TTS speak error: $e');
-    }
+    } catch (_) {}
   }
 
   Future<void> stop() async {
