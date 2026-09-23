@@ -1,5 +1,5 @@
 // All app content lives here.
-// Kannada spoken patterns from Bangalore usage and Kannada Sahitya Parishat references.
+// Real Bengaluru spoken Kannada with Hindi bridge, street codes, and roleplay dialogues.
 
 class KWord {
   final String id;
@@ -7,6 +7,7 @@ class KWord {
   final String deva;
   final String hindi;
   final String? note;
+  final String? streetCode;
 
   const KWord({
     required this.id,
@@ -14,6 +15,7 @@ class KWord {
     required this.deva,
     required this.hindi,
     this.note,
+    this.streetCode,
   });
 }
 
@@ -23,6 +25,38 @@ class Chunk {
   final String hindi;
 
   const Chunk(this.roman, this.deva, this.hindi);
+}
+
+class DialogueTurn {
+  final String speaker; // 'सामने वाला' or 'आप'
+  final bool isUser;
+  final String roman;
+  final String deva;
+  final String hindi;
+  final String? tip;
+
+  const DialogueTurn({
+    required this.speaker,
+    required this.isUser,
+    required this.roman,
+    required this.deva,
+    required this.hindi,
+    this.tip,
+  });
+}
+
+class RoleplayDialogue {
+  final String id;
+  final String title;
+  final String contextDescription;
+  final List<DialogueTurn> turns;
+
+  const RoleplayDialogue({
+    required this.id,
+    required this.title,
+    required this.contextDescription,
+    required this.turns,
+  });
 }
 
 sealed class LessonStep {
@@ -35,6 +69,7 @@ class PhraseStep extends LessonStep {
   final String hindi;
   final List<Chunk> chunks;
   final String? note;
+  final String? streetCode;
 
   const PhraseStep({
     required this.roman,
@@ -42,6 +77,21 @@ class PhraseStep extends LessonStep {
     required this.hindi,
     required this.chunks,
     this.note,
+    this.streetCode,
+  });
+}
+
+class SpeakPracticeStep extends LessonStep {
+  final String promptHindi;
+  final String targetRoman;
+  final String targetDeva;
+  final String tip;
+
+  const SpeakPracticeStep({
+    required this.promptHindi,
+    required this.targetRoman,
+    required this.targetDeva,
+    required this.tip,
   });
 }
 
@@ -104,6 +154,8 @@ class KSentence {
   final String hindi;
   final List<Chunk> chunks;
   final String? note;
+  final String? streetCode;
+  final List<String> searchTags;
 
   const KSentence({
     required this.id,
@@ -112,6 +164,8 @@ class KSentence {
     required this.hindi,
     required this.chunks,
     this.note,
+    this.streetCode,
+    this.searchTags = const [],
   });
 }
 
@@ -121,6 +175,7 @@ class KSituation {
   final String hindiTitle;
   final String description;
   final List<KSentence> sentences;
+  final RoleplayDialogue? dialogue;
 
   const KSituation({
     required this.id,
@@ -128,6 +183,7 @@ class KSituation {
     required this.hindiTitle,
     required this.description,
     required this.sentences,
+    this.dialogue,
   });
 }
 
@@ -227,27 +283,75 @@ final List<DropdownOption> endingsList = [
 // ---------------------------------------------------------------------------
 
 final List<KWord> allWords = [
-  const KWord(id: 'nanage', roman: 'Nanage', deva: 'ननगे', hindi: 'मुझे', note: 'वाक्य की शुरुआत में आता है।'),
-  const KWord(id: 'beku', roman: 'Beku', deva: 'बेकु', hindi: 'चाहिए', note: 'वाक्य के अंत में: Nanage + चीज़ + beku.'),
-  const KWord(id: 'beda', roman: 'Beda', deva: 'बेडा', hindi: 'नहीं चाहिए', note: 'वाक्य के अंत में आता है।'),
-  const KWord(id: 'saaku', roman: 'Saaku', deva: 'साकु', hindi: 'बस / काफ़ी है', note: 'रुकवाने के लिए (काफ़ी है)।'),
+  const KWord(
+    id: 'nanage',
+    roman: 'Nanage',
+    deva: 'ननगे',
+    hindi: 'मुझे',
+    note: 'वाक्य की शुरुआत में आता है।',
+  ),
+  const KWord(
+    id: 'beku',
+    roman: 'Beku',
+    deva: 'बेकु',
+    hindi: 'चाहिए',
+    note: 'वाक्य के अंत में: Nanage + चीज़ + beku.',
+  ),
+  const KWord(
+    id: 'beda',
+    roman: 'Beda',
+    deva: 'बेडा',
+    hindi: 'नहीं चाहिए',
+    note: 'वाक्य के अंत में आता है।',
+  ),
+  const KWord(
+    id: 'saaku',
+    roman: 'Saaku',
+    deva: 'साकु',
+    hindi: 'बस / काफ़ी है',
+    note: 'रुकवाने के लिए उपयोग करें।',
+  ),
   const KWord(id: 'enu', roman: 'Enu', deva: 'एनु', hindi: 'क्या'),
   const KWord(id: 'ondu', roman: 'Ondu', deva: 'ओन्दु', hindi: 'एक'),
   const KWord(id: 'innondu', roman: 'Innondu', deva: 'इन्नोन्दु', hindi: 'एक और'),
-  const KWord(id: 'kodi', roman: 'Kodi', deva: 'कोडि', hindi: 'दीजिए', note: 'माँगने का विनम्र तरीक़ा।'),
+  const KWord(
+    id: 'kodi',
+    roman: 'Kodi',
+    deva: 'कोडि',
+    hindi: 'दीजिए',
+    note: 'माँगने का सबसे विनम्र तरीक़ा।',
+  ),
   const KWord(id: 'eshtu', roman: 'Eshtu', deva: 'एष्टु', hindi: 'कितना'),
-  const KWord(id: 'aaytu', roman: 'Aaytu', deva: 'आयतु', hindi: 'हो गया', note: 'Eshtu aaytu? = कितना हुआ?'),
+  const KWord(
+    id: 'aaytu',
+    roman: 'Aaytu',
+    deva: 'आयतु',
+    hindi: 'हो गया',
+    note: 'Eshtu aaytu? = कितना हुआ?',
+  ),
   const KWord(id: 'coffee', roman: 'Coffee', deva: 'कॉफ़ी', hindi: 'कॉफ़ी'),
   const KWord(id: 'dose', roman: 'Dose', deva: 'दोसे', hindi: 'डोसा'),
   const KWord(id: 'tea', roman: 'Tea', deva: 'टी', hindi: 'चाय'),
   const KWord(id: 'neeru', roman: 'Neeru', deva: 'नीरु', hindi: 'पानी'),
   const KWord(id: 'illi', roman: 'Illi', deva: 'इल्लि', hindi: 'यहाँ'),
   const KWord(id: 'alli', roman: 'Alli', deva: 'अल्लि', hindi: 'वहाँ'),
-  const KWord(id: 'nilisi', roman: 'Nilisi', deva: 'निलिसि', hindi: 'रोकिए', note: 'ऑटो/गाड़ी रोकने के लिए।'),
+  const KWord(
+    id: 'nilisi',
+    roman: 'Nilisi',
+    deva: 'निलिसि',
+    hindi: 'रोकिए',
+    note: 'ऑटो या कैब रुकवाने के लिए।',
+  ),
   const KWord(id: 'hogbeku', roman: 'Hogbeku', deva: 'होगबेकु', hindi: 'जाना है'),
-  const KWord(id: 'swalpa', roman: 'Swalpa', deva: 'स्वल्प', hindi: 'थोड़ा', note: 'Swalpa adjust maadi!'),
+  const KWord(
+    id: 'swalpa',
+    roman: 'Swalpa',
+    deva: 'स्वल्प',
+    hindi: 'थोड़ा',
+    streetCode: '🏷️ Street Code: विनम्रता से बात शुरू करने के लिए रामबाण शब्द',
+  ),
   const KWord(id: 'banni', roman: 'Banni', deva: 'बन्नि', hindi: 'आइए', note: 'आदर सहित बुलाने के लिए।'),
-  const KWord(id: 'hegiddira', roman: 'Hegiddira', deva: 'हेगिद्दीरा', hindi: 'कैसे हैं आप', note: 'अभिवादन में।'),
+  const KWord(id: 'hegiddira', roman: 'Hegiddira', deva: 'हेगिद्दीरा', hindi: 'कैसे हैं आप'),
   const KWord(id: 'chennagide', roman: 'Chennagide', deva: 'चेन्नागिदे', hindi: 'बढ़िया है / ठीक है'),
   const KWord(id: 'gottu', roman: 'Gottu', deva: 'गोत्तु', hindi: 'पता है / मालूम है'),
   const KWord(id: 'gottilla', roman: 'Gottilla', deva: 'गोत्तिल्ला', hindi: 'मालूम नहीं है'),
@@ -293,7 +397,7 @@ final List<WordConnection> connections = [
     hindi: 'रात',
     kannadaRoman: 'raatri',
     kannadaDeva: 'रात्रि',
-    type: 'हिंदी तद्भव · कन्नड़ तत्सम',
+    type: 'तद्भव / तत्सम',
     note: 'संस्कृत "रात्रि" हिंदी में घिसकर रात बना, पर कन्नड़ में मूल रूप में रहा।',
   ),
   const WordConnection(
@@ -306,7 +410,7 @@ final List<WordConnection> connections = [
 ];
 
 // ---------------------------------------------------------------------------
-// 7 Categories x 5 Situations = 35 Situations
+// 7 Categories x 5 Situations = 35 Scenarios with Roleplays & Street Codes
 // ---------------------------------------------------------------------------
 
 final List<Category> categories = [
@@ -323,6 +427,42 @@ final List<Category> categories = [
         title: 'Ordering at Counter',
         hindiTitle: 'काउंटर पर नाश्ता व कॉफ़ी',
         description: 'टोकन काउंटर पर ऑर्डर करते समय:',
+        dialogue: RoleplayDialogue(
+          id: 'rp_food1',
+          title: 'टोकन काउंटर की बातचीत',
+          contextDescription: 'आप दर्शिनी के टोकन काउंटर पर खड़े हैं।',
+          turns: [
+            DialogueTurn(
+              speaker: 'काउंटर वाला',
+              isUser: false,
+              roman: 'Enu beku sir?',
+              deva: 'एनु बेकु सर?',
+              hindi: 'क्या चाहिए सर?',
+            ),
+            DialogueTurn(
+              speaker: 'आप',
+              isUser: true,
+              roman: 'Ondu masala dose, ondu filter coffee kodi.',
+              deva: 'ओन्दु मसाला दोसे, ओन्दु फ़िल्टर कॉफ़ी कोडि।',
+              hindi: 'एक मसाला डोसा और एक फ़िल्टर कॉफ़ी दीजिए।',
+            ),
+            DialogueTurn(
+              speaker: 'काउंटर वाला',
+              isUser: false,
+              roman: 'Eighty rupees aaytu. Cash or UPI?',
+              deva: 'एइटी रुपीस आयतु। कैश ऑर यूपीआई?',
+              hindi: '८० रुपये हुए। कैश या स्कैनर?',
+            ),
+            DialogueTurn(
+              speaker: 'आप',
+              isUser: true,
+              roman: 'QR code idiya anna?',
+              deva: 'क्यूआर कोड इदिया अण्णा?',
+              hindi: 'क्या क्यूआर कोड है भैया?',
+              tip: 'काउंटर पर "anna" बोलने से तुरंत आत्मीयता बनती है।',
+            ),
+          ],
+        ),
         sentences: [
           KSentence(
             id: 'f1',
@@ -335,6 +475,7 @@ final List<Category> categories = [
               Chunk('coffee', 'कॉफ़ी', 'कॉफ़ी'),
               Chunk('beku', 'बेकु', 'चाहिए'),
             ],
+            searchTags: ['coffee', 'कॉफ़ी', 'चाहिए', 'order'],
           ),
           KSentence(
             id: 'f2',
@@ -346,6 +487,8 @@ final List<Category> categories = [
               Chunk('masala dose', 'मसाला दोसे', 'मसाला डोसा'),
               Chunk('kodi', 'कोडि', 'दीजिए'),
             ],
+            streetCode: '🏷️ Darshini Code: काउंटर पर "beku" से अधिक विनम्र "kodi" लगता है',
+            searchTags: ['dosa', 'डोसा', 'दोसे', 'give'],
           ),
           KSentence(
             id: 'f3',
@@ -357,6 +500,7 @@ final List<Category> categories = [
               Chunk('tea', 'टी', 'चाय'),
               Chunk('kodi', 'कोडि', 'दीजिए'),
             ],
+            searchTags: ['tea', 'चाय', 'और'],
           ),
         ],
       ),
@@ -376,16 +520,20 @@ final List<Category> categories = [
               Chunk('sambar', 'सांबार', 'सांभर'),
               Chunk('haaki', 'हाकि', 'डालिए'),
             ],
+            searchTags: ['sambar', 'सांभर', 'डाले'],
           ),
           KSentence(
             id: 'f5',
-            roman: 'Saaku, beda.',
-            deva: 'साकु, बेडा।',
-            hindi: 'बस, नहीं चाहिए।',
+            roman: 'Saaku, beda anna.',
+            deva: 'साकु, बेडा अण्णा।',
+            hindi: 'बस, नहीं चाहिए भैया।',
             chunks: [
               Chunk('Saaku', 'साकु', 'बस / काफ़ी है'),
               Chunk('beda', 'बेडा', 'नहीं चाहिए'),
+              Chunk('anna', 'अण्णा', 'भैया'),
             ],
+            streetCode: '🏷️ Street Code: सर्वर को रुकवाने के लिए हाथ दिखाकर "Saaku anna" कहें',
+            searchTags: ['stop', 'बस', 'रुको'],
           ),
           KSentence(
             id: 'f6',
@@ -396,6 +544,7 @@ final List<Category> categories = [
               Chunk('Neeru', 'नीरु', 'पानी'),
               Chunk('kodi', 'कोडि', 'दीजिए'),
             ],
+            searchTags: ['water', 'पानी', 'नीरु'],
           ),
         ],
       ),
@@ -415,6 +564,7 @@ final List<Category> categories = [
               Chunk('kammi', 'कम्मि', 'कम'),
               Chunk('maadi', 'माडि', 'कीजिए'),
             ],
+            searchTags: ['sugar', 'चीनी', 'कम'],
           ),
           KSentence(
             id: 'f8',
@@ -425,6 +575,7 @@ final List<Category> categories = [
               Chunk('Parcel', 'पार्सल', 'पार्सल'),
               Chunk('kodi', 'कोडि', 'दीजिए'),
             ],
+            searchTags: ['parcel', 'पैक', 'पार्सल'],
           ),
         ],
       ),
@@ -443,6 +594,7 @@ final List<Category> categories = [
               Chunk('Eshtu', 'एष्टु', 'कितना'),
               Chunk('aaytu', 'आयतु', 'हुआ'),
             ],
+            searchTags: ['bill', 'कितना', 'रुपये', 'amount'],
           ),
           KSentence(
             id: 'f10',
@@ -453,6 +605,7 @@ final List<Category> categories = [
               Chunk('QR code', 'क्यूआर कोड', 'क्यूआर कोड'),
               Chunk('idiya?', 'इदिया?', 'है क्या?'),
             ],
+            searchTags: ['upi', 'qr', 'scanner', 'पेमेंट'],
           ),
         ],
       ),
@@ -472,6 +625,7 @@ final List<Category> categories = [
               Chunk('special', 'स्पेशल', 'स्पेशल'),
               Chunk('ide?', 'इदे?', 'है?'),
             ],
+            searchTags: ['special', 'मेन्यू', 'ताज़ा'],
           ),
           KSentence(
             id: 'f12',
@@ -483,6 +637,7 @@ final List<Category> categories = [
               Chunk('bisi', 'बिसि', 'गरम'),
               Chunk('idiya?', 'इदिया?', 'है क्या?'),
             ],
+            searchTags: ['hot', 'गरम', 'ताज़ा'],
           ),
         ],
       ),
@@ -502,6 +657,36 @@ final List<Category> categories = [
         title: 'Destination & Asking',
         hindiTitle: 'कहाँ जाना है व पूछना',
         description: 'ऑटो ड्राइवर से बात शुरू करते समय:',
+        dialogue: RoleplayDialogue(
+          id: 'rp_auto1',
+          title: 'ऑटो रोकने की बातचीत',
+          contextDescription: 'आप सड़क किनारे ऑटो वाले को रुकवा रहे हैं।',
+          turns: [
+            DialogueTurn(
+              speaker: 'आप',
+              isUser: true,
+              roman: 'Auto anna, Indiranagar metro-ge barthira?',
+              deva: 'ऑटो अण्णा, इंदिरानगर मेट्रो-गे बर्त्तीरा?',
+              hindi: 'ऑटो भैया, इंदिरानगर मेट्रो चलेंगे क्या?',
+              tip: '"Barthira?" (आएँगे क्या?) पूछना सबसे सटीक और सम्मानजनक है।',
+            ),
+            DialogueTurn(
+              speaker: 'ऑटो ड्राइवर',
+              isUser: false,
+              roman: 'Meter meele 50 extra aaguthe sir, heavy traffic ide.',
+              deva: 'मीटर मेले ५० एक्स्ट्रा आगत्ते सर, हेवी ट्रैफ़िक इदे।',
+              hindi: 'मीटर पर ५० एक्स्ट्रा होगा सर, बहुत ट्रैफ़िक है।',
+            ),
+            DialogueTurn(
+              speaker: 'आप',
+              isUser: true,
+              roman: 'Meter haaki boss, swalpa adjust maadi.',
+              deva: 'मीटर हाकि बॉस, स्वल्प एडजस्ट माडि।',
+              hindi: 'मीटर डालिए बॉस, थोड़ा एडजस्ट कीजिए।',
+              tip: '"Swalpa adjust maadi" बेंगलुरु की सबसे बड़ी करेंसी है!',
+            ),
+          ],
+        ),
         sentences: [
           KSentence(
             id: 'a1',
@@ -512,15 +697,19 @@ final List<Category> categories = [
               Chunk('Indiranagar-ge', 'इंदिरानगर-गे', 'इंदिरानगर को'),
               Chunk('hogbeku', 'होगबेकु', 'जाना है'),
             ],
+            streetCode: '🏷️ Bengaluru Suffix: जगह के नाम के साथ "-ge" जोड़ें (जैसे: Metro-ge)',
+            searchTags: ['auto', 'जाना', 'स्थान', 'destination'],
           ),
           KSentence(
             id: 'a2',
-            roman: 'Barthira?',
-            deva: 'बर्तीरा?',
-            hindi: 'चलेंगे क्या? (आएँगे?)',
+            roman: 'Barthira anna?',
+            deva: 'बर्तीरा अण्णा?',
+            hindi: 'चलेंगे क्या भैया? (आएँगे?)',
             chunks: [
               Chunk('Barthira?', 'बर्तीरा?', 'आएँगे क्या?'),
+              Chunk('anna', 'अण्णा', 'भैया'),
             ],
+            searchTags: ['chalo', 'चलेंगे', 'auto'],
           ),
         ],
       ),
@@ -540,6 +729,7 @@ final List<Category> categories = [
               Chunk('haaki', 'हाकि', 'डालिए'),
               Chunk('sir', 'सर', 'सर'),
             ],
+            searchTags: ['meter', 'मीटर', 'fare'],
           ),
           KSentence(
             id: 'a4',
@@ -550,6 +740,7 @@ final List<Category> categories = [
               Chunk('Eshtu', 'एष्टु', 'कितना'),
               Chunk('aagathe?', 'आगत्ते?', 'होगा?'),
             ],
+            searchTags: ['fare', 'किराया', 'कितना'],
           ),
         ],
       ),
@@ -569,6 +760,7 @@ final List<Category> categories = [
               Chunk('right', 'राइट', 'दाएँ'),
               Chunk('thagoli', 'थगोळ्ळि', 'लीजिए'),
             ],
+            searchTags: ['right', 'दाएँ', 'टर्न', 'turn'],
           ),
           KSentence(
             id: 'a6',
@@ -579,6 +771,7 @@ final List<Category> categories = [
               Chunk('Left', 'लेफ्ट', 'बाएँ'),
               Chunk('thagoli', 'थगोळ्ळि', 'लीजिए'),
             ],
+            searchTags: ['left', 'बाएँ', 'टर्न'],
           ),
         ],
       ),
@@ -590,13 +783,16 @@ final List<Category> categories = [
         sentences: [
           KSentence(
             id: 'a7',
-            roman: 'Illi nilisi.',
-            deva: 'इल्लि निलिसि।',
-            hindi: 'यहाँ रोकिए।',
+            roman: 'Illi nilisi boss.',
+            deva: 'इल्लि निलिसि बॉस।',
+            hindi: 'यहाँ रोकिए बॉस।',
             chunks: [
               Chunk('Illi', 'इल्लि', 'यहाँ'),
               Chunk('nilisi', 'निलिसि', 'रोकिए'),
+              Chunk('boss', 'बॉस', 'बॉस / भाई'),
             ],
+            streetCode: '🏷️ Street Code: "Illi nilisi" हर दिन ऑटो या कैब में काम आता है',
+            searchTags: ['stop', 'रोकिए', 'उतरना', 'roko'],
           ),
           KSentence(
             id: 'a8',
@@ -607,6 +803,7 @@ final List<Category> categories = [
               Chunk('Cilre', 'चिल्रे', 'छुट्टे पैसे'),
               Chunk('ideyaa?', 'इदिया?', 'हैं क्या?'),
             ],
+            searchTags: ['change', 'छुट्टे', 'chutta'],
           ),
         ],
       ),
@@ -626,6 +823,7 @@ final List<Category> categories = [
               Chunk('jaasti', 'जास्ती', 'ज़्यादा'),
               Chunk('ide', 'इदे', 'है'),
             ],
+            searchTags: ['traffic', 'जाम', 'देरी'],
           ),
           KSentence(
             id: 'a10',
@@ -637,6 +835,7 @@ final List<Category> categories = [
               Chunk('bega', 'बेग', 'जल्दी'),
               Chunk('hogi', 'होगि', 'चलिए'),
             ],
+            searchTags: ['fast', 'जल्दी', 'quick'],
           ),
         ],
       ),
@@ -666,6 +865,7 @@ final List<Category> categories = [
               Chunk('Idhu', 'इदु', 'यह'),
               Chunk('eshtu?', 'एष्टु?', 'कितना?'),
             ],
+            searchTags: ['price', 'दाम', 'कितना'],
           ),
           KSentence(
             id: 'm2',
@@ -676,6 +876,7 @@ final List<Category> categories = [
               Chunk('Kilo-ge', 'किलो-गे', 'किलो का'),
               Chunk('eshtu?', 'एष्टु?', 'कितना?'),
             ],
+            searchTags: ['kilo', 'किलो', 'भाव'],
           ),
         ],
       ),
@@ -695,6 +896,7 @@ final List<Category> categories = [
               Chunk('tomato', 'टोमॅटो', 'टमाटर'),
               Chunk('kodi', 'कोडि', 'दीजिए'),
             ],
+            searchTags: ['tomato', 'टमाटर', 'सब्ज़ी'],
           ),
           KSentence(
             id: 'm4',
@@ -705,6 +907,7 @@ final List<Category> categories = [
               Chunk('Ardha kilo', 'अर्ध किलो', 'आधा किलो'),
               Chunk('kodi', 'कोडि', 'दीजिए'),
             ],
+            searchTags: ['half', 'आधा'],
           ),
         ],
       ),
@@ -716,14 +919,17 @@ final List<Category> categories = [
         sentences: [
           KSentence(
             id: 'm5',
-            roman: 'Swalpa kammi maadi.',
-            deva: 'स्वल्प कम्मि माडि।',
-            hindi: 'थोड़ा कम कीजिए।',
+            roman: 'Swalpa kammi maadi anna.',
+            deva: 'स्वल्प कम्मि माडि अण्णा।',
+            hindi: 'थोड़ा कम कीजिए भैया।',
             chunks: [
               Chunk('Swalpa', 'स्वल्प', 'थोड़ा'),
               Chunk('kammi', 'कम्मि', 'कम'),
               Chunk('maadi', 'माडि', 'कीजिए'),
+              Chunk('anna', 'अण्णा', 'भैया'),
             ],
+            streetCode: '🏷️ Street Code: मोलभाव करते समय "anna" जोड़ने से दुकानदार मान जाता है',
+            searchTags: ['discount', 'कम', 'bargain'],
           ),
           KSentence(
             id: 'm6',
@@ -735,6 +941,7 @@ final List<Category> categories = [
               Chunk('jaasti', 'जास्ती', 'ज़्यादा'),
               Chunk('aaytu', 'आयतु', 'हो गया'),
             ],
+            searchTags: ['expensive', 'महँगा'],
           ),
         ],
       ),
@@ -754,6 +961,7 @@ final List<Category> categories = [
               Chunk('fresh', 'फ्रेश', 'ताज़ा'),
               Chunk('idiya?', 'इदिया?', 'है क्या?'),
             ],
+            searchTags: ['fresh', 'ताज़ा'],
           ),
           KSentence(
             id: 'm8',
@@ -764,6 +972,7 @@ final List<Category> categories = [
               Chunk('Olledhu', 'ओळ्ळेदु', 'अच्छा वाला'),
               Chunk('kodi', 'कोडि', 'दीजिए'),
             ],
+            searchTags: ['good', 'अच्छा'],
           ),
         ],
       ),
@@ -782,6 +991,8 @@ final List<Category> categories = [
               Chunk('Cover', 'कवर', 'थैली / बैग'),
               Chunk('idiya?', 'इदिया?', 'है क्या?'),
             ],
+            streetCode: '🏷️ Street Code: बेंगलुरु में प्लास्टिक थैली को हमेशा "Cover" कहते हैं',
+            searchTags: ['bag', 'थैली', 'cover'],
           ),
           KSentence(
             id: 'm10',
@@ -792,6 +1003,7 @@ final List<Category> categories = [
               Chunk('Cover', 'कवर', 'थैली'),
               Chunk('beku', 'बेकु', 'चाहिए'),
             ],
+            searchTags: ['bag', 'थैली'],
           ),
         ],
       ),
@@ -804,7 +1016,7 @@ final List<Category> categories = [
     emoji: '💼',
     title: 'Colleagues & Workplace',
     hindiTitle: 'सहकर्मी और ऑफ़िस',
-    blurb: 'चाय ब्रेक, मदद, स्टेटस और मीटिंग्स',
+    blurb: 'चाय ब्रेक, मदद, स्टेटस और विदा',
     situations: [
       const KSituation(
         id: 'work_chai',
@@ -822,6 +1034,7 @@ final List<Category> categories = [
               Chunk('kudiyona', 'कुडियोण', 'पीते हैं'),
               Chunk('banni', 'बन्नि', 'आइए'),
             ],
+            searchTags: ['tea', 'चाय', 'break'],
           ),
           KSentence(
             id: 'c2',
@@ -832,6 +1045,8 @@ final List<Category> categories = [
               Chunk('Oota', 'ऊट', 'खाना / भोजन'),
               Chunk('aaytha?', 'आयता?', 'हो गया क्या?'),
             ],
+            streetCode: '🏷️ Cultural Code: "Oota aaytha?" कर्नाटक में "Hello" जैसा गर्मजोशी भरा अभिवादन है',
+            searchTags: ['lunch', 'खाना', 'hello'],
           ),
         ],
       ),
@@ -851,6 +1066,7 @@ final List<Category> categories = [
               Chunk('help', 'हेल्प', 'मदद'),
               Chunk('maadthira?', 'माड्तीरा?', 'करेंगे क्या?'),
             ],
+            searchTags: ['help', 'मदद'],
           ),
           KSentence(
             id: 'c4',
@@ -861,6 +1077,7 @@ final List<Category> categories = [
               Chunk('Innomme', 'इन्नोम्मे', 'एक बार फिर'),
               Chunk('heli', 'हेळि', 'बोलिए'),
             ],
+            searchTags: ['repeat', 'दोबारा'],
           ),
         ],
       ),
@@ -880,6 +1097,7 @@ final List<Category> categories = [
               Chunk('check maadi', 'चेक माडि', 'चेक करके'),
               Chunk('heltheeni', 'हेळ्तीनि', 'बताता हूँ'),
             ],
+            searchTags: ['check', 'बताता'],
           ),
           KSentence(
             id: 'c6',
@@ -890,6 +1108,7 @@ final List<Category> categories = [
               Chunk('Kelsa', 'केलसा', 'काम'),
               Chunk('aaytu', 'आयतु', 'हो गया'),
             ],
+            searchTags: ['done', 'काम', 'पूरा'],
           ),
         ],
       ),
@@ -909,6 +1128,7 @@ final List<Category> categories = [
               Chunk('raja', 'राजा', 'छुट्टी'),
               Chunk('beku', 'बेकु', 'चाहिए'),
             ],
+            searchTags: ['leave', 'छुट्टी'],
           ),
           KSentence(
             id: 'c8',
@@ -920,6 +1140,7 @@ final List<Category> categories = [
               Chunk('late', 'लेट', 'देर'),
               Chunk('aaguthe', 'आगत्ते', 'हो जाएगी'),
             ],
+            searchTags: ['late', 'देरी'],
           ),
         ],
       ),
@@ -938,6 +1159,7 @@ final List<Category> categories = [
               Chunk('Naale', 'नाळे', 'कल'),
               Chunk('sigona', 'सिगोण', 'मिलते हैं'),
             ],
+            searchTags: ['bye', 'मिलते'],
           ),
           KSentence(
             id: 'c10',
@@ -948,6 +1170,7 @@ final List<Category> categories = [
               Chunk('Naanu', 'नानु', 'मैं'),
               Chunk('hogbartiini', 'होगबर्तीनि', 'जाकर आता हूँ'),
             ],
+            searchTags: ['bye', 'अलविदा'],
           ),
         ],
       ),
@@ -978,6 +1201,8 @@ final List<Category> categories = [
               Chunk('enu', 'एनु', 'क्या'),
               Chunk('samaachaara?', 'समाचारा?', 'खबर?'),
             ],
+            streetCode: '🏷️ Slang Code: "Macha" करीबी दोस्तों के लिए बेंगलुरु का पसंदीदा संबोधन है',
+            searchTags: ['macha', 'yaar', 'दोस्त'],
           ),
           KSentence(
             id: 'y2',
@@ -989,6 +1214,7 @@ final List<Category> categories = [
               Chunk('baa', 'बा', 'आ'),
               Chunk('guru', 'गुरु', 'गुरु / यार'),
             ],
+            searchTags: ['fast', 'जल्दी', 'guru'],
           ),
         ],
       ),
@@ -1007,6 +1233,8 @@ final List<Category> categories = [
               Chunk('Sakkath', 'सक्कथ', 'शानदार / कमाल'),
               Chunk('aagide', 'आगिदे', 'है'),
             ],
+            streetCode: '🏷️ Slang Code: "Sakkath" = Awesome / Superb!',
+            searchTags: ['awesome', 'सक्कथ', 'ज़बरदस्त'],
           ),
           KSentence(
             id: 'y4',
@@ -1017,6 +1245,7 @@ final List<Category> categories = [
               Chunk('Super', 'सुपर', 'शानदार'),
               Chunk('guru', 'गुरु', 'यार / भाई'),
             ],
+            searchTags: ['super', 'कमाल'],
           ),
         ],
       ),
@@ -1035,6 +1264,7 @@ final List<Category> categories = [
               Chunk('Ellige', 'एल्लिगे', 'कहाँ को'),
               Chunk('hogona?', 'होगोण?', 'चलते हैं?'),
             ],
+            searchTags: ['where', 'कहाँ'],
           ),
           KSentence(
             id: 'y6',
@@ -1046,6 +1276,7 @@ final List<Category> categories = [
               Chunk('hogona', 'होगोण', 'चलते हैं'),
               Chunk('banni', 'बन्नि', 'आइए'),
             ],
+            searchTags: ['cafe', 'कैफ़े'],
           ),
         ],
       ),
@@ -1064,6 +1295,7 @@ final List<Category> categories = [
               Chunk('Tension', 'टेंशन', 'तनाव'),
               Chunk('thagobeda', 'थगोबेडा', 'मत लो'),
             ],
+            searchTags: ['tension', 'चिंता'],
           ),
           KSentence(
             id: 'y8',
@@ -1075,6 +1307,7 @@ final List<Category> categories = [
               Chunk('macha', 'मचा', 'यार'),
               Chunk('parvaagilla', 'पर्वागिल्ला', 'कोई बात नहीं'),
             ],
+            searchTags: ['chill', 'छोड़'],
           ),
         ],
       ),
@@ -1093,6 +1326,7 @@ final List<Category> categories = [
               Chunk('Aamele', 'आमेले', 'बाद में'),
               Chunk('sigona', 'सिगोण', 'मिलते हैं'),
             ],
+            searchTags: ['later', 'बाद'],
           ),
           KSentence(
             id: 'y10',
@@ -1103,6 +1337,7 @@ final List<Category> categories = [
               Chunk('Call', 'कॉल', 'कॉल'),
               Chunk('maadu', 'माडु', 'करो'),
             ],
+            searchTags: ['call', 'फ़ोन'],
           ),
         ],
       ),
@@ -1132,6 +1367,8 @@ final List<Category> categories = [
               Chunk('Namaskara', 'नमस्कार', 'नमस्ते'),
               Chunk('hegiddira?', 'हेगिद्दीरा?', 'कैसे हैं आप?'),
             ],
+            streetCode: '🏷️ Respect Code: बड़ों को "Hegiddira" (आदरणीय) बोलें, "Hegiddeeya" नहीं',
+            searchTags: ['namaste', 'hello', 'नमस्ते'],
           ),
           KSentence(
             id: 'e2',
@@ -1141,6 +1378,7 @@ final List<Category> categories = [
             chunks: [
               Chunk('Chennagiddira?', 'चेन्नागिद्दीरा?', 'ठीक हैं क्या?'),
             ],
+            searchTags: ['fine', 'ठीक'],
           ),
         ],
       ),
@@ -1159,6 +1397,7 @@ final List<Category> categories = [
               Chunk('Banni', 'बन्नि', 'आइए'),
               Chunk('kuutkoļi', 'कूतकोळ्ळि', 'बैठिए'),
             ],
+            searchTags: ['welcome', 'बैठिए'],
           ),
           KSentence(
             id: 'e4',
@@ -1169,6 +1408,7 @@ final List<Category> categories = [
               Chunk('Neeru', 'नीरु', 'पानी'),
               Chunk('kudiiri', 'कुडीरि', 'पीजिए'),
             ],
+            searchTags: ['water', 'पानी'],
           ),
         ],
       ),
@@ -1188,6 +1428,7 @@ final List<Category> categories = [
               Chunk('ellaru', 'एल्लारु', 'सभी लोग'),
               Chunk('chennaga iddaara?', 'चेन्नाग इद्दारा?', 'कुशल हैं क्या?'),
             ],
+            searchTags: ['family', 'परिवार'],
           ),
           KSentence(
             id: 'e6',
@@ -1199,6 +1440,7 @@ final List<Category> categories = [
               Chunk('ellaru', 'एल्लारु', 'सभी'),
               Chunk('chennagiddare', 'चेन्नागिद्दारे', 'ठीक हैं'),
             ],
+            searchTags: ['yes', 'हाँ'],
           ),
         ],
       ),
@@ -1217,6 +1459,7 @@ final List<Category> categories = [
               Chunk('Thumbha', 'तुंबा', 'बहुत'),
               Chunk('dhanyavaadagalu', 'धन्यवादगळु', 'धन्यवाद'),
             ],
+            searchTags: ['thanks', 'धन्यवाद'],
           ),
           KSentence(
             id: 'e8',
@@ -1228,6 +1471,7 @@ final List<Category> categories = [
               Chunk('kushi', 'खुशी', 'ख़ुशी'),
               Chunk('aaytu', 'आयतु', 'हुई'),
             ],
+            searchTags: ['happy', 'खुशी'],
           ),
         ],
       ),
@@ -1241,11 +1485,13 @@ final List<Category> categories = [
             id: 'e9',
             roman: 'Hoog bartiivi.',
             deva: 'होग बर्तिवि।',
-            hindi: 'अच्छा, हम चलते हैं (आते हैं)।',
+            hindi: 'अच्छा, हम चलते हैं (जाकर आते हैं)।',
             chunks: [
               Chunk('Hoog', 'होग', 'जाकर'),
               Chunk('bartiivi', 'बर्तिवि', 'आएँगे'),
             ],
+            streetCode: '🏷️ Cultural Code: कन्नड़ में "मैं जाता हूँ" नहीं, बल्कि हमेशा "जाकर आता हूँ" कहते हैं',
+            searchTags: ['bye', 'अलविदा', 'चलते'],
           ),
           KSentence(
             id: 'e10',
@@ -1256,6 +1502,7 @@ final List<Category> categories = [
               Chunk('Hogi', 'होगि', 'जाकर'),
               Chunk('banni', 'बन्नि', 'आइए'),
             ],
+            searchTags: ['welcome', 'आइए'],
           ),
         ],
       ),
@@ -1275,16 +1522,46 @@ final List<Category> categories = [
         title: 'Security & Parcels',
         hindiTitle: 'सिक्योरिटी व पार्सल',
         description: 'गेट पर गार्ड से पार्सल के बारे में पूछना:',
+        dialogue: RoleplayDialogue(
+          id: 'rp_apt1',
+          title: 'गेट पर सिक्योरिटी गार्ड से बात',
+          contextDescription: 'आप अपार्टमेंट के मुख्य द्वार पर पार्सल पूछ रहे हैं।',
+          turns: [
+            DialogueTurn(
+              speaker: 'आप',
+              isUser: true,
+              roman: 'Security anna, parcel bandideya?',
+              deva: 'सिक्योरिटी अण्णा, पार्सल बंदिदेया?',
+              hindi: 'सिक्योरिटी भैया, क्या कोई पार्सल आया है?',
+            ),
+            DialogueTurn(
+              speaker: 'गार्ड',
+              isUser: false,
+              roman: 'Haavdu sir, table meele ide nodi.',
+              deva: 'हौदु सर, टेबल मेले इदे नोडि।',
+              hindi: 'हाँ सर, मेज़ पर रखा है देखिए।',
+            ),
+            DialogueTurn(
+              speaker: 'आप',
+              isUser: true,
+              roman: 'Dhanyavaada anna!',
+              deva: 'धन्यवाद अण्णा!',
+              hindi: 'धन्यवाद भैया!',
+            ),
+          ],
+        ),
         sentences: [
           KSentence(
             id: 'ap1',
-            roman: 'Parcel bandideya?',
-            deva: 'पार्सल बंदिदेया?',
-            hindi: 'क्या कोई पार्सल आया है?',
+            roman: 'Parcel bandideya anna?',
+            deva: 'पार्सल बंदिदेया अण्णा?',
+            hindi: 'क्या कोई पार्सल आया है भैया?',
             chunks: [
               Chunk('Parcel', 'पार्सल', 'पार्सल'),
               Chunk('bandideya?', 'बंदिदेया?', 'आया है क्या?'),
+              Chunk('anna', 'अण्णा', 'भैया'),
             ],
+            searchTags: ['parcel', 'पार्सल', 'delivery'],
           ),
           KSentence(
             id: 'ap2',
@@ -1295,6 +1572,7 @@ final List<Category> categories = [
               Chunk('Gate', 'गेट', 'दरवाज़ा / गेट'),
               Chunk('open maadi', 'ओपन माडि', 'खोलिए'),
             ],
+            searchTags: ['gate', 'गेट'],
           ),
         ],
       ),
@@ -1313,6 +1591,7 @@ final List<Category> categories = [
               Chunk('Neeru', 'नीरु', 'पानी'),
               Chunk('barthilla', 'बर्तिल्ला', 'नहीं आ रहा'),
             ],
+            searchTags: ['water', 'पानी', 'नल'],
           ),
           KSentence(
             id: 'ap4',
@@ -1324,6 +1603,7 @@ final List<Category> categories = [
               Chunk('eega', 'ईग', 'अभी'),
               Chunk('barthara?', 'बर्त्थारा?', 'आएगा क्या?'),
             ],
+            searchTags: ['plumber', 'प्लंबर'],
           ),
         ],
       ),
@@ -1343,6 +1623,7 @@ final List<Category> categories = [
               Chunk('bega', 'बेग', 'जल्दी'),
               Chunk('banni', 'बन्नि', 'आइए'),
             ],
+            searchTags: ['maid', 'कामवाली', 'जल्दी'],
           ),
           KSentence(
             id: 'ap6',
@@ -1353,6 +1634,7 @@ final List<Category> categories = [
               Chunk('Clean', 'क्लीन', 'साफ़'),
               Chunk('maadi', 'माडि', 'कीजिए'),
             ],
+            searchTags: ['clean', 'साफ़'],
           ),
         ],
       ),
@@ -1372,6 +1654,7 @@ final List<Category> categories = [
               Chunk('sound', 'साउंड', 'आवाज़'),
               Chunk('kammi maadi', 'कम्मि माडि', 'कम कीजिए'),
             ],
+            searchTags: ['noise', 'sound', 'आवाज़'],
           ),
           KSentence(
             id: 'ap8',
@@ -1382,6 +1665,7 @@ final List<Category> categories = [
               Chunk('Saddu', 'सद्दु', 'शोर / आवाज़'),
               Chunk('maadbedi', 'माड्बेडी', 'मत कीजिए'),
             ],
+            searchTags: ['noise', 'शोर'],
           ),
         ],
       ),
@@ -1401,6 +1685,7 @@ final List<Category> categories = [
               Chunk('transfer', 'ट्रांसफर', 'ट्रांसफर'),
               Chunk('maadiddiini', 'माडिद्दीनि', 'कर दिया है'),
             ],
+            searchTags: ['rent', 'किराया'],
           ),
           KSentence(
             id: 'ap10',
@@ -1411,6 +1696,7 @@ final List<Category> categories = [
               Chunk('Receipt', 'रसीद', 'रसीद'),
               Chunk('kodi', 'कोडि', 'दीजिए'),
             ],
+            searchTags: ['receipt', 'रसीद'],
           ),
         ],
       ),
@@ -1419,7 +1705,17 @@ final List<Category> categories = [
 ];
 
 // ---------------------------------------------------------------------------
-// Unambiguous Lesson Generator with Clear Wrong Options
+// Daily Scenario Rotation Helper
+// ---------------------------------------------------------------------------
+
+KSituation getDailyScenario() {
+  final dayOfYear = DateTime.now().difference(DateTime(DateTime.now().year, 1, 1)).inDays;
+  final allSituations = categories.expand((c) => c.situations).toList();
+  return allSituations[dayOfYear % allSituations.length];
+}
+
+// ---------------------------------------------------------------------------
+// Lesson Generator with Listen & Speak Practice
 // ---------------------------------------------------------------------------
 
 Lesson generateLessonFromSituation(KSituation situation) {
@@ -1434,10 +1730,21 @@ Lesson generateLessonFromSituation(KSituation situation) {
         hindi: sentence.hindi,
         chunks: sentence.chunks,
         note: sentence.note,
+        streetCode: sentence.streetCode,
       ),
     );
 
-    // 2. Unscramble Build Step
+    // 2. Speak Aloud Mirror Practice
+    steps.add(
+      SpeakPracticeStep(
+        promptHindi: sentence.hindi,
+        targetRoman: sentence.roman,
+        targetDeva: sentence.deva,
+        tip: sentence.streetCode ?? 'ज़ोर से बोलकर अभ्यास करें ताकि आवाज़ में झिझक न रहे।',
+      ),
+    );
+
+    // 3. Tile Unscramble Step
     final cleanWordsRoman = sentence.roman
         .replaceAll(RegExp(r'[^\w\s\-]'), '')
         .split(' ')
@@ -1468,9 +1775,8 @@ Lesson generateLessonFromSituation(KSituation situation) {
     }
   }
 
-  // 3. Unambiguous "Use It" quiz for each sentence
+  // 4. Unambiguous "Use It" situational quizzes
   for (final target in situation.sentences) {
-    // Clear distractors that mean completely different things
     final distractorsRoman = [
       'Nanage beda.',
       'Illi nilisi.',
