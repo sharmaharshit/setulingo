@@ -8,21 +8,69 @@ void _open(BuildContext context, Widget page) {
   Navigator.push(context, MaterialPageRoute(builder: (_) => page));
 }
 
-/// Self-contained multi-script search helper
+/// Self-contained multi-script search helper that works across all versions
 List<KSentence> _searchSentences(String query) {
   final clean = query.toLowerCase().trim();
   if (clean.isEmpty) return [];
 
+  final Map<String, List<String>> aliases = {
+    'paani': ['neeru', 'पानी'],
+    'pani': ['neeru', 'पानी'],
+    'water': ['neeru', 'पानी'],
+    'chahiye': ['beku', 'चाहिए'],
+    'nahi': ['beda', 'नहीं'],
+    'dosa': ['dose', 'दोसे', 'डोसा'],
+    'dose': ['dose', 'दोसे', 'डोसा'],
+    'coffee': ['coffee', 'कॉफ़ी'],
+    'kafi': ['coffee', 'कॉफ़ी'],
+    'chai': ['tea', 'टी', 'चाय'],
+    'tea': ['tea', 'टी', 'चाय'],
+    'roko': ['nilisi', 'रोकिए'],
+    'stop': ['nilisi', 'रोकिए'],
+    'kitna': ['eshtu', 'कितना'],
+    'bill': ['eshtu', 'bill', 'बिल'],
+    'chutta': ['cilre', 'छुट्टे'],
+    'change': ['cilre', 'छुट्टे'],
+    'chalo': ['banni', 'hogona', 'चलते', 'चलेंगे'],
+    'aao': ['banni', 'आइए'],
+    'jana': ['hogbeku', 'जाना'],
+    'help': ['help', 'मदद', 'swalpa'],
+    'madad': ['help', 'मदद'],
+    'kam': ['kammi', 'कम'],
+    'theli': ['cover', 'थैली'],
+    'bag': ['cover', 'थैली'],
+    'love': ['preethistheeni', 'प्यार'],
+    'pyar': ['preethistheeni', 'प्यार'],
+    'miss': ['miss', 'मिस'],
+    'cute': ['muddu', 'cute', 'क्यूट', 'प्यारी'],
+    'sundar': ['andhavaagiddeera', 'सुंदर'],
+    'gate': ['gate', 'गेट'],
+    'parcel': ['parcel', 'पार्सल'],
+    'plumber': ['plumber', 'प्लंबर'],
+    'namaste': ['namaskara', 'नमस्कार', 'नमस्ते'],
+  };
+
   final all = categories.expand((c) => c.situations).expand((s) => s.sentences).toList();
   return all.where((s) {
-    if (s.roman.toLowerCase().contains(clean)) return true;
-    if (s.deva.contains(clean)) return true;
-    if (s.hindi.contains(clean)) return true;
-    try {
-      return s.hinglishKeywords.any((k) => k.toLowerCase().contains(clean) || clean.contains(k.toLowerCase()));
-    } catch (_) {
-      return false;
+    final romanLower = s.roman.toLowerCase();
+    final devaLower = s.deva.toLowerCase();
+    final hindiLower = s.hindi.toLowerCase();
+
+    if (romanLower.contains(clean) || devaLower.contains(clean) || hindiLower.contains(clean)) {
+      return true;
     }
+
+    for (final entry in aliases.entries) {
+      if (clean.contains(entry.key)) {
+        for (final target in entry.value) {
+          if (romanLower.contains(target) || hindiLower.contains(target) || devaLower.contains(target)) {
+            return true;
+          }
+        }
+      }
+    }
+
+    return false;
   }).toList();
 }
 
@@ -130,6 +178,7 @@ class CommunicatePage extends StatelessWidget {
           body: ListView(
             padding: const EdgeInsets.all(16),
             children: [
+              // 2-Minute Goal Card
               Container(
                 padding: const EdgeInsets.all(18),
                 decoration: BoxDecoration(
