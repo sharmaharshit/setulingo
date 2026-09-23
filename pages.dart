@@ -64,15 +64,28 @@ class _HomePageState extends State<HomePage> {
 }
 
 // ---------------------------------------------------------------------------
-// 1. Communicate Page (Categories)
+// 1. Communicate Page (Daily Scenario + Categories + Quick Search)
 // ---------------------------------------------------------------------------
 
 class CommunicatePage extends StatelessWidget {
   const CommunicatePage({super.key});
 
+  void _showSurvivalSearch(BuildContext context) {
+    showModalBottomSheet(
+      context: context,
+      isScrollControlled: true,
+      backgroundColor: Theme.of(context).scaffoldBackgroundColor,
+      shape: const RoundedRectangleBorder(
+        borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
+      ),
+      builder: (_) => const SurvivalSearchSheet(),
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
     final settings = AppSettingsStore.instance;
+    final dailyScenario = getDailyScenario();
 
     return ListenableBuilder(
       listenable: settings,
@@ -81,6 +94,11 @@ class CommunicatePage extends StatelessWidget {
           appBar: AppBar(
             title: const Text('SetuLingo', style: TextStyle(fontWeight: FontWeight.w900)),
             actions: [
+              IconButton(
+                icon: const Icon(Icons.search),
+                tooltip: 'स्ट्रीट सर्च',
+                onPressed: () => _showSurvivalSearch(context),
+              ),
               TextButton.icon(
                 onPressed: () => settings.toggleMode(),
                 icon: const Icon(Icons.translate, size: 16),
@@ -94,20 +112,70 @@ class CommunicatePage extends StatelessWidget {
           body: ListView(
             padding: const EdgeInsets.all(16),
             children: [
+              // Daily Scenario Banner
+              Container(
+                padding: const EdgeInsets.all(16),
+                decoration: BoxDecoration(
+                  gradient: const LinearGradient(
+                    colors: [Color(0xFF2E1C0C), Color(0xFF1B1B1E)],
+                    begin: Alignment.topLeft,
+                    end: Alignment.bottomRight,
+                  ),
+                  borderRadius: BorderRadius.circular(16),
+                  border: Border.all(color: const Color(0xFFFF9800).withValues(alpha: 0.4)),
+                ),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Row(
+                      children: [
+                        const Text('🔥 आज का परिदृश्य (Daily 2-min Goal)',
+                            style: TextStyle(fontSize: 12, fontWeight: FontWeight.w800, color: Color(0xFFFFB74D))),
+                        const Spacer(),
+                        Container(
+                          padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
+                          decoration: BoxDecoration(
+                            color: const Color(0xFFFF9800),
+                            borderRadius: BorderRadius.circular(4),
+                          ),
+                          child: const Text('New', style: TextStyle(fontSize: 10, fontWeight: FontWeight.w900, color: Colors.black)),
+                        ),
+                      ],
+                    ),
+                    const SizedBox(height: 6),
+                    Text(dailyScenario.title, style: const TextStyle(fontSize: 18, fontWeight: FontWeight.w900)),
+                    Text(dailyScenario.hindiTitle, style: TextStyle(fontSize: 14, color: Theme.of(context).colorScheme.onSurfaceVariant)),
+                    const SizedBox(height: 12),
+                    SizedBox(
+                      width: double.infinity,
+                      child: FilledButton.icon(
+                        style: FilledButton.styleFrom(
+                          backgroundColor: const Color(0xFFFF9800),
+                          foregroundColor: Colors.black,
+                        ),
+                        onPressed: () => _open(context, SituationDetailPage(situation: dailyScenario)),
+                        icon: const Icon(Icons.play_arrow, size: 18),
+                        label: const Text('2-Minute Practice शुरू करें', style: TextStyle(fontWeight: FontWeight.w800)),
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+              const SizedBox(height: 20),
               Text(
-                'बेंगलुरु बोलचाल की कन्नड़',
+                'परिस्थितियाँ (Categories)',
                 style: TextStyle(
-                  fontSize: 20,
+                  fontSize: 18,
                   fontWeight: FontWeight.w800,
                   color: Theme.of(context).colorScheme.primary,
                 ),
               ),
               const SizedBox(height: 2),
               Text(
-                'कैटेगरी चुनें और 5 महत्वपूर्ण परिस्थितियों के वाक्य सीखें:',
-                style: TextStyle(color: Theme.of(context).colorScheme.onSurfaceVariant),
+                'ज़रूरत के अनुसार कैटेगरी चुनें:',
+                style: TextStyle(fontSize: 13, color: Theme.of(context).colorScheme.onSurfaceVariant),
               ),
-              const SizedBox(height: 14),
+              const SizedBox(height: 12),
               for (final cat in categories)
                 Card(
                   margin: const EdgeInsets.only(bottom: 10),
@@ -126,6 +194,113 @@ class CommunicatePage extends StatelessWidget {
     );
   }
 }
+
+// ---------------------------------------------------------------------------
+// Street Survival Quick-Search Sheet
+// ---------------------------------------------------------------------------
+
+class SurvivalSearchSheet extends StatefulWidget {
+  const SurvivalSearchSheet({super.key});
+
+  @override
+  State<SurvivalSearchSheet> createState() => _SurvivalSearchSheetState();
+}
+
+class _SurvivalSearchSheetState extends State<SurvivalSearchSheet> {
+  String _query = '';
+  final TextEditingController _controller = TextEditingController();
+
+  final List<String> _quickTags = ['Auto', 'Coffee', 'Stop', 'Chutta', 'Help', 'Price'];
+
+  @override
+  Widget build(BuildContext context) {
+    final allSentences = categories.expand((c) => c.situations).expand((s) => s.sentences).toList();
+
+    final results = allSentences.where((s) {
+      final q = _query.toLowerCase().trim();
+      if (q.isEmpty) return false;
+      return s.roman.toLowerCase().contains(q) ||
+          s.deva.contains(q) ||
+          s.hindi.contains(q) ||
+          s.searchTags.any((t) => t.toLowerCase().contains(q));
+    }).toList();
+
+    return Padding(
+      padding: EdgeInsets.only(
+        top: 20,
+        left: 16,
+        right: 16,
+        bottom: MediaQuery.of(context).viewInsets.bottom + 20,
+      ),
+      child: Column(
+        mainAxisSize: MainAxisSize.min,
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Row(
+            children: [
+              const Text('⚡ Street Survival Search', style: TextStyle(fontSize: 18, fontWeight: FontWeight.w900)),
+              const Spacer(),
+              IconButton(icon: const Icon(Icons.close), onPressed: () => Navigator.pop(context)),
+            ],
+          ),
+          const SizedBox(height: 8),
+          TextField(
+            controller: _controller,
+            autofocus: true,
+            decoration: InputDecoration(
+              hintText: 'सर्च करें: "meter", "chutta", "stop", "कॉफ़ी"...',
+              prefixIcon: const Icon(Icons.search),
+              filled: true,
+              border: OutlineInputBorder(borderRadius: BorderRadius.circular(12), borderSide: BorderSide.none),
+            ),
+            onChanged: (val) => setState(() => _query = val),
+          ),
+          const SizedBox(height: 10),
+          SingleChildScrollView(
+            scrollDirection: Axis.horizontal,
+            child: Row(
+              children: _quickTags.map((tag) {
+                return Padding(
+                  padding: const EdgeInsets.only(right: 6),
+                  child: ActionChip(
+                    label: Text(tag),
+                    onPressed: () {
+                      _controller.text = tag;
+                      setState(() => _query = tag);
+                    },
+                  ),
+                );
+              }).toList(),
+            ),
+          ),
+          const SizedBox(height: 14),
+          ConstrainedBox(
+            constraints: BoxConstraints(maxHeight: MediaQuery.of(context).size.height * 0.45),
+            child: results.isEmpty
+                ? Center(
+                    child: Padding(
+                      padding: const EdgeInsets.all(24),
+                      child: Text(
+                        _query.isEmpty ? 'सर्च बॉक्स में कुछ लिखें...' : 'कोई वाक्य नहीं मिला।',
+                        style: TextStyle(color: Theme.of(context).colorScheme.onSurfaceVariant),
+                      ),
+                    ),
+                  )
+                : ListView.builder(
+                    shrinkWrap: true,
+                    itemCount: results.length,
+                    itemBuilder: (context, i) => SentenceCard(sentence: results[i]),
+                  ),
+          ),
+        ],
+      ),
+    );
+  }
+}
+
+// ---------------------------------------------------------------------------
+// Category & Situation Details
+// ---------------------------------------------------------------------------
 
 class CategorySituationsPage extends StatelessWidget {
   final Category category;
@@ -162,14 +337,23 @@ class CategorySituationsPage extends StatelessWidget {
   }
 }
 
-class SituationDetailPage extends StatelessWidget {
+class SituationDetailPage extends StatefulWidget {
   final KSituation situation;
 
   const SituationDetailPage({super.key, required this.situation});
 
   @override
+  State<SituationDetailPage> createState() => _SituationDetailPageState();
+}
+
+class _SituationDetailPageState extends State<SituationDetailPage> {
+  int _viewIndex = 0; // 0: Sentences, 1: Roleplay Dialogue
+
+  @override
   Widget build(BuildContext context) {
     final settings = AppSettingsStore.instance;
+    final situation = widget.situation;
+    final hasDialogue = situation.dialogue != null;
 
     return ListenableBuilder(
       listenable: settings,
@@ -219,12 +403,22 @@ class SituationDetailPage extends StatelessWidget {
                 ),
               ),
               const SizedBox(height: 16),
-              const Text(
-                'वाक्य सूची (Sentences)',
-                style: TextStyle(fontSize: 17, fontWeight: FontWeight.w800),
-              ),
-              const SizedBox(height: 10),
-              for (final s in situation.sentences) SentenceCard(sentence: s),
+              if (hasDialogue) ...[
+                SegmentedButton<int>(
+                  segments: const [
+                    ButtonSegment(value: 0, label: Text('वाक्य सूची')),
+                    ButtonSegment(value: 1, label: Text('रोलप्ले बातचीत (Dialogue)')),
+                  ],
+                  selected: {_viewIndex},
+                  onSelectionChanged: (val) => setState(() => _viewIndex = val.first),
+                ),
+                const SizedBox(height: 16),
+              ],
+              if (_viewIndex == 0 || !hasDialogue) ...[
+                for (final s in situation.sentences) SentenceCard(sentence: s),
+              ] else ...[
+                RoleplayDialogueWidget(dialogue: situation.dialogue!),
+              ],
             ],
           ),
         );
@@ -234,7 +428,7 @@ class SituationDetailPage extends StatelessWidget {
 }
 
 // ---------------------------------------------------------------------------
-// 2. Sentence Lab (3 Modular Dropdowns)
+// 2. Sentence Lab (3 Dropdowns)
 // ---------------------------------------------------------------------------
 
 class SentenceLabPage extends StatefulWidget {
@@ -297,7 +491,6 @@ class _SentenceLabPageState extends State<SentenceLabPage> {
                 style: TextStyle(fontSize: 13, color: scheme.onSurfaceVariant),
               ),
               const SizedBox(height: 16),
-
               _buildDropdownSection(
                 title: '1. कर्ता / शुरुआत (Subject)',
                 value: _starterIndex,
@@ -306,7 +499,6 @@ class _SentenceLabPageState extends State<SentenceLabPage> {
                 isDeva: settings.isDevanagari,
               ),
               const SizedBox(height: 10),
-
               _buildDropdownSection(
                 title: '2. विषय / वस्तु / स्थान (Topic)',
                 value: _topicIndex,
@@ -315,7 +507,6 @@ class _SentenceLabPageState extends State<SentenceLabPage> {
                 isDeva: settings.isDevanagari,
               ),
               const SizedBox(height: 10),
-
               _buildDropdownSection(
                 title: '3. क्रिया / अंत (Verb / Request)',
                 value: _endingIndex,
@@ -324,7 +515,6 @@ class _SentenceLabPageState extends State<SentenceLabPage> {
                 isDeva: settings.isDevanagari,
               ),
               const SizedBox(height: 20),
-
               Container(
                 padding: const EdgeInsets.all(16),
                 decoration: BoxDecoration(
@@ -442,7 +632,7 @@ class _SentenceLabPageState extends State<SentenceLabPage> {
 }
 
 // ---------------------------------------------------------------------------
-// 3. Learn Words Page (Includes Sanskrit Cognates Segment)
+// 3. Learn Words & Cognates Page
 // ---------------------------------------------------------------------------
 
 class LearnWordsPage extends StatelessWidget {
@@ -531,7 +721,7 @@ class LearnWordsPage extends StatelessWidget {
 }
 
 // ---------------------------------------------------------------------------
-// 4. Saved Collection Page (Clean Personal Bookmarks Only)
+// 4. Saved Bookmarks & Active Recall Flashcards
 // ---------------------------------------------------------------------------
 
 class MyWordsPage extends StatelessWidget {
@@ -544,13 +734,13 @@ class MyWordsPage extends StatelessWidget {
     final settings = AppSettingsStore.instance;
 
     return DefaultTabController(
-      length: 2,
+      length: 3,
       child: ListenableBuilder(
         listenable: settings,
         builder: (context, _) {
           return Scaffold(
             appBar: AppBar(
-              title: const Text('Saved Bookmarks'),
+              title: const Text('Saved & Practice'),
               actions: [
                 TextButton.icon(
                   onPressed: () => settings.toggleMode(),
@@ -559,14 +749,17 @@ class MyWordsPage extends StatelessWidget {
                 ),
               ],
               bottom: const TabBar(
+                isScrollable: true,
                 tabs: [
-                  Tab(text: 'सहेजे शब्द (Words)'),
-                  Tab(text: 'सहेजे वाक्य (Sentences)'),
+                  Tab(text: 'सहेजे शब्द'),
+                  Tab(text: 'सहेजे वाक्य'),
+                  Tab(text: '🎯 फ़्लैशकार्ड अभ्यास'),
                 ],
               ),
             ),
             body: TabBarView(
               children: [
+                // Words
                 ListenableBuilder(
                   listenable: wordsStore,
                   builder: (context, _) {
@@ -596,6 +789,7 @@ class MyWordsPage extends StatelessWidget {
                     );
                   },
                 ),
+                // Sentences
                 ListenableBuilder(
                   listenable: sentencesStore,
                   builder: (context, _) {
@@ -626,10 +820,139 @@ class MyWordsPage extends StatelessWidget {
                     );
                   },
                 ),
+                // Flashcards Active Recall Mode
+                const ActiveRecallFlashcards(),
               ],
             ),
           );
         },
+      ),
+    );
+  }
+}
+
+class ActiveRecallFlashcards extends StatefulWidget {
+  const ActiveRecallFlashcards({super.key});
+
+  @override
+  State<ActiveRecallFlashcards> createState() => _ActiveRecallFlashcardsState();
+}
+
+class _ActiveRecallFlashcardsState extends State<ActiveRecallFlashcards> {
+  int _cardIndex = 0;
+  bool _revealed = false;
+
+  @override
+  Widget build(BuildContext context) {
+    final sentences = MySentencesStore.instance.sentences;
+    final settings = AppSettingsStore.instance;
+
+    if (sentences.isEmpty) {
+      return const Center(
+        child: Padding(
+          padding: EdgeInsets.all(24),
+          child: Text(
+            'फ़्लैशकार्ड के लिए पहले Communicate या Sentence Lab से कुछ वाक्य बुकमार्क करें!',
+            textAlign: TextAlign.center,
+          ),
+        ),
+      );
+    }
+
+    final current = sentences[_cardIndex % sentences.length];
+    final displaySpoken = settings.isDevanagari ? current.deva : current.roman;
+
+    return Padding(
+      padding: const EdgeInsets.all(20),
+      child: Column(
+        children: [
+          Row(
+            children: [
+              Text(
+                'कार्ड ${_cardIndex + 1} / ${sentences.length}',
+                style: TextStyle(fontWeight: FontWeight.w700, color: Theme.of(context).colorScheme.primary),
+              ),
+              const Spacer(),
+              if (current.mastered)
+                const Chip(
+                  label: Text('याद हो गया ✓', style: TextStyle(fontSize: 11)),
+                  backgroundColor: Color(0xFF1B382B),
+                ),
+            ],
+          ),
+          const SizedBox(height: 16),
+          Expanded(
+            child: GestureDetector(
+              onTap: () => setState(() => _revealed = !_revealed),
+              child: Card(
+                elevation: 2,
+                child: Container(
+                  width: double.infinity,
+                  padding: const EdgeInsets.all(24),
+                  child: Column(
+                    mainAxisAlignment: MainAxisAlignment.center,
+                    children: [
+                      const Text('हिंदी अर्थ (दिमाग पर ज़ोर दें):', style: TextStyle(fontSize: 13)),
+                      const SizedBox(height: 8),
+                      Text(
+                        current.hindi,
+                        textAlign: TextAlign.center,
+                        style: const TextStyle(fontSize: 22, fontWeight: FontWeight.w800),
+                      ),
+                      const Divider(height: 36),
+                      if (!_revealed) ...[
+                        const Icon(Icons.touch_app, size: 36, color: Colors.white38),
+                        const SizedBox(height: 8),
+                        const Text('कन्नड़ देखने के लिए टैप करें', style: TextStyle(fontSize: 13, color: Colors.white54)),
+                      ] else ...[
+                        Text(
+                          displaySpoken,
+                          textAlign: TextAlign.center,
+                          style: TextStyle(fontSize: 26, fontWeight: FontWeight.w900, color: Theme.of(context).colorScheme.primary),
+                        ),
+                        const SizedBox(height: 14),
+                        IconButton.filledTonal(
+                          icon: const Icon(Icons.volume_up),
+                          onPressed: () => TtsService.instance.speak(current.roman),
+                        ),
+                      ],
+                    ],
+                  ),
+                ),
+              ),
+            ),
+          ),
+          const SizedBox(height: 16),
+          Row(
+            children: [
+              Expanded(
+                child: OutlinedButton(
+                  onPressed: () {
+                    MySentencesStore.instance.markReviewed(current.id, false);
+                    setState(() {
+                      _revealed = false;
+                      _cardIndex = (_cardIndex + 1) % sentences.length;
+                    });
+                  },
+                  child: const Text('फिर से अभ्यास'),
+                ),
+              ),
+              const SizedBox(width: 12),
+              Expanded(
+                child: FilledButton(
+                  onPressed: () {
+                    MySentencesStore.instance.markReviewed(current.id, true);
+                    setState(() {
+                      _revealed = false;
+                      _cardIndex = (_cardIndex + 1) % sentences.length;
+                    });
+                  },
+                  child: const Text('याद रहा ✓'),
+                ),
+              ),
+            ],
+          ),
+        ],
       ),
     );
   }
