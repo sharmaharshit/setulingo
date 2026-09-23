@@ -280,7 +280,7 @@ final List<StreetEncounter> streetEncounters = [
     tag: '⚡ Social Self-Defense',
     title: 'The Bus Sneer',
     hindiTitle: 'बस में कपड़ों पर टिप्पणी',
-    location: 'BMTC Route 500D (Silk Board $\\rightarrow$ Marathahalli)',
+    location: 'BMTC Route 500D (Silk Board → Marathahalli)',
     overheardSpeaker: 'पीछे बैठा यात्री (Co-passenger)',
     overheardRoman: 'Nodu guru, ivana pant nodu... circus thara ide!',
     overheardDeva: 'नोडु गुरु, इवन पँट नोडु... सर्कस तर इदे!',
