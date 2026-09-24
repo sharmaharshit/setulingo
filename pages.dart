@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import '../main_v2.dart';
 import 'content.dart';
 import 'lesson_page.dart';
 import 'store.dart';
@@ -20,7 +21,7 @@ class _HomePageState extends State<HomePage> {
 
   final List<Widget> _pages = const [
     CommunicatePage(),
-    StreetEncountersPage(),
+    SanskritCognatesPage(),
     SentenceLabPage(),
     MyWordsPage(),
   ];
@@ -42,9 +43,9 @@ class _HomePageState extends State<HomePage> {
             label: 'Situations',
           ),
           NavigationDestination(
-            icon: Icon(Icons.theater_comedy_outlined),
-            selectedIcon: Icon(Icons.theater_comedy),
-            label: 'Encounters',
+            icon: Icon(Icons.account_balance_outlined),
+            selectedIcon: Icon(Icons.account_balance),
+            label: 'Sanskrit Roots',
           ),
           NavigationDestination(
             icon: Icon(Icons.auto_awesome_outlined),
@@ -209,203 +210,105 @@ class CommunicatePage extends StatelessWidget {
 }
 
 // ---------------------------------------------------------------------------
-// 2. Street Encounters Page (15-Step Epic Story Runner)
+// 2. Sanskrit Cognates Page (promoted out of the Vault into a primary tab)
 // ---------------------------------------------------------------------------
 
-class StreetEncountersPage extends StatelessWidget {
-  const StreetEncountersPage({super.key});
+class SanskritCognatesPage extends StatelessWidget {
+  const SanskritCognatesPage({super.key});
 
   @override
   Widget build(BuildContext context) {
-    final scheme = Theme.of(context).colorScheme;
+    final wordsStore = MyWordsStore.instance;
 
-    return Scaffold(
-      appBar: AppBar(
-        title: const Text('Street Encounters ⚡', style: TextStyle(fontWeight: FontWeight.w900)),
-      ),
-      body: ListView(
-        padding: const EdgeInsets.all(16),
-        children: [
-          Container(
-            padding: const EdgeInsets.all(14),
-            decoration: BoxDecoration(
-              color: const Color(0xFF0F1526),
-              borderRadius: BorderRadius.circular(16),
-              border: Border.all(color: const Color(0xFF1E293B)),
-            ),
-            child: Row(
-              children: [
-                const Text('🛡️', style: TextStyle(fontSize: 26)),
-                const SizedBox(width: 12),
-                Expanded(
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      const Text('Epic Choose-Your-Adventure', style: TextStyle(fontSize: 14, fontWeight: FontWeight.w900, color: Colors.white)),
-                      const SizedBox(height: 2),
-                      Text(
-                        'A 15-decision branching simulation of a chaotic Bengaluru Monday. Make choices to shape your day.',
-                        style: TextStyle(fontSize: 12, color: scheme.onSurfaceVariant),
-                      ),
-                    ],
-                  ),
-                ),
-              ],
-            ),
+    return ListenableBuilder(
+      listenable: wordsStore,
+      builder: (context, _) {
+        return Scaffold(
+          appBar: AppBar(
+            title: const Text('Sanskrit Roots 🏛️', style: TextStyle(fontWeight: FontWeight.w900)),
+            actions: const [ScriptToggleAction()],
           ),
-          const SizedBox(height: 18),
-          Card(
-            child: Padding(
-              padding: const EdgeInsets.all(16),
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Container(
-                    padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
-                    decoration: BoxDecoration(
-                      color: scheme.primary.withValues(alpha: 0.12),
-                      borderRadius: BorderRadius.circular(8),
-                    ),
-                    child: Text('⚡ Epic Simulation', style: TextStyle(fontSize: 10, fontWeight: FontWeight.w800, color: scheme.primary)),
-                  ),
-                  const SizedBox(height: 10),
-                  const Text('A Chaotic Bengaluru Monday', style: TextStyle(fontSize: 19, fontWeight: FontWeight.w900, letterSpacing: -0.3, color: Colors.white)),
-                  const Text('एक अराजक बेंगलुरु सोमवार (15 Decision Story)', style: TextStyle(fontSize: 13, color: Color(0xFF94A3B8))),
-                  const SizedBox(height: 14),
-                  SizedBox(
-                    width: double.infinity,
-                    child: FilledButton.icon(
-                      style: FilledButton.styleFrom(
-                        backgroundColor: const Color(0xFF162035),
-                        foregroundColor: scheme.primary,
-                      ),
-                      onPressed: () => _open(context, const EpicEncounterPlayerPage()),
-                      icon: const Icon(Icons.play_circle_outline, size: 18),
-                      label: const Text('Start 15-Step Epic Journey', style: TextStyle(fontWeight: FontWeight.w800)),
-                    ),
-                  ),
-                ],
-              ),
-            ),
-          ),
-        ],
-      ),
-    );
-  }
-}
-
-class EpicEncounterPlayerPage extends StatefulWidget {
-  const EpicEncounterPlayerPage({super.key});
-
-  @override
-  State<EpicEncounterPlayerPage> createState() => _EpicEncounterPlayerPageState();
-}
-
-class _EpicEncounterPlayerPageState extends State<EpicEncounterPlayerPage> {
-  int _currentStepNum = 1;
-
-  @override
-  Widget build(BuildContext context) {
-    final scheme = Theme.of(context).colorScheme;
-    final node = epicEncounterStory.firstWhere((n) => n.stepNumber == _currentStepNum, orElse: () => epicEncounterStory.last);
-
-    return Scaffold(
-      backgroundColor: const Color(0xFF06080F),
-      appBar: AppBar(
-        backgroundColor: Colors.transparent,
-        title: Text('Step ${node.stepNumber} / 15: ${node.title}', style: const TextStyle(fontSize: 16, fontWeight: FontWeight.w900)),
-      ),
-      body: ListView(
-        padding: const EdgeInsets.all(20),
-        children: [
-          // Narrative Box
-          Container(
-            padding: const EdgeInsets.all(20),
-            decoration: BoxDecoration(
-              gradient: const LinearGradient(
-                colors: [Color(0xFF121B33), Color(0xFF0A1020)],
-                begin: Alignment.topLeft,
-                end: Alignment.bottomRight,
-              ),
-              borderRadius: BorderRadius.circular(20),
-              border: Border.all(color: const Color(0xFF38BDF8).withValues(alpha: 0.3)),
-            ),
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Text('📖 SCENARIO NARRATIVE', style: TextStyle(fontSize: 10, fontWeight: FontWeight.w900, color: scheme.primary)),
-                const SizedBox(height: 8),
-                Text(node.narrativeEn, style: const TextStyle(fontSize: 16, fontWeight: FontWeight.w800, color: Colors.white, height: 1.4)),
-                const SizedBox(height: 8),
-                Text(node.narrativeHi, style: TextStyle(fontSize: 14, fontWeight: FontWeight.w600, color: scheme.onSurfaceVariant, height: 1.4)),
-              ],
-            ),
-          ),
-          const SizedBox(height: 24),
-          const Text('CHOOSE YOUR ACTION:', style: TextStyle(fontSize: 11, fontWeight: FontWeight.w900, letterSpacing: 1.2, color: Colors.white54)),
-          const SizedBox(height: 12),
-
-          for (final opt in node.options) ...[
-            Padding(
-              padding: const EdgeInsets.only(bottom: 12),
-              child: Material(
-                color: Colors.transparent,
-                child: InkWell(
+          body: ListView(
+            padding: const EdgeInsets.all(16),
+            children: [
+              Container(
+                padding: const EdgeInsets.all(14),
+                decoration: BoxDecoration(
+                  color: const Color(0xFF0F1526),
                   borderRadius: BorderRadius.circular(16),
-                  onTap: () {
-                    if (opt.nextStep == 1) {
-                      Navigator.pop(context);
-                      ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Epic Journey Completed!')));
-                    } else {
-                      setState(() => _currentStepNum = opt.nextStep);
-                    }
-                  },
-                  child: Container(
-                    padding: const EdgeInsets.all(16),
-                    decoration: BoxDecoration(
-                      color: const Color(0xFF0F1526),
-                      borderRadius: BorderRadius.circular(16),
-                      border: Border.all(color: const Color(0xFF1E293B)),
+                  border: Border.all(color: const Color(0xFF1E293B)),
+                ),
+                child: const Row(
+                  children: [
+                    Text('🏛️', style: TextStyle(fontSize: 26)),
+                    SizedBox(width: 12),
+                    Expanded(
+                      child: Text(
+                        'Many Hindi and Kannada words share identical Sanskrit roots, making them instantly recognizable. Tap the bookmark on any pair to save it to your Vault.',
+                        style: TextStyle(fontSize: 12, color: Color(0xFF94A3B8)),
+                      ),
                     ),
+                  ],
+                ),
+              ),
+              const SizedBox(height: 16),
+              for (final c in connections)
+                Card(
+                  margin: const EdgeInsets.only(bottom: 10),
+                  child: Padding(
+                    padding: const EdgeInsets.all(16),
                     child: Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
-                        Container(
-                          padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
-                          decoration: BoxDecoration(
-                            color: scheme.primary.withValues(alpha: 0.15),
-                            borderRadius: BorderRadius.circular(6),
-                          ),
-                          child: Text(opt.badge, style: TextStyle(fontSize: 10, fontWeight: FontWeight.w900, color: scheme.primary)),
-                        ),
-                        const SizedBox(height: 10),
                         Row(
+                          crossAxisAlignment: CrossAxisAlignment.start,
                           children: [
                             Expanded(
                               child: Text(
-                                opt.kannadaRoman,
+                                '${c.hindi}  →  ${c.kannadaRoman} (${c.kannadaDeva})',
                                 style: const TextStyle(fontSize: 18, fontWeight: FontWeight.w900, color: Colors.white),
                               ),
                             ),
-                            IconButton(
-                              icon: const Icon(Icons.volume_up, size: 20),
-                              onPressed: () => TtsService.instance.speak(opt.kannadaRoman),
-                            ),
+                            Builder(builder: (context) {
+                              final id = 'cognate_${c.hindi}_${c.kannadaRoman}'.hashCode.toString();
+                              final saved = wordsStore.contains(id);
+                              return IconButton(
+                                icon: Icon(
+                                  saved ? Icons.bookmark : Icons.bookmark_border,
+                                  color: saved ? AppColors.marigold : null,
+                                  size: 21,
+                                ),
+                                tooltip: saved ? 'सहेजा गया' : 'Vault में सहेजें',
+                                onPressed: () {
+                                  if (saved) {
+                                    wordsStore.removeWord(id);
+                                  } else {
+                                    wordsStore.addWord(SavedWord(
+                                      id: id,
+                                      roman: c.kannadaRoman,
+                                      deva: c.kannadaDeva,
+                                      hindi: c.hindi,
+                                      source: 'Sanskrit Roots · ${c.type}',
+                                      createdAt: DateTime.now(),
+                                    ));
+                                  }
+                                },
+                              );
+                            }),
                           ],
                         ),
-                        const SizedBox(height: 2),
-                        Text(opt.kannadaDeva, style: TextStyle(fontSize: 14, color: scheme.primary)),
                         const SizedBox(height: 4),
-                        Text(opt.hindiMeaning, style: TextStyle(fontSize: 13, fontWeight: FontWeight.w600, color: scheme.onSurfaceVariant)),
+                        Text(c.type, style: const TextStyle(fontSize: 12, fontWeight: FontWeight.w700, color: Color(0xFF00E5A3))),
+                        const SizedBox(height: 4),
+                        Text(c.note, style: const TextStyle(fontSize: 13, color: Color(0xFF94A3B8))),
                       ],
                     ),
                   ),
                 ),
-              ),
-            ),
-          ],
-        ],
-      ),
+            ],
+          ),
+        );
+      },
     );
   }
 }
@@ -506,6 +409,27 @@ class _SentenceLabPageState extends State<SentenceLabPage> {
     }
   }
 
+  /// Parses a slot's display value (e.g. "ओन्दु (एक)" or "dose — डोसा") into
+  /// a saveable [Chunk] so each generated word — not just the full sentence —
+  /// can be bookmarked to the Vault.
+  Chunk _chunkFromSlot(String roman, String displayValue) {
+    final parenMatch = RegExp(r'^(.*?)\s*\(([^)]+)\)\s*$').firstMatch(displayValue);
+    if (parenMatch != null) {
+      return Chunk(roman, parenMatch.group(1)!.trim(), parenMatch.group(2)!.trim());
+    }
+    if (displayValue.contains('—')) {
+      final deva = displayValue.split('—').last.trim();
+      return Chunk(roman, deva, deva);
+    }
+    return Chunk(roman, displayValue.trim(), displayValue.trim());
+  }
+
+  List<Chunk> get _currentChunks => [
+        _chunkFromSlot(_slot1Key, _slot1Map[_slot1Key] ?? _slot1Key),
+        _chunkFromSlot(_slot2Key, _slot2Map[_slot2Key] ?? _slot2Key),
+        _chunkFromSlot(_slot3Key, _slot3Map[_slot3Key] ?? _slot3Key),
+      ];
+
   String get _currentRoman => '$_slot1Key $_slot2Key $_slot3Key.';
 
   String get _currentHindi {
@@ -526,6 +450,7 @@ class _SentenceLabPageState extends State<SentenceLabPage> {
     return Scaffold(
       appBar: AppBar(
         title: const Text('Sentence Lab ⚡', style: TextStyle(fontWeight: FontWeight.w900, letterSpacing: -0.4)),
+        actions: const [ScriptToggleAction()],
       ),
       body: ListView(
         padding: const EdgeInsets.all(20),
@@ -652,6 +577,10 @@ class _SentenceLabPageState extends State<SentenceLabPage> {
                   _currentHindi,
                   style: TextStyle(fontSize: 16, fontWeight: FontWeight.w700, color: primaryMint),
                 ),
+                const SizedBox(height: 14),
+                const Text('शब्द सहेजिए:', style: TextStyle(fontSize: 11, fontWeight: FontWeight.w700, color: Color(0xFF94A3B8))),
+                const SizedBox(height: 6),
+                SaveableChunkRow(chunks: _currentChunks, source: 'Sentence Lab · $_currentRoman'),
                 const SizedBox(height: 16),
                 SizedBox(
                   width: double.infinity,
@@ -692,16 +621,19 @@ class MyWordsPage extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final sentencesStore = MySentencesStore.instance;
+    final wordsStore = MyWordsStore.instance;
+    final settings = AppSettingsStore.instance;
 
     return DefaultTabController(
       length: 2,
       child: Scaffold(
         appBar: AppBar(
-          title: const Text('Vault & Sanskrit Roots'),
+          title: const Text('Vault'),
+          actions: const [ScriptToggleAction()],
           bottom: const TabBar(
             tabs: [
               Tab(text: 'Saved Sentences'),
-              Tab(text: '🏛️ Sanskrit Cognates'),
+              Tab(text: 'Saved Words'),
             ],
           ),
         ),
@@ -711,7 +643,9 @@ class MyWordsPage extends StatelessWidget {
               listenable: sentencesStore,
               builder: (context, _) {
                 final saved = sentencesStore.sentences;
-                if (saved.isEmpty) return const Center(child: Text('No sentences saved yet. Use Vault buttons in Encounters or Sentence Lab.'));
+                if (saved.isEmpty) {
+                  return const Center(child: Text('No sentences saved yet. Use the bookmark button in any situation or Sentence Lab.'));
+                }
                 return ListView.builder(
                   padding: const EdgeInsets.all(16),
                   itemCount: saved.length,
@@ -729,34 +663,30 @@ class MyWordsPage extends StatelessWidget {
                 );
               },
             ),
-            ListView(
-              padding: const EdgeInsets.all(16),
-              children: [
-                const Text(
-                  'Sanskrit Cognates (Tatsama Words)',
-                  style: TextStyle(fontSize: 18, fontWeight: FontWeight.w900, color: Colors.white),
-                ),
-                const SizedBox(height: 4),
-                const Text('Many Hindi and Kannada words share identical Sanskrit roots, making them instantly recognizable:', style: TextStyle(fontSize: 13, color: Color(0xFF94A3B8))),
-                const SizedBox(height: 14),
-                for (final c in connections)
-                  Card(
-                    margin: const EdgeInsets.only(bottom: 10),
-                    child: Padding(
-                      padding: const EdgeInsets.all(16),
-                      child: Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          Text('${c.hindi}  →  ${c.kannadaRoman} (${c.kannadaDeva})', style: const TextStyle(fontSize: 18, fontWeight: FontWeight.w900, color: Colors.white)),
-                          const SizedBox(height: 4),
-                          Text(c.type, style: const TextStyle(fontSize: 12, fontWeight: FontWeight.w700, color: Color(0xFF00E5A3))),
-                          const SizedBox(height: 4),
-                          Text(c.note, style: const TextStyle(fontSize: 13, color: Color(0xFF94A3B8))),
-                        ],
+            ListenableBuilder(
+              listenable: Listenable.merge([wordsStore, settings]),
+              builder: (context, _) {
+                final saved = wordsStore.words;
+                if (saved.isEmpty) {
+                  return const Center(child: Text('No words saved yet. Tap any word chunk across the app to save it here.'));
+                }
+                return ListView.builder(
+                  padding: const EdgeInsets.all(16),
+                  itemCount: saved.length,
+                  itemBuilder: (context, i) {
+                    final item = saved[i];
+                    final label = settings.isDevanagari ? item.deva : item.roman;
+                    return Card(
+                      margin: const EdgeInsets.only(bottom: 10),
+                      child: ListTile(
+                        title: Text('$label = ${item.hindi}', style: const TextStyle(fontWeight: FontWeight.w800, color: Colors.white)),
+                        subtitle: Text(item.source, style: const TextStyle(fontSize: 12)),
+                        trailing: IconButton(icon: const Icon(Icons.delete_outline), onPressed: () => wordsStore.removeWord(item.id)),
                       ),
-                    ),
-                  ),
-              ],
+                    );
+                  },
+                );
+              },
             ),
           ],
         ),
@@ -777,7 +707,10 @@ class CategorySituationsPage extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(title: Text('${category.emoji} ${category.title}')),
+      appBar: AppBar(
+        title: Text('${category.emoji} ${category.title}'),
+        actions: const [ScriptToggleAction()],
+      ),
       body: ListView(
         padding: const EdgeInsets.all(16),
         children: [
@@ -805,7 +738,10 @@ class SituationDetailPage extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(title: Text(situation.title)),
+      appBar: AppBar(
+        title: Text(situation.title),
+        actions: const [ScriptToggleAction()],
+      ),
       body: ListView(
         padding: const EdgeInsets.all(16),
         children: [
