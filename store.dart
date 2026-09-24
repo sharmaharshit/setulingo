@@ -74,23 +74,62 @@ class SavedSentence {
       );
 }
 
+/// A single saved word/chunk, with the context it was learned in (e.g. which
+/// Street Encounter step, or which situation) so the Vault stays meaningful
+/// instead of just being a bag of floating words.
+class SavedWord {
+  final String id;
+  final String roman;
+  final String deva;
+  final String hindi;
+  final String source;
+  final DateTime createdAt;
+
+  SavedWord({
+    required this.id,
+    required this.roman,
+    required this.deva,
+    required this.hindi,
+    required this.source,
+    required this.createdAt,
+  });
+
+  Map<String, dynamic> toMap() => {
+        'id': id,
+        'roman': roman,
+        'deva': deva,
+        'hindi': hindi,
+        'source': source,
+        'createdAt': createdAt.toIso8601String(),
+      };
+
+  factory SavedWord.fromMap(Map<String, dynamic> map) => SavedWord(
+        id: map['id'] as String,
+        roman: map['roman'] as String,
+        deva: (map['deva'] ?? '') as String,
+        hindi: map['hindi'] as String,
+        source: (map['source'] ?? '') as String,
+        createdAt: DateTime.tryParse(map['createdAt'] as String? ?? '') ?? DateTime.now(),
+      );
+}
+
 class MyWordsStore extends ChangeNotifier {
   MyWordsStore._();
   static final MyWordsStore instance = MyWordsStore._();
 
-  static const String _key = 'my_word_ids';
-  final Set<String> _ids = <String>{};
+  static const String _key = 'my_saved_words_v2';
+  final List<SavedWord> _words = <SavedWord>[];
 
-  Set<String> get ids => Set<String>.unmodifiable(_ids);
-  bool contains(String id) => _ids.contains(id);
+  List<SavedWord> get words => List<SavedWord>.unmodifiable(_words);
+  bool contains(String id) => _words.any((w) => w.id == id);
 
   Future<void> load() async {
     try {
       final prefs = await SharedPreferences.getInstance();
-      final saved = prefs.getStringList(_key) ?? <String>[];
-      _ids
+      final list = prefs.getStringList(_key) ?? <String>[];
+      _words
         ..clear()
-        ..addAll(saved);
+        ..addAll(list.map((str) => SavedWord.fromMap(jsonDecode(str) as Map<String, dynamic>)));
     } catch (_) {}
     notifyListeners();
   }
@@ -98,22 +137,22 @@ class MyWordsStore extends ChangeNotifier {
   Future<void> _save() async {
     try {
       final prefs = await SharedPreferences.getInstance();
-      await prefs.setStringList(_key, _ids.toList());
+      final list = _words.map((w) => jsonEncode(w.toMap())).toList();
+      await prefs.setStringList(_key, list);
     } catch (_) {}
   }
 
-  Future<void> add(String id) async {
-    if (_ids.add(id)) {
-      notifyListeners();
-      await _save();
-    }
+  Future<void> addWord(SavedWord word) async {
+    if (_words.any((w) => w.id == word.id)) return;
+    _words.insert(0, word);
+    notifyListeners();
+    await _save();
   }
 
-  Future<void> remove(String id) async {
-    if (_ids.remove(id)) {
-      notifyListeners();
-      await _save();
-    }
+  Future<void> removeWord(String id) async {
+    _words.removeWhere((w) => w.id == id);
+    notifyListeners();
+    await _save();
   }
 }
 
