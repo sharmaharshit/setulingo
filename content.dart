@@ -1485,10 +1485,29 @@ const List<Chunk> _distractorPool = [
   Chunk('bega', 'बेग', 'जल्दी'),
 ];
 
+/// Picks the "2-Minute Daily Scenario" for today's device date.
+///
+/// The pick is deterministic for a given calendar day (so it doesn't change
+/// if the user re-opens the app later the same day, or reopens after
+/// killing the app), but it is seeded from the full date — not just a
+/// sequential day-of-year counter — so consecutive days land on unrelated
+/// situations instead of visibly stepping through the list in order.
 KSituation getDailyScenario() {
-  final dayOfYear = DateTime.now().difference(DateTime(DateTime.now().year, 1, 1)).inDays;
+  final now = DateTime.now();
   final allSituations = categories.expand((c) => c.situations).toList();
-  return allSituations[dayOfYear % allSituations.length];
+  if (allSituations.isEmpty) {
+    throw StateError('No situations available to pick a daily scenario from.');
+  }
+
+  // A stable per-calendar-day seed: yyyymmdd as an integer.
+  final dateSeed = now.year * 10000 + now.month * 100 + now.day;
+  final rng = Random(dateSeed);
+
+  // Shuffle a copy of the indices using the date-seeded RNG, then take the
+  // first one. Because the RNG is re-seeded identically for the same date,
+  // this is stable within a day but looks random from one day to the next.
+  final indices = List<int>.generate(allSituations.length, (i) => i)..shuffle(rng);
+  return allSituations[indices.first];
 }
 
 Lesson generateLessonFromSituation(KSituation situation) {
