@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart';
 import 'content.dart';
+import 'main_v2.dart';
 import 'store.dart';
+import 'widgets.dart';
 
 class LessonPage extends StatefulWidget {
   final Lesson lesson;
@@ -128,7 +130,7 @@ class _LessonPageState extends State<LessonPage> {
       return SizedBox(
         width: double.infinity,
         child: FilledButton.icon(
-          style: FilledButton.styleFrom(backgroundColor: scheme.primary, foregroundColor: Colors.black),
+          style: FilledButton.styleFrom(backgroundColor: scheme.primary, foregroundColor: const Color(0xFF2B1B02)),
           onPressed: _next,
           icon: const Icon(Icons.check),
           label: const Text('मैंने बोल लिया · आगे बढ़ें', style: TextStyle(fontWeight: FontWeight.w900)),
@@ -184,7 +186,7 @@ class _LessonPageState extends State<LessonPage> {
     return SizedBox(
       width: double.infinity,
       child: FilledButton(
-        style: FilledButton.styleFrom(backgroundColor: scheme.primary, foregroundColor: Colors.black),
+        style: FilledButton.styleFrom(backgroundColor: scheme.primary, foregroundColor: const Color(0xFF2B1B02)),
         onPressed: _next,
         child: const Text('आगे बढ़ें', style: TextStyle(fontWeight: FontWeight.w900)),
       ),
@@ -203,10 +205,10 @@ class _LessonPageState extends State<LessonPage> {
       margin: const EdgeInsets.only(top: 10),
       padding: const EdgeInsets.all(14),
       decoration: BoxDecoration(
-        color: ok ? const Color(0xFF072619) : const Color(0xFF2C1015),
+        color: ok ? const Color(0xFF10281B) : const Color(0xFF2E1620),
         borderRadius: BorderRadius.circular(14),
         border: Border.all(
-          color: ok ? const Color(0xFF00E5A3).withValues(alpha: 0.5) : Colors.redAccent.withValues(alpha: 0.5),
+          color: ok ? AppColors.success.withValues(alpha: 0.5) : AppColors.danger.withValues(alpha: 0.5),
           width: 1,
         ),
       ),
@@ -219,7 +221,7 @@ class _LessonPageState extends State<LessonPage> {
             style: TextStyle(
               fontWeight: FontWeight.w800,
               fontSize: 16,
-              color: ok ? const Color(0xFF00E5A3) : Colors.redAccent,
+              color: ok ? AppColors.success : AppColors.danger,
             ),
           ),
           const SizedBox(height: 4),
@@ -229,8 +231,8 @@ class _LessonPageState extends State<LessonPage> {
             width: double.infinity,
             child: FilledButton(
               style: FilledButton.styleFrom(
-                backgroundColor: ok ? const Color(0xFF00E5A3) : Colors.redAccent,
-                foregroundColor: Colors.black,
+                backgroundColor: ok ? AppColors.success : AppColors.danger,
+                foregroundColor: const Color(0xFF2B1B02),
               ),
               onPressed: onPressed,
               child: Text(buttonLabel, style: const TextStyle(fontWeight: FontWeight.w900)),
@@ -269,10 +271,10 @@ class _LessonPageState extends State<LessonPage> {
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                Text(primary, style: const TextStyle(fontSize: 24, fontWeight: FontWeight.w900, letterSpacing: -0.4, color: Colors.white)),
+                Text(primary, style: const TextStyle(fontSize: 24, fontWeight: FontWeight.w900, letterSpacing: -0.4, color: AppColors.textHigh)),
                 const SizedBox(height: 2),
                 Text(secondary, style: TextStyle(fontSize: 14, color: scheme.onSurfaceVariant)),
-                const Divider(height: 20, color: Color(0xFF1E293B)),
+                const Divider(height: 20, color: AppColors.outline),
                 Text(s.hindi, style: TextStyle(fontSize: 18, fontWeight: FontWeight.w700, color: scheme.primary)),
               ],
             ),
@@ -284,7 +286,7 @@ class _LessonPageState extends State<LessonPage> {
             width: double.infinity,
             padding: const EdgeInsets.all(12),
             decoration: BoxDecoration(
-              color: const Color(0xFF00291B),
+              color: AppColors.marigoldDeep,
               borderRadius: BorderRadius.circular(10),
               border: Border.all(color: scheme.primary.withValues(alpha: 0.3)),
             ),
@@ -292,31 +294,9 @@ class _LessonPageState extends State<LessonPage> {
           ),
         ],
         const SizedBox(height: 16),
-        const Text('टुकड़ों में समझिए (Breakdown)', style: TextStyle(fontSize: 14, fontWeight: FontWeight.w800, color: Colors.white)),
+        const Text('टुकड़ों में समझिए · टैप करके सहेजें (Breakdown)', style: TextStyle(fontSize: 14, fontWeight: FontWeight.w800, color: AppColors.textHigh)),
         const SizedBox(height: 8),
-        Wrap(
-          spacing: 8,
-          runSpacing: 8,
-          children: s.chunks.map((c) {
-            final chunkText = settings.isDevanagari ? c.deva : c.roman;
-            return Container(
-              padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
-              decoration: BoxDecoration(
-                color: const Color(0xFF161D30),
-                borderRadius: BorderRadius.circular(10),
-                border: Border.all(color: const Color(0xFF263554)),
-              ),
-              child: Column(
-                mainAxisSize: MainAxisSize.min,
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Text(chunkText, style: const TextStyle(fontSize: 15, fontWeight: FontWeight.w800, color: Colors.white)),
-                  Text(c.hindi, style: TextStyle(fontSize: 12, color: scheme.onSurfaceVariant)),
-                ],
-              ),
-            );
-          }).toList(),
-        ),
+        SaveableChunkRow(chunks: s.chunks, source: 'Lesson · ${widget.lesson.title}'),
       ],
     );
   }
@@ -336,15 +316,15 @@ class _LessonPageState extends State<LessonPage> {
           width: double.infinity,
           padding: const EdgeInsets.all(22),
           decoration: BoxDecoration(
-            color: const Color(0xFF0F1422),
+            color: AppColors.surface,
             borderRadius: BorderRadius.circular(16),
-            border: Border.all(color: const Color(0xFF1E293B)),
+            border: Border.all(color: AppColors.outline),
           ),
           child: Column(
             children: [
               Text('अर्थ: "${s.promptHindi}"', style: const TextStyle(fontSize: 15, fontWeight: FontWeight.w600)),
               const SizedBox(height: 16),
-              Text(primary, textAlign: TextAlign.center, style: const TextStyle(fontSize: 26, fontWeight: FontWeight.w900, letterSpacing: -0.4, color: Colors.white)),
+              Text(primary, textAlign: TextAlign.center, style: const TextStyle(fontSize: 26, fontWeight: FontWeight.w900, letterSpacing: -0.4, color: AppColors.textHigh)),
               const SizedBox(height: 16),
               IconButton.filledTonal(
                 iconSize: 34,
@@ -360,8 +340,8 @@ class _LessonPageState extends State<LessonPage> {
         Container(
           width: double.infinity,
           padding: const EdgeInsets.all(12),
-          decoration: BoxDecoration(color: const Color(0xFF161E30), borderRadius: BorderRadius.circular(10)),
-          child: Text('💡 ${s.tip}', style: const TextStyle(fontSize: 13, color: Color(0xFF38BDF8))),
+          decoration: BoxDecoration(color: AppColors.surfaceElevated, borderRadius: BorderRadius.circular(10)),
+          child: Text('💡 ${s.tip}', style: const TextStyle(fontSize: 13, color: AppColors.skyAccent)),
         ),
       ],
     );
@@ -379,7 +359,7 @@ class _LessonPageState extends State<LessonPage> {
       children: [
         Text('वाक्य बनाइए', style: TextStyle(fontSize: 12, fontWeight: FontWeight.w800, letterSpacing: 0.5, color: scheme.primary)),
         const SizedBox(height: 10),
-        Text(s.promptHindi, style: const TextStyle(fontSize: 22, fontWeight: FontWeight.w800, letterSpacing: -0.3, color: Colors.white)),
+        Text(s.promptHindi, style: const TextStyle(fontSize: 22, fontWeight: FontWeight.w800, letterSpacing: -0.3, color: AppColors.textHigh)),
         const SizedBox(height: 4),
         Text('सही क्रम में शब्दों को चुनें:', style: TextStyle(fontSize: 13, color: scheme.onSurfaceVariant)),
         const SizedBox(height: 16),
@@ -389,7 +369,7 @@ class _LessonPageState extends State<LessonPage> {
           constraints: const BoxConstraints(minHeight: 76),
           padding: const EdgeInsets.all(10),
           decoration: BoxDecoration(
-            color: const Color(0xFF0F1422),
+            color: AppColors.surface,
             border: Border.all(color: scheme.primary.withValues(alpha: 0.4)),
             borderRadius: BorderRadius.circular(14),
           ),
@@ -442,7 +422,7 @@ class _LessonPageState extends State<LessonPage> {
       children: [
         Text('अब आप बोलिए', style: TextStyle(fontSize: 12, fontWeight: FontWeight.w800, letterSpacing: 0.5, color: scheme.primary)),
         const SizedBox(height: 8),
-        Text(s.question, style: const TextStyle(fontSize: 19, fontWeight: FontWeight.w800, letterSpacing: -0.3, color: Colors.white)),
+        Text(s.question, style: const TextStyle(fontSize: 19, fontWeight: FontWeight.w800, letterSpacing: -0.3, color: AppColors.textHigh)),
         const SizedBox(height: 4),
         Text(s.situation, style: TextStyle(fontSize: 13, color: scheme.onSurfaceVariant)),
         const SizedBox(height: 16),
@@ -457,13 +437,13 @@ class _LessonPageState extends State<LessonPage> {
                   style: OutlinedButton.styleFrom(
                     backgroundColor: _picked == null
                         ? null
-                        : (i == s.answerIndex ? const Color(0xFF072619) : (_picked == i ? const Color(0xFF2C1015) : null)),
+                        : (i == s.answerIndex ? const Color(0xFF10281B) : (_picked == i ? const Color(0xFF2E1620) : null)),
                     padding: const EdgeInsets.all(15),
                     alignment: Alignment.centerLeft,
                     shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
                   ),
                   onPressed: _picked != null ? null : () => setState(() => _picked = i),
-                  child: Text(options[i], style: const TextStyle(fontSize: 16, fontWeight: FontWeight.w600, color: Colors.white)),
+                  child: Text(options[i], style: const TextStyle(fontSize: 16, fontWeight: FontWeight.w600, color: AppColors.textHigh)),
                 ),
               ),
             ),
@@ -489,7 +469,7 @@ class _LessonPageState extends State<LessonPage> {
               const SizedBox(height: 12),
               const Text(
                 'अभ्यास पूरा हुआ!',
-                style: TextStyle(fontSize: 26, fontWeight: FontWeight.w900, letterSpacing: -0.5, color: Colors.white),
+                style: TextStyle(fontSize: 26, fontWeight: FontWeight.w900, letterSpacing: -0.5, color: AppColors.textHigh),
               ),
               const SizedBox(height: 6),
               Text(
@@ -501,7 +481,7 @@ class _LessonPageState extends State<LessonPage> {
               SizedBox(
                 width: double.infinity,
                 child: FilledButton(
-                  style: FilledButton.styleFrom(backgroundColor: scheme.primary, foregroundColor: Colors.black),
+                  style: FilledButton.styleFrom(backgroundColor: scheme.primary, foregroundColor: const Color(0xFF2B1B02)),
                   onPressed: () => Navigator.pop(context),
                   child: const Text('वापस जाएँ', style: TextStyle(fontWeight: FontWeight.w900)),
                 ),
