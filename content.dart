@@ -336,7 +336,8 @@ class EncounterOption {
   final String hindiMeaning;
   final EncounterPersona persona;
   final List<Chunk> chunks;
-
+  final int nextStep; //
+  
   const EncounterOption({
     required this.badge,
     required this.kannadaRoman,
@@ -344,6 +345,7 @@ class EncounterOption {
     required this.hindiMeaning,
     required this.persona,
     required this.chunks,
+    this.nextStep = 1, //
   });
 }
 
@@ -1211,7 +1213,7 @@ final List<Category> categories = [
           ),
         ],
       ),
-      const KSituation(
+     const KSituation(
         id: 'apt_noise',
         title: 'Politely Asking About Noise',
         hindiTitle: 'विनम्रता से शोर के बारे में कहना',
@@ -1222,7 +1224,10 @@ final List<Category> categories = [
             roman: 'Swalpa sound kammi madi please.',
             deva: 'स्वल्प साउंड कम्मि मडि प्लीज़।',
             hindi: 'थोड़ी आवाज़ कम कीजिए प्लीज़।',
-            chunks: [Chunk('Swalpa sound', 'स्वल्प साउंड', 'थोड़ी आवाज़'), Chunk('kammi madi please', 'कम कीजिए प्लीज़')],
+            chunks: [
+              Chunk('Swalpa sound', 'स्वल्प साउंड', 'थोड़ी आवाज़'),
+              Chunk('kammi madi please', 'कम्मि मडि प्लीज़', 'कम कीजिए प्लीज़'),
+            ],
           ),
         ],
       ),
@@ -1237,7 +1242,10 @@ final List<Category> categories = [
             roman: 'Nanna guest bartaare, kalisi.',
             deva: 'नन्न गेस्ट बर्ताारे, कळिसि।',
             hindi: 'मेरा मेहमान आएगा, भेज दीजिए।',
-            chunks: [Chunk('Nanna guest', 'नन्न गेस्ट', 'मेरा मेहमान'), Chunk('bartaare, kalisi', 'बर्ताारे, कळिसि', 'आएगा, भेज दीजिए')],
+            chunks: [
+              Chunk('Nanna guest', 'नन्न गेस्ट', 'मेरा मेहमान'),
+              Chunk('bartaare, kalisi', 'बर्ताारे, कळिसि', 'आएगा, भेज दीजिए'),
+            ],
           ),
         ],
       ),
