@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'content.dart';
+import 'main_v2.dart';
 import 'store.dart';
 
 class BentoCategoryCard extends StatelessWidget {
@@ -14,23 +15,21 @@ class BentoCategoryCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final scheme = Theme.of(context).colorScheme;
-
     return Material(
       color: Colors.transparent,
       child: InkWell(
-        borderRadius: BorderRadius.circular(20),
+        borderRadius: BorderRadius.circular(22),
         onTap: onTap,
         child: Container(
           padding: const EdgeInsets.all(16),
           decoration: BoxDecoration(
-            gradient: const LinearGradient(
-              colors: [Color(0xFF121829), Color(0xFF0D121F)],
+            gradient: LinearGradient(
+              colors: [AppColors.surfaceHighest, AppColors.surface],
               begin: Alignment.topLeft,
               end: Alignment.bottomRight,
             ),
-            borderRadius: BorderRadius.circular(20),
-            border: Border.all(color: const Color(0xFF1E293B), width: 1.0),
+            borderRadius: BorderRadius.circular(22),
+            border: Border.all(color: AppColors.outline, width: 1.0),
           ),
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
@@ -41,9 +40,9 @@ class BentoCategoryCard extends StatelessWidget {
                     width: 44,
                     height: 44,
                     decoration: BoxDecoration(
-                      color: const Color(0xFF182238),
+                      color: AppColors.marigold.withValues(alpha: 0.10),
                       borderRadius: BorderRadius.circular(14),
-                      border: Border.all(color: Colors.white.withValues(alpha: 0.06)),
+                      border: Border.all(color: AppColors.marigold.withValues(alpha: 0.25)),
                     ),
                     alignment: Alignment.center,
                     child: Text(category.emoji, style: const TextStyle(fontSize: 22)),
@@ -52,16 +51,12 @@ class BentoCategoryCard extends StatelessWidget {
                   Container(
                     padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
                     decoration: BoxDecoration(
-                      color: scheme.primary.withValues(alpha: 0.12),
+                      color: AppColors.jacaranda.withValues(alpha: 0.16),
                       borderRadius: BorderRadius.circular(10),
                     ),
                     child: Text(
                       '${category.situations.length}',
-                      style: TextStyle(
-                        fontSize: 11,
-                        fontWeight: FontWeight.w900,
-                        color: scheme.primary,
-                      ),
+                      style: const TextStyle(fontSize: 11, fontWeight: FontWeight.w800, color: AppColors.jacaranda),
                     ),
                   ),
                 ],
@@ -71,28 +66,168 @@ class BentoCategoryCard extends StatelessWidget {
                 category.title,
                 maxLines: 1,
                 overflow: TextOverflow.ellipsis,
-                style: const TextStyle(
-                  fontSize: 15,
-                  fontWeight: FontWeight.w900,
-                  letterSpacing: -0.3,
-                  color: Colors.white,
-                ),
+                style: const TextStyle(fontSize: 15, fontWeight: FontWeight.w800, letterSpacing: -0.2, color: AppColors.textHigh),
               ),
               const SizedBox(height: 2),
               Text(
                 category.hindiTitle,
                 maxLines: 1,
                 overflow: TextOverflow.ellipsis,
-                style: TextStyle(
-                  fontSize: 12,
-                  fontWeight: FontWeight.w500,
-                  color: scheme.onSurfaceVariant,
-                ),
+                style: const TextStyle(fontSize: 12, fontWeight: FontWeight.w500, color: AppColors.textMid),
               ),
             ],
           ),
         ),
       ),
+    );
+  }
+}
+
+/// A row of tappable word chunks. Tapping a chunk saves it to the Vault —
+/// used in sentence breakdowns, Street Encounter dialogue, and anywhere a
+/// user should be able to pull an individual word out of a phrase.
+class SaveableChunkRow extends StatelessWidget {
+  final List<Chunk> chunks;
+  final String source;
+
+  const SaveableChunkRow({super.key, required this.chunks, required this.source});
+
+  @override
+  Widget build(BuildContext context) {
+    final wordsStore = MyWordsStore.instance;
+    final settings = AppSettingsStore.instance;
+
+    return ListenableBuilder(
+      listenable: Listenable.merge([wordsStore, settings]),
+      builder: (context, _) {
+        return Wrap(
+          spacing: 6,
+          runSpacing: 6,
+          children: chunks.map((c) {
+            final id = '${c.roman}_${source.hashCode}';
+            final saved = wordsStore.contains(id);
+            final label = settings.isDevanagari ? c.deva : c.roman;
+            return InkWell(
+              borderRadius: BorderRadius.circular(10),
+              onTap: () {
+                if (saved) return;
+                wordsStore.addWord(SavedWord(
+                  id: id,
+                  roman: c.roman,
+                  deva: c.deva,
+                  hindi: c.hindi,
+                  source: source,
+                  createdAt: DateTime.now(),
+                ));
+                ScaffoldMessenger.of(context).showSnackBar(
+                  SnackBar(content: Text('"${c.roman}" Vault में सहेजा गया')),
+                );
+              },
+              child: Container(
+                padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
+                decoration: BoxDecoration(
+                  color: saved ? AppColors.marigold.withValues(alpha: 0.14) : AppColors.surfaceHighest,
+                  borderRadius: BorderRadius.circular(10),
+                  border: Border.all(color: saved ? AppColors.marigold.withValues(alpha: 0.5) : AppColors.outline),
+                ),
+                child: Row(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    Text('$label = ${c.hindi}', style: const TextStyle(fontSize: 12, fontWeight: FontWeight.w600, color: AppColors.textHigh)),
+                    const SizedBox(width: 4),
+                    Icon(saved ? Icons.bookmark : Icons.bookmark_add_outlined, size: 14, color: saved ? AppColors.marigold : AppColors.textFaint),
+                  ],
+                ),
+              ),
+            );
+          }).toList(),
+        );
+      },
+    );
+  }
+}
+
+/// The self-confirm "practice speaking" card: shows a phrase, lets the user
+/// hear it via TTS, and asks them to confirm they said it out loud before
+/// continuing — no speech recognition required.
+class PracticeConfirmCard extends StatelessWidget {
+  final String roman;
+  final String deva;
+  final String hindi;
+  final VoidCallback onConfirmed;
+  final List<Chunk>? chunks;
+  final String? chunkSource;
+
+  const PracticeConfirmCard({
+    super.key,
+    required this.roman,
+    required this.deva,
+    required this.hindi,
+    required this.onConfirmed,
+    this.chunks,
+    this.chunkSource,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    final settings = AppSettingsStore.instance;
+    return ListenableBuilder(
+      listenable: settings,
+      builder: (context, _) {
+        final primary = settings.isDevanagari ? deva : roman;
+        return Container(
+          width: double.infinity,
+          padding: const EdgeInsets.all(20),
+          decoration: BoxDecoration(
+            gradient: LinearGradient(
+              colors: [AppColors.jacaranda.withValues(alpha: 0.14), AppColors.surface],
+              begin: Alignment.topLeft,
+              end: Alignment.bottomRight,
+            ),
+            borderRadius: BorderRadius.circular(20),
+            border: Border.all(color: AppColors.jacaranda.withValues(alpha: 0.4)),
+          ),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              const Text('🎙 बोलकर अभ्यास करें', style: TextStyle(fontSize: 11, fontWeight: FontWeight.w800, letterSpacing: 0.4, color: AppColors.jacaranda)),
+              const SizedBox(height: 10),
+              Text(hindi, style: const TextStyle(fontSize: 14, fontWeight: FontWeight.w600, color: AppColors.textMid)),
+              const SizedBox(height: 6),
+              Text(primary, style: const TextStyle(fontSize: 22, fontWeight: FontWeight.w800, color: AppColors.textHigh, letterSpacing: -0.3)),
+              const SizedBox(height: 12),
+              Row(
+                children: [
+                  IconButton.filledTonal(
+                    icon: const Icon(Icons.volume_up),
+                    onPressed: () => TtsService.instance.speak(roman),
+                  ),
+                  const SizedBox(width: 8),
+                  const Expanded(
+                    child: Text('सुनिए और ज़ोर से बोलिए', style: TextStyle(fontSize: 12, color: AppColors.textFaint)),
+                  ),
+                ],
+              ),
+              if (chunks != null && chunks!.isNotEmpty) ...[
+                const SizedBox(height: 14),
+                Text('शब्द सहेजिए:', style: const TextStyle(fontSize: 11, fontWeight: FontWeight.w700, color: AppColors.textFaint)),
+                const SizedBox(height: 6),
+                SaveableChunkRow(chunks: chunks!, source: chunkSource ?? primary),
+              ],
+              const SizedBox(height: 16),
+              SizedBox(
+                width: double.infinity,
+                child: FilledButton.icon(
+                  style: FilledButton.styleFrom(backgroundColor: AppColors.marigold, foregroundColor: const Color(0xFF2B1B02)),
+                  onPressed: onConfirmed,
+                  icon: const Icon(Icons.check_circle_outline),
+                  label: const Text('✅ मैंने बोल लिया — आगे बढ़ें', style: TextStyle(fontWeight: FontWeight.w800)),
+                ),
+              ),
+            ],
+          ),
+        );
+      },
     );
   }
 }
@@ -113,7 +248,6 @@ class _SentenceCardState extends State<SentenceCard> {
   Widget build(BuildContext context) {
     final store = MySentencesStore.instance;
     final settings = AppSettingsStore.instance;
-    final scheme = Theme.of(context).colorScheme;
 
     return ListenableBuilder(
       listenable: Listenable.merge([store, settings]),
@@ -126,7 +260,7 @@ class _SentenceCardState extends State<SentenceCard> {
         return Card(
           margin: const EdgeInsets.only(bottom: 10),
           child: Padding(
-            padding: const EdgeInsets.all(15),
+            padding: const EdgeInsets.all(16),
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
@@ -139,18 +273,10 @@ class _SentenceCardState extends State<SentenceCard> {
                         children: [
                           Text(
                             primary,
-                            style: const TextStyle(
-                              fontSize: 19,
-                              fontWeight: FontWeight.w900,
-                              letterSpacing: -0.3,
-                              color: Colors.white,
-                            ),
+                            style: const TextStyle(fontSize: 19, fontWeight: FontWeight.w800, letterSpacing: -0.3, color: AppColors.textHigh),
                           ),
                           const SizedBox(height: 2),
-                          Text(
-                            secondary,
-                            style: TextStyle(fontSize: 13, color: scheme.onSurfaceVariant),
-                          ),
+                          Text(secondary, style: const TextStyle(fontSize: 13, color: AppColors.textMid)),
                         ],
                       ),
                     ),
@@ -162,22 +288,16 @@ class _SentenceCardState extends State<SentenceCard> {
                     IconButton(
                       icon: Icon(
                         isSaved ? Icons.bookmark : Icons.bookmark_border,
-                        color: isSaved ? scheme.primary : null,
+                        color: isSaved ? AppColors.marigold : null,
                         size: 21,
                       ),
-                      tooltip: isSaved ? 'सहेजा गया' : 'My Sentences में सहेजें',
+                      tooltip: isSaved ? 'सहेजा गया' : 'Vault में सहेजें',
                       onPressed: () {
                         if (isSaved) {
                           store.removeSentence(s.id);
                         } else {
                           store.addSentence(
-                            SavedSentence(
-                              id: s.id,
-                              roman: s.roman,
-                              deva: s.deva,
-                              hindi: s.hindi,
-                              createdAt: DateTime.now(),
-                            ),
+                            SavedSentence(id: s.id, roman: s.roman, deva: s.deva, hindi: s.hindi, createdAt: DateTime.now()),
                           );
                         }
                       },
@@ -185,23 +305,17 @@ class _SentenceCardState extends State<SentenceCard> {
                   ],
                 ),
                 const SizedBox(height: 6),
-                Text(
-                  s.hindi,
-                  style: TextStyle(fontSize: 15, fontWeight: FontWeight.w700, color: scheme.primary),
-                ),
+                Text(s.hindi, style: const TextStyle(fontSize: 15, fontWeight: FontWeight.w700, color: AppColors.marigold)),
                 if (s.streetCode != null) ...[
                   const SizedBox(height: 8),
                   Container(
                     padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
                     decoration: BoxDecoration(
-                      color: const Color(0xFF00291B),
+                      color: AppColors.marigoldDeep,
                       borderRadius: BorderRadius.circular(6),
-                      border: Border.all(color: scheme.primary.withValues(alpha: 0.3)),
+                      border: Border.all(color: AppColors.marigold.withValues(alpha: 0.35)),
                     ),
-                    child: Text(
-                      s.streetCode!,
-                      style: TextStyle(fontSize: 11, color: scheme.primary, fontWeight: FontWeight.w600),
-                    ),
+                    child: Text(s.streetCode!, style: const TextStyle(fontSize: 11, color: AppColors.marigold, fontWeight: FontWeight.w600)),
                   ),
                 ],
                 const SizedBox(height: 8),
@@ -215,12 +329,12 @@ class _SentenceCardState extends State<SentenceCard> {
                       children: [
                         Text(
                           _expanded ? 'टुकड़े छिपाएँ' : 'टुकड़े देखें (Breakdown)',
-                          style: TextStyle(fontSize: 12, fontWeight: FontWeight.w700, color: scheme.onSurfaceVariant),
+                          style: const TextStyle(fontSize: 12, fontWeight: FontWeight.w700, color: AppColors.textMid),
                         ),
                         AnimatedRotation(
                           turns: _expanded ? 0.5 : 0.0,
                           duration: const Duration(milliseconds: 220),
-                          child: Icon(Icons.keyboard_arrow_down, size: 16, color: scheme.onSurfaceVariant),
+                          child: const Icon(Icons.keyboard_arrow_down, size: 16, color: AppColors.textMid),
                         ),
                       ],
                     ),
@@ -232,25 +346,7 @@ class _SentenceCardState extends State<SentenceCard> {
                   child: _expanded
                       ? Padding(
                           padding: const EdgeInsets.only(top: 8),
-                          child: Wrap(
-                            spacing: 6,
-                            runSpacing: 6,
-                            children: s.chunks.map((c) {
-                              final chunkText = settings.isDevanagari ? c.deva : c.roman;
-                              return Container(
-                                padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 5),
-                                decoration: BoxDecoration(
-                                  color: const Color(0xFF182238),
-                                  borderRadius: BorderRadius.circular(6),
-                                  border: Border.all(color: const Color(0xFF263554)),
-                                ),
-                                child: Text(
-                                  '$chunkText = ${c.hindi}',
-                                  style: const TextStyle(fontSize: 12, fontWeight: FontWeight.w600, color: Colors.white),
-                                ),
-                              );
-                            }).toList(),
-                          ),
+                          child: SaveableChunkRow(chunks: s.chunks, source: s.id),
                         )
                       : const SizedBox.shrink(),
                 ),
