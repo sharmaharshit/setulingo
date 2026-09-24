@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 import 'content.dart';
-import 'main_v2.dart';
+import '../main_v2.dart';
 import 'store.dart';
 
 class BentoCategoryCard extends StatelessWidget {
