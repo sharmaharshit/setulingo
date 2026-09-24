@@ -3,6 +3,29 @@ import 'content.dart';
 import '../main_v2.dart';
 import 'store.dart';
 
+/// Universal Devanagari ⇄ Roman script toggle, meant to be dropped into the
+/// `actions` list of any primary screen's AppBar so it always sits top-right.
+/// Purely functional — reuses the existing icon-button look already used on
+/// LessonPage, so no new visual language is introduced.
+class ScriptToggleAction extends StatelessWidget {
+  const ScriptToggleAction({super.key});
+
+  @override
+  Widget build(BuildContext context) {
+    final settings = AppSettingsStore.instance;
+    return ListenableBuilder(
+      listenable: settings,
+      builder: (context, _) {
+        return IconButton(
+          icon: Icon(settings.isDevanagari ? Icons.translate : Icons.language),
+          tooltip: settings.isDevanagari ? 'Roman script पर जाएँ' : 'देवनागरी में देखें',
+          onPressed: () => settings.toggleMode(),
+        );
+      },
+    );
+  }
+}
+
 class BentoCategoryCard extends StatelessWidget {
   final Category category;
   final VoidCallback onTap;
