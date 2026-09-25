@@ -9,6 +9,9 @@ Future<void> main() async {
   await MyWordsStore.instance.load();
   await MySentencesStore.instance.load();
   await TtsService.instance.init();
+  await ProfileStore.instance.load();
+  await AppPreferencesStore.instance.load();
+  await LearningPathStore.instance.load();
   runApp(const SetuLingoV2App());
 }
 
