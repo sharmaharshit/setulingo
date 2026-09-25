@@ -12,6 +12,7 @@ Future<void> main() async {
   await ProfileStore.instance.load();
   await AppPreferencesStore.instance.load();
   await LearningPathStore.instance.load();
+  await GamificationStore.instance.load();
   runApp(const SetuLingoV2App());
 }
 
