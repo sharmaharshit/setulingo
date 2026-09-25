@@ -2,6 +2,7 @@ import 'dart:convert';
 import 'package:flutter/foundation.dart';
 import 'package:flutter_tts/flutter_tts.dart';
 import 'package:shared_preferences/shared_preferences.dart';
+import 'content.dart';
 
 enum ScriptDisplayMode { roman, deva }
 
@@ -559,4 +560,80 @@ class LearningPathStore extends ChangeNotifier {
       await prefs.setBool(_onboardedKey, false);
     } catch (_) {}
   }
+}
+
+// ---------------------------------------------------------------------------
+// Gamification — daily streak, XP, and per-situation completion tracking.
+// ---------------------------------------------------------------------------
+
+class GamificationStore extends ChangeNotifier {
+  GamificationStore._();
+  static final GamificationStore instance = GamificationStore._();
+
+  static const String _streakKey = 'gami_streak';
+  static const String _xpKey = 'gami_xp';
+  static const String _lastDateKey = 'gami_last_active_date';
+  static const String _completedKey = 'gami_completed_situations';
+
+  static const int xpPerLesson = 15;
+
+  int streak = 0;
+  int xp = 0;
+  String? _lastActiveDate;
+  Set<String> completedSituationIds = {};
+
+  String _dateKey(DateTime d) =>
+      '${d.year.toString().padLeft(4, '0')}-${d.month.toString().padLeft(2, '0')}-${d.day.toString().padLeft(2, '0')}';
+
+  Future<void> load() async {
+    try {
+      final prefs = await SharedPreferences.getInstance();
+      streak = prefs.getInt(_streakKey) ?? 0;
+      xp = prefs.getInt(_xpKey) ?? 0;
+      _lastActiveDate = prefs.getString(_lastDateKey);
+      completedSituationIds = (prefs.getStringList(_completedKey) ?? const <String>[]).toSet();
+    } catch (_) {}
+    notifyListeners();
+  }
+
+  Future<void> _persist() async {
+    try {
+      final prefs = await SharedPreferences.getInstance();
+      await prefs.setInt(_streakKey, streak);
+      await prefs.setInt(_xpKey, xp);
+      if (_lastActiveDate != null) await prefs.setString(_lastDateKey, _lastActiveDate!);
+      await prefs.setStringList(_completedKey, completedSituationIds.toList());
+    } catch (_) {}
+  }
+
+  /// Call once a lesson (or the daily scenario) is fully completed.
+  /// Always awards XP; bumps the daily streak only the *first* time this
+  /// fires on a given calendar day, so replaying a lesson can't inflate it.
+  /// Returns the XP actually awarded, so callers can show it in the UI.
+  Future<int> recordLessonCompletion(String situationId, {int xpAwarded = xpPerLesson}) async {
+    final today = _dateKey(DateTime.now());
+    if (_lastActiveDate != today) {
+      final yesterdayKey = _dateKey(DateTime.now().subtract(const Duration(days: 1)));
+      streak = (_lastActiveDate == yesterdayKey) ? streak + 1 : 1;
+      _lastActiveDate = today;
+    }
+    xp += xpAwarded;
+    completedSituationIds.add(situationId);
+    notifyListeners();
+    await _persist();
+    return xpAwarded;
+  }
+
+  /// Generic XP grant for activities that shouldn't affect the streak
+  /// (e.g. the Vault quiz).
+  Future<void> addXp(int amount) async {
+    xp += amount;
+    notifyListeners();
+    await _persist();
+  }
+
+  bool isSituationCompleted(String situationId) => completedSituationIds.contains(situationId);
+
+  int completedCountFor(Category category) =>
+      category.situations.where((s) => completedSituationIds.contains(s.id)).length;
 }
