@@ -14,7 +14,7 @@ workflows:
           if [ -f main_v2.dart ] && [ ! -f lib/main_v2.dart ]; then
             mv main_v2.dart lib/main_v2.dart
           fi
-          for f in content store widgets pages lesson_page; do
+          for f in content store widgets pages lesson_page profile_settings search_page learning_path grammar_content; do
             if [ -f "$f.dart" ] && [ ! -f "lib/v2/$f.dart" ]; then
               mv "$f.dart" "lib/v2/$f.dart"
             fi
@@ -25,7 +25,7 @@ workflows:
           echo "Files under lib/:"
           find lib -type f | sort
           missing=0
-          for f in lib/main_v2.dart lib/v2/content.dart lib/v2/store.dart lib/v2/widgets.dart lib/v2/pages.dart lib/v2/lesson_page.dart; do
+          for f in lib/main_v2.dart lib/v2/content.dart lib/v2/store.dart lib/v2/widgets.dart lib/v2/pages.dart lib/v2/lesson_page.dart lib/v2/profile_settings.dart lib/v2/search_page.dart lib/v2/learning_path.dart lib/v2/grammar_content.dart; do
             if [ ! -f "$f" ]; then
               echo "MISSING: $f"
               missing=1
