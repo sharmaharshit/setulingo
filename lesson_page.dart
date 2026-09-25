@@ -21,11 +21,21 @@ class _LessonPageState extends State<LessonPage> {
   bool? _buildResult;
   int? _picked;
 
+  int? _earnedXp;
+  int? _streakAtFinish;
+
   LessonStep get _step => widget.lesson.steps[_index];
 
-  void _next() {
+  Future<void> _next() async {
     if (_index + 1 >= widget.lesson.steps.length) {
-      setState(() => _done = true);
+      final gami = GamificationStore.instance;
+      final xp = await gami.recordLessonCompletion(widget.lesson.id);
+      if (!mounted) return;
+      setState(() {
+        _done = true;
+        _earnedXp = xp;
+        _streakAtFinish = gami.streak;
+      });
       return;
     }
     setState(() {
@@ -478,6 +488,28 @@ class _LessonPageState extends State<LessonPage> {
                 style: TextStyle(fontSize: 15, color: scheme.onSurfaceVariant),
               ),
               const SizedBox(height: 28),
+              if (_earnedXp != null)
+                Container(
+                  padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 10),
+                  margin: const EdgeInsets.only(bottom: 20),
+                  decoration: BoxDecoration(
+                    color: scheme.primary.withValues(alpha: 0.12),
+                    borderRadius: BorderRadius.circular(14),
+                    border: Border.all(color: scheme.primary.withValues(alpha: 0.4)),
+                  ),
+                  child: Row(
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      const Text('⚡', style: TextStyle(fontSize: 16)),
+                      const SizedBox(width: 6),
+                      Text('+$_earnedXp XP', style: const TextStyle(fontWeight: FontWeight.w900, color: AppColors.textHigh)),
+                      const SizedBox(width: 14),
+                      const Text('🔥', style: TextStyle(fontSize: 16)),
+                      const SizedBox(width: 6),
+                      Text('$_streakAtFinish day streak', style: const TextStyle(fontWeight: FontWeight.w900, color: AppColors.textHigh)),
+                    ],
+                  ),
+                ),
               SizedBox(
                 width: double.infinity,
                 child: FilledButton(
