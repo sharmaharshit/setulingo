@@ -38,70 +38,103 @@ class BentoCategoryCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return Material(
-      color: Colors.transparent,
-      child: InkWell(
-        borderRadius: BorderRadius.circular(22),
-        onTap: onTap,
-        child: Container(
-          padding: const EdgeInsets.all(16),
-          decoration: BoxDecoration(
-            gradient: LinearGradient(
-              colors: [AppColors.surfaceHighest, AppColors.surface],
-              begin: Alignment.topLeft,
-              end: Alignment.bottomRight,
-            ),
+    final gami = GamificationStore.instance;
+    return ListenableBuilder(
+      listenable: gami,
+      builder: (context, _) {
+        final total = category.situations.length;
+        final done = gami.completedCountFor(category);
+        final complete = total > 0 && done == total;
+
+        return Material(
+          color: Colors.transparent,
+          child: InkWell(
             borderRadius: BorderRadius.circular(22),
-            border: Border.all(color: AppColors.outline, width: 1.0),
-          ),
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              Row(
+            onTap: onTap,
+            child: Container(
+              padding: const EdgeInsets.all(16),
+              decoration: BoxDecoration(
+                gradient: LinearGradient(
+                  colors: [AppColors.surfaceHighest, AppColors.surface],
+                  begin: Alignment.topLeft,
+                  end: Alignment.bottomRight,
+                ),
+                borderRadius: BorderRadius.circular(22),
+                border: Border.all(
+                  color: complete ? AppColors.success.withValues(alpha: 0.5) : AppColors.outline,
+                  width: 1.0,
+                ),
+              ),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  Container(
-                    width: 44,
-                    height: 44,
-                    decoration: BoxDecoration(
-                      color: AppColors.marigold.withValues(alpha: 0.10),
-                      borderRadius: BorderRadius.circular(14),
-                      border: Border.all(color: AppColors.marigold.withValues(alpha: 0.25)),
-                    ),
-                    alignment: Alignment.center,
-                    child: Text(category.emoji, style: const TextStyle(fontSize: 22)),
+                  Row(
+                    children: [
+                      Container(
+                        width: 44,
+                        height: 44,
+                        decoration: BoxDecoration(
+                          color: AppColors.marigold.withValues(alpha: 0.10),
+                          borderRadius: BorderRadius.circular(14),
+                          border: Border.all(color: AppColors.marigold.withValues(alpha: 0.25)),
+                        ),
+                        alignment: Alignment.center,
+                        child: Text(category.emoji, style: const TextStyle(fontSize: 22)),
+                      ),
+                      const Spacer(),
+                      Container(
+                        padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
+                        decoration: BoxDecoration(
+                          color: complete ? AppColors.success.withValues(alpha: 0.18) : AppColors.jacaranda.withValues(alpha: 0.16),
+                          borderRadius: BorderRadius.circular(10),
+                        ),
+                        child: Row(
+                          mainAxisSize: MainAxisSize.min,
+                          children: [
+                            if (complete) const Padding(padding: EdgeInsets.only(right: 3), child: Icon(Icons.check_circle, size: 11, color: AppColors.success)),
+                            Text(
+                              '$done/$total',
+                              style: TextStyle(
+                                fontSize: 11,
+                                fontWeight: FontWeight.w800,
+                                color: complete ? AppColors.success : AppColors.jacaranda,
+                              ),
+                            ),
+                          ],
+                        ),
+                      ),
+                    ],
                   ),
                   const Spacer(),
-                  Container(
-                    padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
-                    decoration: BoxDecoration(
-                      color: AppColors.jacaranda.withValues(alpha: 0.16),
-                      borderRadius: BorderRadius.circular(10),
-                    ),
-                    child: Text(
-                      '${category.situations.length}',
-                      style: const TextStyle(fontSize: 11, fontWeight: FontWeight.w800, color: AppColors.jacaranda),
+                  Text(
+                    category.title,
+                    maxLines: 1,
+                    overflow: TextOverflow.ellipsis,
+                    style: const TextStyle(fontSize: 15, fontWeight: FontWeight.w800, letterSpacing: -0.2, color: AppColors.textHigh),
+                  ),
+                  const SizedBox(height: 2),
+                  Text(
+                    category.hindiTitle,
+                    maxLines: 1,
+                    overflow: TextOverflow.ellipsis,
+                    style: const TextStyle(fontSize: 12, fontWeight: FontWeight.w500, color: AppColors.textMid),
+                  ),
+                  const SizedBox(height: 8),
+                  ClipRRect(
+                    borderRadius: BorderRadius.circular(4),
+                    child: LinearProgressIndicator(
+                      value: total == 0 ? 0 : done / total,
+                      minHeight: 4,
+                      backgroundColor: AppColors.outlineSoft,
+                      color: complete ? AppColors.success : AppColors.marigold,
                     ),
                   ),
                 ],
               ),
-              const Spacer(),
-              Text(
-                category.title,
-                maxLines: 1,
-                overflow: TextOverflow.ellipsis,
-                style: const TextStyle(fontSize: 15, fontWeight: FontWeight.w800, letterSpacing: -0.2, color: AppColors.textHigh),
-              ),
-              const SizedBox(height: 2),
-              Text(
-                category.hindiTitle,
-                maxLines: 1,
-                overflow: TextOverflow.ellipsis,
-                style: const TextStyle(fontSize: 12, fontWeight: FontWeight.w500, color: AppColors.textMid),
-              ),
-            ],
+            ),
           ),
-        ),
-      ),
+        );
+      },
     );
   }
 }
