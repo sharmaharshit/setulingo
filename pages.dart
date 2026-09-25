@@ -1,7 +1,11 @@
 import 'package:flutter/material.dart';
 import '../main_v2.dart';
 import 'content.dart';
+import 'grammar_content.dart';
+import 'learning_path.dart';
 import 'lesson_page.dart';
+import 'profile_settings.dart';
+import 'search_page.dart';
 import 'store.dart';
 import 'widgets.dart';
 
@@ -25,6 +29,21 @@ class _HomePageState extends State<HomePage> {
     SentenceLabPage(),
     MyWordsPage(),
   ];
+
+  @override
+  void initState() {
+    super.initState();
+    // First launch (or a reset profile): show the "My Learning Profile"
+    // wizard once, as a full-screen modal over the home tab.
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      if (!mounted) return;
+      if (!LearningPathStore.instance.isOnboarded) {
+        Navigator.of(context).push(
+          MaterialPageRoute(fullscreenDialog: true, builder: (_) => const OnboardingWizardPage()),
+        );
+      }
+    });
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -70,6 +89,37 @@ class _HomePageState extends State<HomePage> {
 class CommunicatePage extends StatelessWidget {
   const CommunicatePage({super.key});
 
+  Widget _extraTile(BuildContext context, String emoji, String label, Widget page) {
+    return Material(
+      color: Colors.transparent,
+      child: InkWell(
+        borderRadius: BorderRadius.circular(16),
+        onTap: () => _open(context, page),
+        child: Container(
+          padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 10),
+          decoration: BoxDecoration(
+            color: AppColors.surfaceElevated,
+            borderRadius: BorderRadius.circular(16),
+            border: Border.all(color: AppColors.outline),
+          ),
+          child: Row(
+            children: [
+              Text(emoji, style: const TextStyle(fontSize: 20)),
+              const SizedBox(width: 10),
+              Expanded(
+                child: Text(
+                  label,
+                  maxLines: 2,
+                  style: const TextStyle(fontSize: 13, fontWeight: FontWeight.w800, color: AppColors.textHigh),
+                ),
+              ),
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
     final settings = AppSettingsStore.instance;
@@ -91,6 +141,8 @@ class CommunicatePage extends StatelessWidget {
                   style: const TextStyle(fontWeight: FontWeight.w800),
                 ),
               ),
+              const SearchEntryAction(),
+              const ProfileEntryAction(),
             ],
           ),
           body: CustomScrollView(
@@ -161,6 +213,9 @@ class CommunicatePage extends StatelessWidget {
                         ),
                       ),
                       const SizedBox(height: 22),
+                      RecommendedForYouSection(
+                        onTapSituation: (s) => _open(context, SituationDetailPage(situation: s)),
+                      ),
                       Row(
                         children: [
                           const Text(
@@ -200,6 +255,35 @@ class CommunicatePage extends StatelessWidget {
                   ),
                 ),
               ),
+              SliverToBoxAdapter(
+                child: Padding(
+                  padding: const EdgeInsets.fromLTRB(16, 24, 16, 0),
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      const Text(
+                        'Grammar & Extras',
+                        style: TextStyle(fontSize: 18, fontWeight: FontWeight.w900, letterSpacing: -0.4, color: Colors.white),
+                      ),
+                      const SizedBox(height: 12),
+                      GridView.count(
+                        shrinkWrap: true,
+                        physics: const NeverScrollableScrollPhysics(),
+                        crossAxisCount: 2,
+                        mainAxisSpacing: 12,
+                        crossAxisSpacing: 12,
+                        childAspectRatio: 2.4,
+                        children: [
+                          _extraTile(context, '📖', 'Verbs & Tenses', const VerbsTensesPage()),
+                          _extraTile(context, '↔️', 'Opposites', const AntonymsPage()),
+                          _extraTile(context, '🔤', 'Alphabet Guide', const AlphabetPage()),
+                          _extraTile(context, '🎭', 'Roleplay Dialogues', const RoleplayListPage()),
+                        ],
+                      ),
+                    ],
+                  ),
+                ),
+              ),
               const SliverToBoxAdapter(child: SizedBox(height: 24)),
             ],
           ),
@@ -226,7 +310,7 @@ class SanskritCognatesPage extends StatelessWidget {
         return Scaffold(
           appBar: AppBar(
             title: const Text('Sanskrit Roots 🏛️', style: TextStyle(fontWeight: FontWeight.w900)),
-            actions: const [ScriptToggleAction()],
+            actions: const [SearchEntryAction(), ScriptToggleAction()],
           ),
           body: ListView(
             padding: const EdgeInsets.all(16),
@@ -450,7 +534,7 @@ class _SentenceLabPageState extends State<SentenceLabPage> {
     return Scaffold(
       appBar: AppBar(
         title: const Text('Sentence Lab ⚡', style: TextStyle(fontWeight: FontWeight.w900, letterSpacing: -0.4)),
-        actions: const [ScriptToggleAction()],
+        actions: const [SearchEntryAction(), ScriptToggleAction()],
       ),
       body: ListView(
         padding: const EdgeInsets.all(20),
@@ -629,7 +713,7 @@ class MyWordsPage extends StatelessWidget {
       child: Scaffold(
         appBar: AppBar(
           title: const Text('Vault'),
-          actions: const [ScriptToggleAction()],
+          actions: const [SearchEntryAction(), ScriptToggleAction()],
           bottom: const TabBar(
             tabs: [
               Tab(text: 'Saved Sentences'),
