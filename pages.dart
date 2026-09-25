@@ -5,6 +5,7 @@ import 'grammar_content.dart';
 import 'learning_path.dart';
 import 'lesson_page.dart';
 import 'profile_settings.dart';
+import 'quiz_page.dart';
 import 'search_page.dart';
 import 'store.dart';
 import 'widgets.dart';
@@ -179,6 +180,24 @@ class CommunicatePage extends StatelessWidget {
                                   ),
                                 ),
                                 const Spacer(),
+                                ListenableBuilder(
+                                  listenable: GamificationStore.instance,
+                                  builder: (context, _) => Padding(
+                                    padding: const EdgeInsets.only(right: 8),
+                                    child: Row(
+                                      mainAxisSize: MainAxisSize.min,
+                                      children: [
+                                        const Text('🔥', style: TextStyle(fontSize: 12)),
+                                        const SizedBox(width: 2),
+                                        Text('${GamificationStore.instance.streak}', style: const TextStyle(fontSize: 12, fontWeight: FontWeight.w800, color: AppColors.textHigh)),
+                                        const SizedBox(width: 8),
+                                        const Text('⚡', style: TextStyle(fontSize: 12)),
+                                        const SizedBox(width: 2),
+                                        Text('${GamificationStore.instance.xp}', style: const TextStyle(fontSize: 12, fontWeight: FontWeight.w800, color: AppColors.textHigh)),
+                                      ],
+                                    ),
+                                  ),
+                                ),
                                 Container(
                                   padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
                                   decoration: BoxDecoration(
@@ -278,6 +297,7 @@ class CommunicatePage extends StatelessWidget {
                           _extraTile(context, '↔️', 'Opposites', const AntonymsPage()),
                           _extraTile(context, '🔤', 'Alphabet Guide', const AlphabetPage()),
                           _extraTile(context, '🎭', 'Roleplay Dialogues', const RoleplayListPage()),
+                          _extraTile(context, '🧠', 'Vault Quiz', const VaultQuizPage()),
                         ],
                       ),
                     ],
@@ -790,26 +810,65 @@ class CategorySituationsPage extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
-      appBar: AppBar(
-        title: Text('${category.emoji} ${category.title}'),
-        actions: const [ScriptToggleAction()],
-      ),
-      body: ListView(
-        padding: const EdgeInsets.all(16),
-        children: [
-          for (final situation in category.situations)
-            Card(
-              margin: const EdgeInsets.only(bottom: 10),
-              child: ListTile(
-                title: Text(situation.title, style: const TextStyle(fontWeight: FontWeight.w800, color: Colors.white)),
-                subtitle: Text(situation.hindiTitle),
-                trailing: const Icon(Icons.chevron_right),
-                onTap: () => _open(context, SituationDetailPage(situation: situation)),
+    final gami = GamificationStore.instance;
+    return ListenableBuilder(
+      listenable: gami,
+      builder: (context, _) {
+        final total = category.situations.length;
+        final done = gami.completedCountFor(category);
+        return Scaffold(
+          appBar: AppBar(
+            title: Text('${category.emoji} ${category.title}'),
+            actions: const [ScriptToggleAction()],
+          ),
+          body: ListView(
+            padding: const EdgeInsets.all(16),
+            children: [
+              Container(
+                margin: const EdgeInsets.only(bottom: 16),
+                padding: const EdgeInsets.all(14),
+                decoration: BoxDecoration(
+                  color: AppColors.surfaceElevated,
+                  borderRadius: BorderRadius.circular(16),
+                  border: Border.all(color: AppColors.outline),
+                ),
+                child: Row(
+                  children: [
+                    Text('$done / $total situations practiced', style: const TextStyle(fontSize: 13, fontWeight: FontWeight.w800, color: AppColors.textHigh)),
+                    const Spacer(),
+                    SizedBox(
+                      width: 60,
+                      child: ClipRRect(
+                        borderRadius: BorderRadius.circular(4),
+                        child: LinearProgressIndicator(
+                          value: total == 0 ? 0 : done / total,
+                          minHeight: 5,
+                          backgroundColor: AppColors.outlineSoft,
+                          color: AppColors.marigold,
+                        ),
+                      ),
+                    ),
+                  ],
+                ),
               ),
-            ),
-        ],
-      ),
+              for (final situation in category.situations)
+                Card(
+                  margin: const EdgeInsets.only(bottom: 10),
+                  child: ListTile(
+                    leading: Icon(
+                      gami.isSituationCompleted(situation.id) ? Icons.check_circle : Icons.radio_button_unchecked,
+                      color: gami.isSituationCompleted(situation.id) ? AppColors.success : AppColors.textFaint,
+                    ),
+                    title: Text(situation.title, style: const TextStyle(fontWeight: FontWeight.w800, color: Colors.white)),
+                    subtitle: Text(situation.hindiTitle),
+                    trailing: const Icon(Icons.chevron_right),
+                    onTap: () => _open(context, SituationDetailPage(situation: situation)),
+                  ),
+                ),
+            ],
+          ),
+        );
+      },
     );
   }
 }
