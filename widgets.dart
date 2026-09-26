@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'content.dart';
 import '../main_v2.dart';
+import 'sentence_lab_vocab.dart';
 import 'store.dart';
 
 /// Universal Devanagari ⇄ Roman script toggle, meant to be dropped into the
@@ -148,6 +149,83 @@ class SaveableChunkRow extends StatelessWidget {
 
   const SaveableChunkRow({super.key, required this.chunks, required this.source});
 
+  Future<void> _saveWord(BuildContext context, Chunk c, String id, {SlotRole? taggedAs}) async {
+    await MyWordsStore.instance.addWord(SavedWord(
+      id: id,
+      roman: c.roman,
+      deva: c.deva,
+      hindi: c.hindi,
+      source: source,
+      createdAt: DateTime.now(),
+    ));
+    if (taggedAs != null) {
+      await SentenceLabVocabStore.instance.addCustomEntry(
+        taggedAs,
+        LabVocabEntry(roman: c.roman, deva: c.deva, hindi: c.hindi),
+      );
+    }
+    if (!context.mounted) return;
+    ScaffoldMessenger.of(context).showSnackBar(SnackBar(
+      content: Text(
+        taggedAs != null
+            ? '"${c.roman}" saved to Vault · added to Sentence Lab as ${taggedAs.label}'
+            : '"${c.roman}" Vault में सहेजा गया',
+      ),
+    ));
+  }
+
+  IconData _iconFor(SlotRole role) => switch (role) {
+        SlotRole.anchor => Icons.anchor,
+        SlotRole.noun => Icons.category_outlined,
+        SlotRole.verb => Icons.bolt_outlined,
+      };
+
+  Future<void> _showTagSheet(BuildContext context, Chunk c, String id) async {
+    // Returns a SlotRole to tag-and-save, the string 'plain' for an untagged
+    // save, or null if the sheet was dismissed without a choice.
+    final result = await showModalBottomSheet<Object?>(
+      context: context,
+      backgroundColor: AppColors.surfaceElevated,
+      shape: const RoundedRectangleBorder(borderRadius: BorderRadius.vertical(top: Radius.circular(24))),
+      builder: (ctx) => SafeArea(
+        child: Padding(
+          padding: const EdgeInsets.all(20),
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Text('"${c.roman}" को कैसे टैग करें?', style: const TextStyle(fontSize: 15, fontWeight: FontWeight.w800, color: AppColors.textHigh)),
+              const SizedBox(height: 4),
+              const Text('Sentence Lab में इस शब्द का उपयोग करने के लिए एक भूमिका चुनें।', style: TextStyle(fontSize: 12, color: AppColors.textMid)),
+              const SizedBox(height: 10),
+              for (final role in SlotRole.values)
+                ListTile(
+                  contentPadding: EdgeInsets.zero,
+                  leading: Icon(_iconFor(role), color: AppColors.marigold),
+                  title: Text(role.label, style: const TextStyle(fontWeight: FontWeight.w700, color: AppColors.textHigh)),
+                  subtitle: Text(role.hindiLabel, style: const TextStyle(color: AppColors.textMid, fontSize: 12)),
+                  onTap: () => Navigator.pop(ctx, role),
+                ),
+              const Divider(color: AppColors.outlineSoft),
+              ListTile(
+                contentPadding: EdgeInsets.zero,
+                leading: const Icon(Icons.bookmark_add_outlined, color: AppColors.textFaint),
+                title: const Text('बस सहेजें (कोई टैग नहीं)', style: TextStyle(fontWeight: FontWeight.w700, color: AppColors.textHigh)),
+                onTap: () => Navigator.pop(ctx, 'plain'),
+              ),
+            ],
+          ),
+        ),
+      ),
+    );
+    if (result == null || !context.mounted) return; // dismissed — do nothing
+    if (result is SlotRole) {
+      await _saveWord(context, c, id, taggedAs: result);
+    } else {
+      await _saveWord(context, c, id);
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
     final wordsStore = MyWordsStore.instance;
@@ -163,22 +241,14 @@ class SaveableChunkRow extends StatelessWidget {
             final id = '${c.roman}_${source.hashCode}';
             final saved = wordsStore.contains(id);
             final label = settings.isDevanagari ? c.deva : c.roman;
+            final taggable = isTaggableForSentenceLab(c.roman);
             return InkWell(
               borderRadius: BorderRadius.circular(10),
               onTap: () {
                 if (saved) return;
-                wordsStore.addWord(SavedWord(
-                  id: id,
-                  roman: c.roman,
-                  deva: c.deva,
-                  hindi: c.hindi,
-                  source: source,
-                  createdAt: DateTime.now(),
-                ));
-                ScaffoldMessenger.of(context).showSnackBar(
-                  SnackBar(content: Text('"${c.roman}" Vault में सहेजा गया')),
-                );
+                _saveWord(context, c, id);
               },
+              onLongPress: (saved || !taggable) ? null : () => _showTagSheet(context, c, id),
               child: Container(
                 padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
                 decoration: BoxDecoration(
@@ -192,6 +262,10 @@ class SaveableChunkRow extends StatelessWidget {
                     Text('$label = ${c.hindi}', style: const TextStyle(fontSize: 12, fontWeight: FontWeight.w600, color: AppColors.textHigh)),
                     const SizedBox(width: 4),
                     Icon(saved ? Icons.bookmark : Icons.bookmark_add_outlined, size: 14, color: saved ? AppColors.marigold : AppColors.textFaint),
+                    if (!saved && taggable) ...[
+                      const SizedBox(width: 2),
+                      const Icon(Icons.label_outline, size: 11, color: AppColors.textFaint),
+                    ],
                   ],
                 ),
               ),
