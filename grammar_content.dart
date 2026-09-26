@@ -174,6 +174,40 @@ final List<AksharaEntry> kannadaConsonants = const [
   AksharaEntry('ಳ', 'La', 'ळ (कन्नड़-विशेष)'),
 ];
 
+class KNumberEntry {
+  final int value;
+  final String roman;
+  final String deva;
+  const KNumberEntry(this.value, this.roman, this.deva);
+}
+
+final List<KNumberEntry> kannadaNumbers = const [
+  KNumberEntry(1, 'ondu', 'ಒಂದು'),
+  KNumberEntry(2, 'eradu', 'ಎರಡು'),
+  KNumberEntry(3, 'muru', 'ಮೂರು'),
+  KNumberEntry(4, 'nalku', 'ನಾಲ್ಕು'),
+  KNumberEntry(5, 'aidu', 'ಐದು'),
+  KNumberEntry(6, 'aaru', 'ಆರು'),
+  KNumberEntry(7, 'elu', 'ಏಳು'),
+  KNumberEntry(8, 'entu', 'ಎಂಟು'),
+  KNumberEntry(9, 'ombattu', 'ಒಂಬತ್ತು'),
+  KNumberEntry(10, 'hattu', 'ಹತ್ತು'),
+  KNumberEntry(11, 'hannondu', 'ಹನ್ನೊಂದು'),
+  KNumberEntry(12, 'hanneradu', 'ಹನ್ನೆರಡು'),
+  KNumberEntry(13, 'hadimuru', 'ಹದಿಮೂರು'),
+  KNumberEntry(14, 'hadinalku', 'ಹದಿನಾಲ್ಕು'),
+  KNumberEntry(15, 'hadinaidu', 'ಹದಿನೈದು'),
+  KNumberEntry(16, 'hadinaaru', 'ಹದಿನಾರು'),
+  KNumberEntry(17, 'hadinelu', 'ಹದಿನೇಳು'),
+  KNumberEntry(18, 'hadinentu', 'ಹದಿನೆಂಟು'),
+  KNumberEntry(19, 'hattombattu', 'ಹತ್ತೊಂಬತ್ತು'),
+  KNumberEntry(20, 'ippattu', 'ಇಪ್ಪತ್ತು'),
+  KNumberEntry(30, 'muvattu', 'ಮೂವತ್ತು'),
+  KNumberEntry(40, 'nalvattu', 'ನಲ್ವತ್ತು'),
+  KNumberEntry(50, 'aivattu', 'ಐವತ್ತು'),
+  KNumberEntry(100, 'nooru', 'ನೂರು'),
+];
+
 /// New multi-turn negotiation-style roleplays, beyond the single dialogue
 /// already attached to a couple of KSituations in content.dart. Reuses the
 /// existing RoleplayDialogue/DialogueTurn model so nothing new has to be
@@ -383,7 +417,7 @@ class AlphabetPage extends StatelessWidget {
           title: const Text('Alphabet & Syllables'),
           bottom: const TabBar(tabs: [Tab(text: 'Vowels'), Tab(text: 'Consonants')]),
         ),
-        body: TabBarView(
+        body: const TabBarView(
           children: [
             _AksharaGrid(entries: kannadaVowels),
             _AksharaGrid(entries: kannadaConsonants),
@@ -431,6 +465,61 @@ class _AksharaGrid extends StatelessWidget {
           ),
         );
       },
+    );
+  }
+}
+
+/// "Numbers (1–20+)" reference — 1 through 20 plus a few round tens and a
+/// hundred, alongside the Alphabet Guide in Grammar & Extras.
+class NumbersPage extends StatelessWidget {
+  const NumbersPage({super.key});
+
+  @override
+  Widget build(BuildContext context) {
+    return Scaffold(
+      appBar: AppBar(title: const Text('Numbers')),
+      body: Column(
+        children: [
+          const Padding(
+            padding: EdgeInsets.fromLTRB(16, 16, 16, 0),
+            child: _InfoBanner(text: '1–20, plus a few round numbers (30, 40, 50, 100). Tap any tile to hear it spoken.'),
+          ),
+          Expanded(
+            child: GridView.builder(
+              padding: const EdgeInsets.fromLTRB(16, 0, 16, 16),
+              gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(crossAxisCount: 3, mainAxisSpacing: 10, crossAxisSpacing: 10, childAspectRatio: 0.95),
+              itemCount: kannadaNumbers.length,
+              itemBuilder: (context, i) {
+                final n = kannadaNumbers[i];
+                return Material(
+                  color: Colors.transparent,
+                  child: InkWell(
+                    borderRadius: BorderRadius.circular(16),
+                    onTap: () => TtsService.instance.speak(n.roman),
+                    child: Container(
+                      decoration: BoxDecoration(
+                        color: AppColors.surfaceElevated,
+                        borderRadius: BorderRadius.circular(16),
+                        border: Border.all(color: AppColors.outline),
+                      ),
+                      alignment: Alignment.center,
+                      child: Column(
+                        mainAxisAlignment: MainAxisAlignment.center,
+                        children: [
+                          Text('${n.value}', style: const TextStyle(fontSize: 20, fontWeight: FontWeight.w900, color: AppColors.marigold)),
+                          const SizedBox(height: 2),
+                          Text(n.deva, style: const TextStyle(fontSize: 16, fontWeight: FontWeight.w800, color: AppColors.textHigh)),
+                          Text(n.roman, style: const TextStyle(fontSize: 11, fontWeight: FontWeight.w700, color: AppColors.textFaint)),
+                        ],
+                      ),
+                    ),
+                  ),
+                );
+              },
+            ),
+          ),
+        ],
+      ),
     );
   }
 }
