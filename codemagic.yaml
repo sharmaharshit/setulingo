@@ -14,7 +14,7 @@ workflows:
           if [ -f main_v2.dart ] && [ ! -f lib/main_v2.dart ]; then
             mv main_v2.dart lib/main_v2.dart
           fi
-          for f in content store widgets pages lesson_page profile_settings search_page learning_path grammar_content; do
+          for f in content store widgets pages lesson_page profile_settings search_page learning_path grammar_content quiz_page; do
             if [ -f "$f.dart" ] && [ ! -f "lib/v2/$f.dart" ]; then
               mv "$f.dart" "lib/v2/$f.dart"
             fi
