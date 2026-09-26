@@ -4,10 +4,6 @@ import '../main_v2.dart';
 import 'sentence_lab_vocab.dart';
 import 'store.dart';
 
-/// Universal Devanagari ⇄ Roman script toggle, meant to be dropped into the
-/// `actions` list of any primary screen's AppBar so it always sits top-right.
-/// Purely functional — reuses the existing icon-button look already used on
-/// LessonPage, so no new visual language is introduced.
 class ScriptToggleAction extends StatelessWidget {
   const ScriptToggleAction({super.key});
 
@@ -140,9 +136,6 @@ class BentoCategoryCard extends StatelessWidget {
   }
 }
 
-/// A row of tappable word chunks. Tapping a chunk saves it to the Vault —
-/// used in sentence breakdowns, Street Encounter dialogue, and anywhere a
-/// user should be able to pull an individual word out of a phrase.
 class SaveableChunkRow extends StatelessWidget {
   final List<Chunk> chunks;
   final String source;
@@ -181,8 +174,6 @@ class SaveableChunkRow extends StatelessWidget {
       };
 
   Future<void> _showTagSheet(BuildContext context, Chunk c, String id) async {
-    // Returns a SlotRole to tag-and-save, the string 'plain' for an untagged
-    // save, or null if the sheet was dismissed without a choice.
     final result = await showModalBottomSheet<Object?>(
       context: context,
       backgroundColor: AppColors.surfaceElevated,
@@ -218,7 +209,7 @@ class SaveableChunkRow extends StatelessWidget {
         ),
       ),
     );
-    if (result == null || !context.mounted) return; // dismissed — do nothing
+    if (result == null || !context.mounted) return;
     if (result is SlotRole) {
       await _saveWord(context, c, id, taggedAs: result);
     } else {
@@ -277,9 +268,6 @@ class SaveableChunkRow extends StatelessWidget {
   }
 }
 
-/// The self-confirm "practice speaking" card: shows a phrase, lets the user
-/// hear it via TTS, and asks them to confirm they said it out loud before
-/// continuing — no speech recognition required.
 class PracticeConfirmCard extends StatelessWidget {
   final String roman;
   final String deva;
