@@ -297,7 +297,7 @@ class CommunicatePage extends StatelessWidget {
                           _extraTile(context, '↔️', 'Opposites', const AntonymsPage()),
                           _extraTile(context, '🔤', 'Alphabet Guide', const AlphabetPage()),
                           _extraTile(context, '🎭', 'Roleplay Dialogues', const RoleplayListPage()),
-                          _extraTile(context, '🧠', 'Vault Quiz', const VaultQuizPage()),
+                          _extraTile(context, '🧠', 'Vault Quiz', VaultQuizPage()),
                         ],
                       ),
                     ],
