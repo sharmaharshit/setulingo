@@ -7,6 +7,7 @@ import 'lesson_page.dart';
 import 'profile_settings.dart';
 import 'quiz_page.dart';
 import 'search_page.dart';
+import 'sentence_lab_vocab.dart';
 import 'store.dart';
 import 'widgets.dart';
 
@@ -26,7 +27,7 @@ class _HomePageState extends State<HomePage> {
 
   final List<Widget> _pages = const [
     CommunicatePage(),
-    SanskritCognatesPage(),
+    ForYouPage(),
     SentenceLabPage(),
     MyWordsPage(),
   ];
@@ -63,9 +64,9 @@ class _HomePageState extends State<HomePage> {
             label: 'Situations',
           ),
           NavigationDestination(
-            icon: Icon(Icons.account_balance_outlined),
-            selectedIcon: Icon(Icons.account_balance),
-            label: 'Sanskrit Roots',
+            icon: Icon(Icons.stars_outlined),
+            selectedIcon: Icon(Icons.stars),
+            label: 'For You',
           ),
           NavigationDestination(
             icon: Icon(Icons.auto_awesome_outlined),
@@ -231,10 +232,29 @@ class CommunicatePage extends StatelessWidget {
                           ],
                         ),
                       ),
-                      const SizedBox(height: 22),
-                      RecommendedForYouSection(
-                        onTapSituation: (s) => _open(context, SituationDetailPage(situation: s)),
+                      const SizedBox(height: 24),
+                      const Text(
+                        'Grammar & Extras',
+                        style: TextStyle(fontSize: 18, fontWeight: FontWeight.w900, letterSpacing: -0.4, color: Colors.white),
                       ),
+                      const SizedBox(height: 12),
+                      GridView.count(
+                        shrinkWrap: true,
+                        physics: const NeverScrollableScrollPhysics(),
+                        crossAxisCount: 2,
+                        mainAxisSpacing: 12,
+                        crossAxisSpacing: 12,
+                        childAspectRatio: 2.4,
+                        children: [
+                          _extraTile(context, '📖', 'Verbs & Tenses', const VerbsTensesPage()),
+                          _extraTile(context, '↔️', 'Opposites', const AntonymsPage()),
+                          _extraTile(context, '🔤', 'Alphabet Guide', const AlphabetPage()),
+                          _extraTile(context, '🔢', 'Numbers', const NumbersPage()),
+                          _extraTile(context, '🎭', 'Roleplay Dialogues', const RoleplayListPage()),
+                          _extraTile(context, '🧠', 'Vault Quiz', const VaultQuizPage()),
+                        ],
+                      ),
+                      const SizedBox(height: 24),
                       Row(
                         children: [
                           const Text(
@@ -274,36 +294,6 @@ class CommunicatePage extends StatelessWidget {
                   ),
                 ),
               ),
-              SliverToBoxAdapter(
-                child: Padding(
-                  padding: const EdgeInsets.fromLTRB(16, 24, 16, 0),
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      const Text(
-                        'Grammar & Extras',
-                        style: TextStyle(fontSize: 18, fontWeight: FontWeight.w900, letterSpacing: -0.4, color: Colors.white),
-                      ),
-                      const SizedBox(height: 12),
-                      GridView.count(
-                        shrinkWrap: true,
-                        physics: const NeverScrollableScrollPhysics(),
-                        crossAxisCount: 2,
-                        mainAxisSpacing: 12,
-                        crossAxisSpacing: 12,
-                        childAspectRatio: 2.4,
-                        children: [
-                          _extraTile(context, '📖', 'Verbs & Tenses', const VerbsTensesPage()),
-                          _extraTile(context, '↔️', 'Opposites', const AntonymsPage()),
-                          _extraTile(context, '🔤', 'Alphabet Guide', const AlphabetPage()),
-                          _extraTile(context, '🎭', 'Roleplay Dialogues', const RoleplayListPage()),
-                          _extraTile(context, '🧠', 'Vault Quiz', VaultQuizPage()),
-                        ],
-                      ),
-                    ],
-                  ),
-                ),
-              ),
               const SliverToBoxAdapter(child: SizedBox(height: 24)),
             ],
           ),
@@ -314,11 +304,12 @@ class CommunicatePage extends StatelessWidget {
 }
 
 // ---------------------------------------------------------------------------
-// 2. Sanskrit Cognates Page (promoted out of the Vault into a primary tab)
+// 2. For You: daily recommendations + Sanskrit Roots (Tatsama Bridge),
+//    unified into a single personalized tab.
 // ---------------------------------------------------------------------------
 
-class SanskritCognatesPage extends StatelessWidget {
-  const SanskritCognatesPage({super.key});
+class ForYouPage extends StatelessWidget {
+  const ForYouPage({super.key});
 
   @override
   Widget build(BuildContext context) {
@@ -329,12 +320,26 @@ class SanskritCognatesPage extends StatelessWidget {
       builder: (context, _) {
         return Scaffold(
           appBar: AppBar(
-            title: const Text('Sanskrit Roots 🏛️', style: TextStyle(fontWeight: FontWeight.w900)),
+            title: const Text('For You ✨', style: TextStyle(fontWeight: FontWeight.w900)),
             actions: const [SearchEntryAction(), ScriptToggleAction()],
           ),
           body: ListView(
             padding: const EdgeInsets.all(16),
             children: [
+              RecommendedForYouSection(
+                onTapSituation: (s) => _open(context, SituationDetailPage(situation: s)),
+              ),
+              const Row(
+                children: [
+                  Text('🏛️', style: TextStyle(fontSize: 18)),
+                  SizedBox(width: 8),
+                  Text(
+                    'Sanskrit Roots · Tatsama Bridge',
+                    style: TextStyle(fontSize: 18, fontWeight: FontWeight.w900, letterSpacing: -0.4, color: Colors.white),
+                  ),
+                ],
+              ),
+              const SizedBox(height: 12),
               Container(
                 padding: const EdgeInsets.all(14),
                 decoration: BoxDecoration(
@@ -433,7 +438,7 @@ class _SentenceLabPageState extends State<SentenceLabPage> {
   String _slot2Key = 'dose';
   String _slot3Key = 'kodi';
 
-  final Map<String, String> _slot1Map = {
+  final Map<String, String> _builtinSlot1Map = const {
     'Ondu': 'ओन्दु (एक)',
     'Swalpa': 'स्वल्प (थोड़ा)',
     'Nanage': 'ननगे (मुझे)',
@@ -441,7 +446,14 @@ class _SentenceLabPageState extends State<SentenceLabPage> {
     'Innondu': 'इन्नोन्दु (एक और)',
   };
 
-  Map<String, String> get _slot2Map {
+  /// Built-in anchors + any custom Anchor-tagged Vault words the user has
+  /// pushed into the Sentence Lab vocabulary pool.
+  Map<String, String> get _slot1Map => {
+        ..._builtinSlot1Map,
+        for (final e in SentenceLabVocabStore.instance.customAnchors) e.roman: '${e.roman} (${e.hindi})',
+      };
+
+  Map<String, String> get _builtinSlot2Map {
     switch (_slot1Key) {
       case 'Ondu':
       case 'Innondu':
@@ -476,7 +488,28 @@ class _SentenceLabPageState extends State<SentenceLabPage> {
     }
   }
 
-  Map<String, String> get _slot3Map {
+  /// The Anchor (Slot 1) filters which Nouns are grammatically valid here —
+  /// custom Noun-tagged Vault words are always offered as additional
+  /// options, since we don't have compatibility data for user vocabulary.
+  Map<String, String> get _slot2Map => {
+        ..._builtinSlot2Map,
+        for (final e in SentenceLabVocabStore.instance.customNouns) e.roman: '${e.roman} — ${e.hindi}',
+      };
+
+  /// Anchor + Noun pairing overrides for combinations the generic
+  /// noun-only rule below doesn't handle sensibly (e.g. "Illi" pairs with
+  /// action-nouns rather than objects, so its verb choices differ).
+  static const Map<String, Map<String, String>> _slot3ComboOverrides = {
+    'Illi|nilisi': {'saaku': 'saaku (बस)'},
+    'Illi|banni': {'beku': 'beku (ज़रूरी है)'},
+    'Nanage|sahaya': {'beku': 'beku (चाहिए)'},
+  };
+
+  Map<String, String> get _builtinSlot3Map {
+    final comboKey = '$_slot1Key|$_slot2Key';
+    if (_slot3ComboOverrides.containsKey(comboKey)) {
+      return _slot3ComboOverrides[comboKey]!;
+    }
     if (['dose', 'coffee', 'tea', 'cover', 'bill'].contains(_slot2Key)) {
       return {
         'kodi': 'kodi (दीजिए)',
@@ -497,6 +530,13 @@ class _SentenceLabPageState extends State<SentenceLabPage> {
       'beku': 'beku (चाहिए)',
     };
   }
+
+  /// Predicate Verb (Slot 3), filtered by the chosen Anchor + Noun pairing
+  /// above, plus any custom Verb-tagged Vault words.
+  Map<String, String> get _slot3Map => {
+        ..._builtinSlot3Map,
+        for (final e in SentenceLabVocabStore.instance.customVerbs) e.roman: '${e.roman} (${e.hindi})',
+      };
 
   @override
   void initState() {
@@ -556,7 +596,11 @@ class _SentenceLabPageState extends State<SentenceLabPage> {
         title: const Text('Sentence Lab ⚡', style: TextStyle(fontWeight: FontWeight.w900, letterSpacing: -0.4)),
         actions: const [SearchEntryAction(), ScriptToggleAction()],
       ),
-      body: ListView(
+      body: ListenableBuilder(
+        listenable: SentenceLabVocabStore.instance,
+        builder: (context, _) {
+          _validateSlots();
+          return ListView(
         padding: const EdgeInsets.all(20),
         children: [
           const Text(
@@ -710,6 +754,8 @@ class _SentenceLabPageState extends State<SentenceLabPage> {
             ),
           ),
         ],
+          );
+        },
       ),
     );
   }
