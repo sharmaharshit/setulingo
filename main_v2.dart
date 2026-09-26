@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'v2/pages.dart';
+import 'v2/sentence_lab_vocab.dart';
 import 'v2/store.dart';
 
 Future<void> main() async {
@@ -13,6 +14,7 @@ Future<void> main() async {
   await AppPreferencesStore.instance.load();
   await LearningPathStore.instance.load();
   await GamificationStore.instance.load();
+  await SentenceLabVocabStore.instance.load();
   runApp(const SetuLingoV2App());
 }
 
