@@ -417,7 +417,7 @@ class AlphabetPage extends StatelessWidget {
           title: const Text('Alphabet & Syllables'),
           bottom: const TabBar(tabs: [Tab(text: 'Vowels'), Tab(text: 'Consonants')]),
         ),
-        body:  TabBarView(
+        body: TabBarView(
           children: [
             _AksharaGrid(entries: kannadaVowels),
             _AksharaGrid(entries: kannadaConsonants),
