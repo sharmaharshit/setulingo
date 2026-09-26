@@ -35,8 +35,6 @@ class _HomePageState extends State<HomePage> {
   @override
   void initState() {
     super.initState();
-    // First launch (or a reset profile): show the "My Learning Profile"
-    // wizard once, as a full-screen modal over the home tab.
     WidgetsBinding.instance.addPostFrameCallback((_) {
       if (!mounted) return;
       if (!LearningPathStore.instance.isOnboarded) {
@@ -304,8 +302,7 @@ class CommunicatePage extends StatelessWidget {
 }
 
 // ---------------------------------------------------------------------------
-// 2. For You: daily recommendations + Sanskrit Roots (Tatsama Bridge),
-//    unified into a single personalized tab.
+// 2. For You: daily recommendations + Sanskrit Roots (Tatsama Bridge)
 // ---------------------------------------------------------------------------
 
 class ForYouPage extends StatelessWidget {
@@ -446,8 +443,6 @@ class _SentenceLabPageState extends State<SentenceLabPage> {
     'Innondu': 'इन्नोन्दु (एक और)',
   };
 
-  /// Built-in anchors + any custom Anchor-tagged Vault words the user has
-  /// pushed into the Sentence Lab vocabulary pool.
   Map<String, String> get _slot1Map => {
         ..._builtinSlot1Map,
         for (final e in SentenceLabVocabStore.instance.customAnchors) e.roman: '${e.roman} (${e.hindi})',
@@ -488,17 +483,11 @@ class _SentenceLabPageState extends State<SentenceLabPage> {
     }
   }
 
-  /// The Anchor (Slot 1) filters which Nouns are grammatically valid here —
-  /// custom Noun-tagged Vault words are always offered as additional
-  /// options, since we don't have compatibility data for user vocabulary.
   Map<String, String> get _slot2Map => {
         ..._builtinSlot2Map,
         for (final e in SentenceLabVocabStore.instance.customNouns) e.roman: '${e.roman} — ${e.hindi}',
       };
 
-  /// Anchor + Noun pairing overrides for combinations the generic
-  /// noun-only rule below doesn't handle sensibly (e.g. "Illi" pairs with
-  /// action-nouns rather than objects, so its verb choices differ).
   static const Map<String, Map<String, String>> _slot3ComboOverrides = {
     'Illi|nilisi': {'saaku': 'saaku (बस)'},
     'Illi|banni': {'beku': 'beku (ज़रूरी है)'},
@@ -531,8 +520,6 @@ class _SentenceLabPageState extends State<SentenceLabPage> {
     };
   }
 
-  /// Predicate Verb (Slot 3), filtered by the chosen Anchor + Noun pairing
-  /// above, plus any custom Verb-tagged Vault words.
   Map<String, String> get _slot3Map => {
         ..._builtinSlot3Map,
         for (final e in SentenceLabVocabStore.instance.customVerbs) e.roman: '${e.roman} (${e.hindi})',
@@ -553,9 +540,6 @@ class _SentenceLabPageState extends State<SentenceLabPage> {
     }
   }
 
-  /// Parses a slot's display value (e.g. "ओन्दु (एक)" or "dose — डोसा") into
-  /// a saveable [Chunk] so each generated word — not just the full sentence —
-  /// can be bookmarked to the Vault.
   Chunk _chunkFromSlot(String roman, String displayValue) {
     final parenMatch = RegExp(r'^(.*?)\s*\(([^)]+)\)\s*$').firstMatch(displayValue);
     if (parenMatch != null) {
@@ -601,159 +585,153 @@ class _SentenceLabPageState extends State<SentenceLabPage> {
         builder: (context, _) {
           _validateSlots();
           return ListView(
-        padding: const EdgeInsets.all(20),
-        children: [
-          const Text(
-            'Cascading Sentence Builder',
-            style: TextStyle(fontSize: 20, fontWeight: FontWeight.w900, letterSpacing: -0.4, color: Colors.white),
-          ),
-          const SizedBox(height: 4),
-          Text(
-            'Select bilingual options. The engine locks incompatible grammar pairings so every sentence is 100% natural.',
-            style: TextStyle(fontSize: 13, color: scheme.onSurfaceVariant),
-          ),
-          const SizedBox(height: 20),
-
-          // 3 Slot Builder
-          Container(
             padding: const EdgeInsets.all(20),
-            decoration: BoxDecoration(
-              color: const Color(0xFF0F1526),
-              borderRadius: BorderRadius.circular(20),
-              border: Border.all(color: const Color(0xFF1E293B), width: 1.2),
-            ),
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                const Text('1. QUANTITY / ANCHOR', style: TextStyle(fontSize: 10, fontWeight: FontWeight.w900, color: Color(0xFF38BDF8))),
-                const SizedBox(height: 6),
-                DropdownButtonFormField<String>(
-                  value: _slot1Key,
-                  dropdownColor: const Color(0xFF161F36),
-                  decoration: InputDecoration(
-                    filled: true,
-                    fillColor: const Color(0xFF161F36),
-                    border: OutlineInputBorder(borderRadius: BorderRadius.circular(12), borderSide: BorderSide.none),
-                    contentPadding: const EdgeInsets.symmetric(horizontal: 14, vertical: 12),
-                  ),
-                  items: _slot1Map.entries.map((e) => DropdownMenuItem(value: e.key, child: Text(e.value, style: const TextStyle(fontWeight: FontWeight.w800)))).toList(),
-                  onChanged: (val) {
-                    if (val != null) {
-                      setState(() {
-                        _slot1Key = val;
-                        _validateSlots();
-                      });
-                    }
-                  },
+            children: [
+              const Text(
+                'Cascading Sentence Builder',
+                style: TextStyle(fontSize: 20, fontWeight: FontWeight.w900, letterSpacing: -0.4, color: Colors.white),
+              ),
+              const SizedBox(height: 4),
+              Text(
+                'Select bilingual options. The engine locks incompatible grammar pairings so every sentence is 100% natural.',
+                style: TextStyle(fontSize: 13, color: scheme.onSurfaceVariant),
+              ),
+              const SizedBox(height: 20),
+              Container(
+                padding: const EdgeInsets.all(20),
+                decoration: BoxDecoration(
+                  color: const Color(0xFF0F1526),
+                  borderRadius: BorderRadius.circular(20),
+                  border: Border.all(color: const Color(0xFF1E293B), width: 1.2),
                 ),
-                const SizedBox(height: 16),
-
-                const Text('2. OBJECT / NOUN (Filtered)', style: TextStyle(fontSize: 10, fontWeight: FontWeight.w900, color: Color(0xFF38BDF8))),
-                const SizedBox(height: 6),
-                DropdownButtonFormField<String>(
-                  value: _slot2Key,
-                  dropdownColor: const Color(0xFF161F36),
-                  decoration: InputDecoration(
-                    filled: true,
-                    fillColor: const Color(0xFF161F36),
-                    border: OutlineInputBorder(borderRadius: BorderRadius.circular(12), borderSide: BorderSide.none),
-                    contentPadding: const EdgeInsets.symmetric(horizontal: 14, vertical: 12),
-                  ),
-                  items: _slot2Map.entries.map((e) => DropdownMenuItem(value: e.key, child: Text(e.value, style: const TextStyle(fontWeight: FontWeight.w800)))).toList(),
-                  onChanged: (val) {
-                    if (val != null) {
-                      setState(() {
-                        _slot2Key = val;
-                        _validateSlots();
-                      });
-                    }
-                  },
-                ),
-                const SizedBox(height: 16),
-
-                const Text('3. PREDICATE / VERB (Grammar Locked)', style: TextStyle(fontSize: 10, fontWeight: FontWeight.w900, color: Color(0xFF38BDF8))),
-                const SizedBox(height: 6),
-                DropdownButtonFormField<String>(
-                  value: _slot3Key,
-                  dropdownColor: const Color(0xFF161F36),
-                  decoration: InputDecoration(
-                    filled: true,
-                    fillColor: const Color(0xFF161F36),
-                    border: OutlineInputBorder(borderRadius: BorderRadius.circular(12), borderSide: BorderSide.none),
-                    contentPadding: const EdgeInsets.symmetric(horizontal: 14, vertical: 12),
-                  ),
-                  items: _slot3Map.entries.map((e) => DropdownMenuItem(value: e.key, child: Text(e.value, style: const TextStyle(fontWeight: FontWeight.w800)))).toList(),
-                  onChanged: (val) {
-                    if (val != null) {
-                      setState(() => _slot3Key = val);
-                    }
-                  },
-                ),
-              ],
-            ),
-          ),
-          const SizedBox(height: 20),
-
-          // Output Card
-          Container(
-            padding: const EdgeInsets.all(20),
-            decoration: BoxDecoration(
-              color: const Color(0xFF0C2219),
-              borderRadius: BorderRadius.circular(20),
-              border: Border.all(color: primaryMint.withValues(alpha: 0.5), width: 1.5),
-            ),
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Row(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    const Text('✨ GENERATED SENTENCE', style: TextStyle(fontSize: 10, fontWeight: FontWeight.w900, color: primaryMint)),
-                    const Spacer(),
-                    IconButton(
-                      icon: const Icon(Icons.volume_up, color: primaryMint),
-                      onPressed: () => TtsService.instance.speak(_currentRoman),
+                    const Text('1. QUANTITY / ANCHOR', style: TextStyle(fontSize: 10, fontWeight: FontWeight.w900, color: Color(0xFF38BDF8))),
+                    const SizedBox(height: 6),
+                    DropdownButtonFormField<String>(
+                      value: _slot1Key,
+                      dropdownColor: const Color(0xFF161F36),
+                      decoration: InputDecoration(
+                        filled: true,
+                        fillColor: const Color(0xFF161F36),
+                        border: OutlineInputBorder(borderRadius: BorderRadius.circular(12), borderSide: BorderSide.none),
+                        contentPadding: const EdgeInsets.symmetric(horizontal: 14, vertical: 12),
+                      ),
+                      items: _slot1Map.entries.map((e) => DropdownMenuItem(value: e.key, child: Text(e.value, style: const TextStyle(fontWeight: FontWeight.w800)))).toList(),
+                      onChanged: (val) {
+                        if (val != null) {
+                          setState(() {
+                            _slot1Key = val;
+                            _validateSlots();
+                          });
+                        }
+                      },
+                    ),
+                    const SizedBox(height: 16),
+                    const Text('2. OBJECT / NOUN (Filtered)', style: TextStyle(fontSize: 10, fontWeight: FontWeight.w900, color: Color(0xFF38BDF8))),
+                    const SizedBox(height: 6),
+                    DropdownButtonFormField<String>(
+                      value: _slot2Key,
+                      dropdownColor: const Color(0xFF161F36),
+                      decoration: InputDecoration(
+                        filled: true,
+                        fillColor: const Color(0xFF161F36),
+                        border: OutlineInputBorder(borderRadius: BorderRadius.circular(12), borderSide: BorderSide.none),
+                        contentPadding: const EdgeInsets.symmetric(horizontal: 14, vertical: 12),
+                      ),
+                      items: _slot2Map.entries.map((e) => DropdownMenuItem(value: e.key, child: Text(e.value, style: const TextStyle(fontWeight: FontWeight.w800)))).toList(),
+                      onChanged: (val) {
+                        if (val != null) {
+                          setState(() {
+                            _slot2Key = val;
+                            _validateSlots();
+                          });
+                        }
+                      },
+                    ),
+                    const SizedBox(height: 16),
+                    const Text('3. PREDICATE / VERB (Grammar Locked)', style: TextStyle(fontSize: 10, fontWeight: FontWeight.w900, color: Color(0xFF38BDF8))),
+                    const SizedBox(height: 6),
+                    DropdownButtonFormField<String>(
+                      value: _slot3Key,
+                      dropdownColor: const Color(0xFF161F36),
+                      decoration: InputDecoration(
+                        filled: true,
+                        fillColor: const Color(0xFF161F36),
+                        border: OutlineInputBorder(borderRadius: BorderRadius.circular(12), borderSide: BorderSide.none),
+                        contentPadding: const EdgeInsets.symmetric(horizontal: 14, vertical: 12),
+                      ),
+                      items: _slot3Map.entries.map((e) => DropdownMenuItem(value: e.key, child: Text(e.value, style: const TextStyle(fontWeight: FontWeight.w800)))).toList(),
+                      onChanged: (val) {
+                        if (val != null) {
+                          setState(() => _slot3Key = val);
+                        }
+                      },
                     ),
                   ],
                 ),
-                const SizedBox(height: 6),
-                Text(
-                  _currentRoman,
-                  style: const TextStyle(fontSize: 22, fontWeight: FontWeight.w900, color: Colors.white, letterSpacing: -0.4),
+              ),
+              const SizedBox(height: 20),
+              Container(
+                padding: const EdgeInsets.all(20),
+                decoration: BoxDecoration(
+                  color: const Color(0xFF0C2219),
+                  borderRadius: BorderRadius.circular(20),
+                  border: Border.all(color: primaryMint.withValues(alpha: 0.5), width: 1.5),
                 ),
-                const SizedBox(height: 6),
-                Text(
-                  _currentHindi,
-                  style: TextStyle(fontSize: 16, fontWeight: FontWeight.w700, color: primaryMint),
-                ),
-                const SizedBox(height: 14),
-                const Text('शब्द सहेजिए:', style: TextStyle(fontSize: 11, fontWeight: FontWeight.w700, color: Color(0xFF94A3B8))),
-                const SizedBox(height: 6),
-                SaveableChunkRow(chunks: _currentChunks, source: 'Sentence Lab · $_currentRoman'),
-                const SizedBox(height: 16),
-                SizedBox(
-                  width: double.infinity,
-                  child: FilledButton.icon(
-                    style: FilledButton.styleFrom(backgroundColor: primaryMint, foregroundColor: Colors.black),
-                    onPressed: () {
-                      sentencesStore.addSentence(
-                        SavedSentence(
-                          id: 'lab_${DateTime.now().millisecondsSinceEpoch}',
-                          roman: _currentRoman,
-                          deva: _currentRoman,
-                          hindi: _currentHindi,
-                          createdAt: DateTime.now(),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Row(
+                      children: [
+                        const Text('✨ GENERATED SENTENCE', style: TextStyle(fontSize: 10, fontWeight: FontWeight.w900, color: primaryMint)),
+                        const Spacer(),
+                        IconButton(
+                          icon: const Icon(Icons.volume_up, color: primaryMint),
+                          onPressed: () => TtsService.instance.speak(_currentRoman),
                         ),
-                      );
-                      ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Saved sentence to Vault!')));
-                    },
-                    icon: const Icon(Icons.bookmark_add, size: 18),
-                    label: const Text('Save Sentence to Vault', style: TextStyle(fontWeight: FontWeight.w900)),
-                  ),
+                      ],
+                    ),
+                    const SizedBox(height: 6),
+                    Text(
+                      _currentRoman,
+                      style: const TextStyle(fontSize: 22, fontWeight: FontWeight.w900, color: Colors.white, letterSpacing: -0.4),
+                    ),
+                    const SizedBox(height: 6),
+                    Text(
+                      _currentHindi,
+                      style: TextStyle(fontSize: 16, fontWeight: FontWeight.w700, color: primaryMint),
+                    ),
+                    const SizedBox(height: 14),
+                    const Text('शब्द सहेजिए:', style: TextStyle(fontSize: 11, fontWeight: FontWeight.w700, color: Color(0xFF94A3B8))),
+                    const SizedBox(height: 6),
+                    SaveableChunkRow(chunks: _currentChunks, source: 'Sentence Lab · $_currentRoman'),
+                    const SizedBox(height: 16),
+                    SizedBox(
+                      width: double.infinity,
+                      child: FilledButton.icon(
+                        style: FilledButton.styleFrom(backgroundColor: primaryMint, foregroundColor: Colors.black),
+                        onPressed: () {
+                          sentencesStore.addSentence(
+                            SavedSentence(
+                              id: 'lab_${DateTime.now().millisecondsSinceEpoch}',
+                              roman: _currentRoman,
+                              deva: _currentRoman,
+                              hindi: _currentHindi,
+                              createdAt: DateTime.now(),
+                            ),
+                          );
+                          ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Saved sentence to Vault!')));
+                        },
+                        icon: const Icon(Icons.bookmark_add, size: 18),
+                        label: const Text('Save Sentence to Vault', style: TextStyle(fontWeight: FontWeight.w900)),
+                      ),
+                    ),
+                  ],
                 ),
-              ],
-            ),
-          ),
-        ],
+              ),
+            ],
           );
         },
       ),
