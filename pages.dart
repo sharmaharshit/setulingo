@@ -808,8 +808,21 @@ class MyWordsPage extends StatelessWidget {
                       margin: const EdgeInsets.only(bottom: 10),
                       child: ListTile(
                         title: Text('$label = ${item.hindi}', style: const TextStyle(fontWeight: FontWeight.w800, color: Colors.white)),
-                        subtitle: Text(item.source, style: const TextStyle(fontSize: 12)),
-                        trailing: IconButton(icon: const Icon(Icons.delete_outline), onPressed: () => wordsStore.removeWord(item.id)),
+                        subtitle: Text(item.source, style: const TextStyle(fontSize: 12, color: AppColors.textMid)),
+                        trailing: Row(
+                          mainAxisSize: MainAxisSize.min,
+                          children: [
+                            IconButton(
+                              icon: const Icon(Icons.auto_awesome, size: 20, color: AppColors.marigold),
+                              tooltip: 'Add to Sentence Lab',
+                              onPressed: () => _showVaultTagDialog(context, item),
+                            ),
+                            IconButton(
+                              icon: const Icon(Icons.delete_outline, size: 20, color: AppColors.textFaint),
+                              onPressed: () => wordsStore.removeWord(item.id),
+                            ),
+                          ],
+                        ),
                       ),
                     );
                   },
@@ -821,6 +834,54 @@ class MyWordsPage extends StatelessWidget {
       ),
     );
   }
+}
+
+void _showVaultTagDialog(BuildContext context, SavedWord item) {
+  showModalBottomSheet(
+    context: context,
+    backgroundColor: AppColors.surfaceElevated,
+    shape: const RoundedRectangleBorder(borderRadius: BorderRadius.vertical(top: Radius.circular(24))),
+    builder: (ctx) => SafeArea(
+      child: Padding(
+        padding: const EdgeInsets.all(20),
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Text('Add "${item.roman}" to Sentence Lab', style: const TextStyle(fontSize: 16, fontWeight: FontWeight.w900, color: AppColors.textHigh)),
+            const SizedBox(height: 4),
+            const Text('Choose which slot role this word should fill in the sentence builder:', style: TextStyle(fontSize: 12, color: AppColors.textMid)),
+            const SizedBox(height: 12),
+            for (final role in SlotRole.values)
+              ListTile(
+                contentPadding: EdgeInsets.zero,
+                leading: Icon(
+                  switch (role) {
+                    SlotRole.anchor => Icons.anchor,
+                    SlotRole.noun => Icons.category_outlined,
+                    SlotRole.verb => Icons.bolt_outlined,
+                  },
+                  color: AppColors.marigold,
+                ),
+                title: Text(role.label, style: const TextStyle(fontWeight: FontWeight.w800, color: AppColors.textHigh)),
+                subtitle: Text(role.hindiLabel, style: const TextStyle(fontSize: 12, color: AppColors.textFaint)),
+                onTap: () async {
+                  await SentenceLabVocabStore.instance.addCustomEntry(
+                    role,
+                    LabVocabEntry(roman: item.roman, deva: item.deva, hindi: item.hindi),
+                  );
+                  if (!ctx.mounted) return;
+                  Navigator.pop(ctx);
+                  ScaffoldMessenger.of(context).showSnackBar(
+                    SnackBar(content: Text('Added "${item.roman}" to Sentence Lab as ${role.label}! 🎉')),
+                  );
+                },
+              ),
+          ],
+        ),
+      ),
+    ),
+  );
 }
 
 // ---------------------------------------------------------------------------
