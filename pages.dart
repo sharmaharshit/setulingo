@@ -83,7 +83,7 @@ class _HomePageState extends State<HomePage> {
 }
 
 // ---------------------------------------------------------------------------
-// 1. Communicate Page (All 8 Categories Restored)
+// 1. Communicate Page (Streamlined Spoken Toolbelt & Real Spaces)
 // ---------------------------------------------------------------------------
 
 class CommunicatePage extends StatelessWidget {
@@ -232,7 +232,7 @@ class CommunicatePage extends StatelessWidget {
                       ),
                       const SizedBox(height: 24),
                       const Text(
-                        'Grammar & Extras',
+                        'Spoken Toolbelt',
                         style: TextStyle(fontSize: 18, fontWeight: FontWeight.w900, letterSpacing: -0.4, color: Colors.white),
                       ),
                       const SizedBox(height: 12),
@@ -244,10 +244,7 @@ class CommunicatePage extends StatelessWidget {
                         crossAxisSpacing: 12,
                         childAspectRatio: 2.4,
                         children: [
-                          _extraTile(context, '📖', 'Verbs & Tenses', const VerbsTensesPage()),
-                          _extraTile(context, '↔️', 'Opposites', const AntonymsPage()),
-                          _extraTile(context, '🔤', 'Alphabet Guide', const AlphabetPage()),
-                          _extraTile(context, '🔢', 'Numbers', const NumbersPage()),
+                          _extraTile(context, '🔢', 'Numbers (1–20+)', const NumbersPage()),
                           _extraTile(context, '🎭', 'Roleplay Dialogues', const RoleplayListPage()),
                           _extraTile(context, '🧠', 'Vault Quiz', const VaultQuizPage()),
                         ],
