@@ -5,174 +5,8 @@ import 'store.dart';
 import 'widgets.dart';
 
 // ---------------------------------------------------------------------------
-// Data — colloquial Bengaluru-Kannada forms, first-draft quality (same
-// caveat as content.dart: roman/deva accuracy should be reviewed by a
-// native speaker before shipping).
+// Data — Spoken Bengaluru-Kannada forms aligned with Sahitya Parishat
 // ---------------------------------------------------------------------------
-
-class TenseForm {
-  final String roman;
-  final String deva;
-  final String hindi;
-  const TenseForm(this.roman, this.deva, this.hindi);
-}
-
-class VerbConjugation {
-  final String verbRoman;
-  final String verbDeva;
-  final String hindiMeaning;
-  final TenseForm past;
-  final TenseForm present;
-  final TenseForm future;
-
-  const VerbConjugation({
-    required this.verbRoman,
-    required this.verbDeva,
-    required this.hindiMeaning,
-    required this.past,
-    required this.present,
-    required this.future,
-  });
-}
-
-final List<VerbConjugation> verbConjugations = const [
-  VerbConjugation(
-    verbRoman: 'Hogu', verbDeva: 'ಹೋಗು', hindiMeaning: 'जाना (to go)',
-    past: TenseForm('Hogide', 'ಹೋಗಿದೆ', 'मैं गया'),
-    present: TenseForm('Hogthini', 'ಹೋಗ್ತೀನಿ', 'मैं जाता हूँ'),
-    future: TenseForm('Hogthini (mele)', 'ಹೋಗ್ತೀನಿ (ಮೇಲೆ)', 'मैं जाऊँगा'),
-  ),
-  VerbConjugation(
-    verbRoman: 'Baru', verbDeva: 'ಬರು', hindiMeaning: 'आना (to come)',
-    past: TenseForm('Bandhe', 'ಬಂದೆ', 'मैं आया'),
-    present: TenseForm('Barthini', 'ಬರ್ತೀನಿ', 'मैं आता हूँ'),
-    future: TenseForm('Bartini, swalpa time aagthe', 'ಬರ್ತೀನಿ, ಸ್ವಲ್ಪ ಟೈಮ್ ಆಗ್ತೆ', 'मैं आऊँगा, थोड़ा समय लगेगा'),
-  ),
-  VerbConjugation(
-    verbRoman: 'Madu', verbDeva: 'ಮಾಡು', hindiMeaning: 'करना (to do)',
-    past: TenseForm('Madide', 'ಮಾಡಿದೆ', 'मैंने किया'),
-    present: TenseForm('Madthini', 'ಮಾಡ್ತೀನಿ', 'मैं करता हूँ'),
-    future: TenseForm('Madthini, naale', 'ಮಾಡ್ತೀನಿ, ನಾಳೆ', 'मैं करूँगा, कल'),
-  ),
-  VerbConjugation(
-    verbRoman: 'Tinnu', verbDeva: 'ತಿನ್ನು', hindiMeaning: 'खाना (to eat)',
-    past: TenseForm('Tinde', 'ತಿಂದೆ', 'मैंने खाया'),
-    present: TenseForm('Tinthini', 'ತಿನ್ತೀನಿ', 'मैं खाता हूँ'),
-    future: TenseForm('Tinthini, aamele', 'ತಿನ್ತೀನಿ, ಆಮೇಲೆ', 'मैं बाद में खाऊँगा'),
-  ),
-  VerbConjugation(
-    verbRoman: 'Kudi', verbDeva: 'ಕುಡಿ', hindiMeaning: 'पीना (to drink)',
-    past: TenseForm('Kudide', 'ಕುಡಿದೆ', 'मैंने पिया'),
-    present: TenseForm('Kudithini', 'ಕುಡಿತೀನಿ', 'मैं पीता हूँ'),
-    future: TenseForm('Kudithini, aamele', 'ಕುಡಿತೀನಿ, ಆಮೇಲೆ', 'मैं बाद में पियूँगा'),
-  ),
-  VerbConjugation(
-    verbRoman: 'Nodu', verbDeva: 'ನೋಡು', hindiMeaning: 'देखना (to see)',
-    past: TenseForm('Nodide', 'ನೋಡಿದೆ', 'मैंने देखा'),
-    present: TenseForm('Nodthini', 'ನೋಡ್ತೀನಿ', 'मैं देखता हूँ'),
-    future: TenseForm('Nodthini, naale', 'ನೋಡ್ತೀನಿ, ನಾಳೆ', 'मैं कल देखूँगा'),
-  ),
-  VerbConjugation(
-    verbRoman: 'Heli', verbDeva: 'ಹೇಳಿ', hindiMeaning: 'कहना (to say)',
-    past: TenseForm('Heltidde', 'ಹೇಳ್ತಿದ್ದೆ', 'मैंने कहा'),
-    present: TenseForm('Helthini', 'ಹೇಳ್ತೀನಿ', 'मैं कहता हूँ'),
-    future: TenseForm('Helthini, aamele', 'ಹೇಳ್ತೀನಿ, ಆಮೇಲೆ', 'मैं बाद में कहूँगा'),
-  ),
-  VerbConjugation(
-    verbRoman: 'Kodu', verbDeva: 'ಕೊಡು', hindiMeaning: 'देना (to give)',
-    past: TenseForm('Kotte', 'ಕೊಟ್ಟೆ', 'मैंने दिया'),
-    present: TenseForm('Kodthini', 'ಕೊಡ್ತೀನಿ', 'मैं देता हूँ'),
-    future: TenseForm('Kodthini, swalpa time', 'ಕೊಡ್ತೀನಿ, ಸ್ವಲ್ಪ ಟೈಮ್', 'मैं थोड़ी देर में दूँगा'),
-  ),
-];
-
-class AntonymPair {
-  final String hindi;
-  final String romanA;
-  final String devaA;
-  final String romanB;
-  final String devaB;
-
-  const AntonymPair({required this.hindi, required this.romanA, required this.devaA, required this.romanB, required this.devaB});
-}
-
-final List<AntonymPair> antonymPairs = const [
-  AntonymPair(hindi: 'पास / दूर', romanA: 'Hattira', devaA: 'ಹತ್ತಿರ', romanB: 'Dura', devaB: 'ದೂರ'),
-  AntonymPair(hindi: 'ऊपर / नीचे', romanA: 'Mele', devaA: 'ಮೇಲೆ', romanB: 'Kelage', devaB: 'ಕೆಳಗೆ'),
-  AntonymPair(hindi: 'तेज़ / धीमा', romanA: 'Bega', devaA: 'ಬೇಗ', romanB: 'Nidana', devaB: 'ನಿಧಾನ'),
-  AntonymPair(hindi: 'बड़ा / छोटा', romanA: 'Dodda', devaA: 'ದೊಡ್ಡ', romanB: 'Chikka', devaB: 'ಚಿಕ್ಕ'),
-  AntonymPair(hindi: 'गर्म / ठंडा', romanA: 'Bisi', devaA: 'ಬಿಸಿ', romanB: 'Tanni', devaB: 'ತಣ್ಣಿ'),
-  AntonymPair(hindi: 'अच्छा / बुरा', romanA: 'Chennagide', devaA: 'ಚೆನ್ನಾಗಿದೆ', romanB: 'Chennagilla', devaB: 'ಚೆನ್ನಾಗಿಲ್ಲ'),
-  AntonymPair(hindi: 'खुला / बंद', romanA: 'Open ide', devaA: 'ಓಪನ್ ಇದೆ', romanB: 'Close ide', devaB: 'ಕ್ಲೋಸ್ ಇದೆ'),
-  AntonymPair(hindi: 'सस्ता / महँगा', romanA: 'Kammi', devaA: 'ಕಮ್ಮಿ', romanB: 'Jaasti', devaB: 'ಜಾಸ್ತಿ'),
-  AntonymPair(hindi: 'ज़्यादा / कम', romanA: 'Jaasti', devaA: 'ಜಾಸ್ತಿ', romanB: 'Kammi', devaB: 'ಕಮ್ಮಿ'),
-  AntonymPair(hindi: 'आज / कल', romanA: 'Ivathu', devaA: 'ಇವತ್ತು', romanB: 'Naale', devaB: 'ನಾಳೆ'),
-  AntonymPair(hindi: 'हाँ / नहीं', romanA: 'Howdu', devaA: 'ಹೌದು', romanB: 'Illa', devaB: 'ಇಲ್ಲ'),
-  AntonymPair(hindi: 'जल्दी / देर से', romanA: 'Bega', devaA: 'ಬೇಗ', romanB: 'Late aagi', devaB: 'ಲೇಟ್ ಆಗಿ'),
-  AntonymPair(hindi: 'बायाँ / दायाँ', romanA: 'Edakke', devaA: 'ಎಡಕ್ಕೆ', romanB: 'Balakke', devaB: 'ಬಲಕ್ಕೆ'),
-  AntonymPair(hindi: 'अंदर / बाहर', romanA: 'Olage', devaA: 'ಒಳಗೆ', romanB: 'Horage', devaB: 'ಹೊರಗೆ'),
-  AntonymPair(hindi: 'नया / पुराना', romanA: 'Hosa', devaA: 'ಹೊಸ', romanB: 'Hazhe', devaB: 'ಹಳೆ'),
-];
-
-class AksharaEntry {
-  final String deva; // shown as-is (Kannada script placeholder / romanized note)
-  final String roman;
-  final String hindiHint;
-
-  const AksharaEntry(this.deva, this.roman, this.hindiHint);
-}
-
-final List<AksharaEntry> kannadaVowels = const [
-  AksharaEntry('ಅ', 'a', 'अ जैसा'),
-  AksharaEntry('ಆ', 'aa', 'आ जैसा'),
-  AksharaEntry('ಇ', 'i', 'इ जैसा'),
-  AksharaEntry('ಈ', 'ee', 'ई जैसा'),
-  AksharaEntry('ಉ', 'u', 'उ जैसा'),
-  AksharaEntry('ಊ', 'oo', 'ऊ जैसा'),
-  AksharaEntry('ಎ', 'e', 'ऎ जैसा (ह्रस्व)'),
-  AksharaEntry('ಏ', 'ae', 'ए जैसा (दीर्घ)'),
-  AksharaEntry('ಐ', 'ai', 'ऐ जैसा'),
-  AksharaEntry('ಒ', 'o', 'ऒ जैसा (ह्रस्व)'),
-  AksharaEntry('ಓ', 'oa', 'ओ जैसा (दीर्घ)'),
-  AksharaEntry('ಔ', 'au', 'औ जैसा'),
-  AksharaEntry('ಅಂ', 'am', 'अं जैसा (अनुस्वार)'),
-];
-
-final List<AksharaEntry> kannadaConsonants = const [
-  AksharaEntry('ಕ', 'ka', 'क'),
-  AksharaEntry('ಖ', 'kha', 'ख'),
-  AksharaEntry('ಗ', 'ga', 'ग'),
-  AksharaEntry('ಘ', 'gha', 'घ'),
-  AksharaEntry('ಙ', 'nga', 'ङ'),
-  AksharaEntry('ಚ', 'cha', 'च'),
-  AksharaEntry('ಛ', 'chha', 'छ'),
-  AksharaEntry('ಜ', 'ja', 'ज'),
-  AksharaEntry('ಝ', 'jha', 'झ'),
-  AksharaEntry('ಟ', 'Ta', 'ट (मूर्धन्य)'),
-  AksharaEntry('ಠ', 'Tha', 'ठ (मूर्धन्य)'),
-  AksharaEntry('ಡ', 'Da', 'ड (मूर्धन्य)'),
-  AksharaEntry('ಢ', 'Dha', 'ढ (मूर्धन्य)'),
-  AksharaEntry('ಣ', 'Na', 'ण (मूर्धन्य)'),
-  AksharaEntry('ತ', 'ta', 'त (दंत्य)'),
-  AksharaEntry('ಥ', 'tha', 'थ (दंत्य)'),
-  AksharaEntry('ದ', 'da', 'द (दंत्य)'),
-  AksharaEntry('ಧ', 'dha', 'ध (दंत्य)'),
-  AksharaEntry('ನ', 'na', 'न'),
-  AksharaEntry('ಪ', 'pa', 'प'),
-  AksharaEntry('ಫ', 'pha', 'फ'),
-  AksharaEntry('ಬ', 'ba', 'ब'),
-  AksharaEntry('ಭ', 'bha', 'भ'),
-  AksharaEntry('ಮ', 'ma', 'म'),
-  AksharaEntry('ಯ', 'ya', 'य'),
-  AksharaEntry('ರ', 'ra', 'र'),
-  AksharaEntry('ಲ', 'la', 'ल'),
-  AksharaEntry('ವ', 'va', 'व'),
-  AksharaEntry('ಶ', 'sha', 'श'),
-  AksharaEntry('ಷ', 'Sha', 'ष (मूर्धन्य)'),
-  AksharaEntry('ಸ', 'sa', 'स'),
-  AksharaEntry('ಹ', 'ha', 'ह'),
-  AksharaEntry('ಳ', 'La', 'ळ (कन्नड़-विशेष)'),
-];
 
 class KNumberEntry {
   final int value;
@@ -208,10 +42,7 @@ final List<KNumberEntry> kannadaNumbers = const [
   KNumberEntry(100, 'nooru', 'ನೂರು'),
 ];
 
-/// New multi-turn negotiation-style roleplays, beyond the single dialogue
-/// already attached to a couple of KSituations in content.dart. Reuses the
-/// existing RoleplayDialogue/DialogueTurn model so nothing new has to be
-/// taught to LessonPage or SentenceCard.
+/// Multi-turn negotiation and daily survival roleplay dialogues.
 final List<RoleplayDialogue> extendedRoleplays = [
   const RoleplayDialogue(
     id: 'rp_auto_negotiate',
@@ -278,211 +109,18 @@ class _InfoBanner extends StatelessWidget {
   }
 }
 
-class VerbsTensesPage extends StatelessWidget {
-  const VerbsTensesPage({super.key});
-
-  @override
-  Widget build(BuildContext context) {
-    final scheme = Theme.of(context).colorScheme;
-    return Scaffold(
-      appBar: AppBar(title: const Text('Verbs & Tenses'), actions: const [ScriptToggleAction()]),
-      body: ListView(
-        padding: const EdgeInsets.all(16),
-        children: [
-          const _InfoBanner(text: 'Colloquial spoken forms used in everyday Bengaluru Kannada — not textbook-formal grammar. Tap any row to hear it.'),
-          for (final v in verbConjugations)
-            Card(
-              margin: const EdgeInsets.only(bottom: 12),
-              child: Padding(
-                padding: const EdgeInsets.all(16),
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Row(
-                      children: [
-                        Text('${v.verbRoman} (${v.verbDeva})', style: const TextStyle(fontSize: 17, fontWeight: FontWeight.w900, color: AppColors.textHigh)),
-                        const Spacer(),
-                        Text(v.hindiMeaning, style: const TextStyle(fontSize: 12, color: AppColors.textMid)),
-                      ],
-                    ),
-                    const Divider(height: 20, color: AppColors.outlineSoft),
-                    _tenseRow(context, 'PAST', v.past, scheme),
-                    _tenseRow(context, 'PRESENT', v.present, scheme),
-                    _tenseRow(context, 'FUTURE', v.future, scheme),
-                  ],
-                ),
-              ),
-            ),
-        ],
-      ),
-    );
-  }
-
-  Widget _tenseRow(BuildContext context, String label, TenseForm form, ColorScheme scheme) {
-    return InkWell(
-      onTap: () => TtsService.instance.speak(form.roman),
-      borderRadius: BorderRadius.circular(10),
-      child: Padding(
-        padding: const EdgeInsets.symmetric(vertical: 6),
-        child: Row(
-          children: [
-            SizedBox(
-              width: 68,
-              child: Text(label, style: TextStyle(fontSize: 10, fontWeight: FontWeight.w900, color: scheme.primary, letterSpacing: 0.5)),
-            ),
-            Expanded(
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Text(form.roman, style: const TextStyle(fontSize: 14, fontWeight: FontWeight.w700, color: AppColors.textHigh)),
-                  Text(form.hindi, style: const TextStyle(fontSize: 12, color: AppColors.textMid)),
-                ],
-              ),
-            ),
-            const Icon(Icons.volume_up_outlined, size: 18, color: AppColors.textFaint),
-          ],
-        ),
-      ),
-    );
-  }
-}
-
-class AntonymsPage extends StatelessWidget {
-  const AntonymsPage({super.key});
-
-  @override
-  Widget build(BuildContext context) {
-    final settings = AppSettingsStore.instance;
-    return ListenableBuilder(
-      listenable: settings,
-      builder: (context, _) => Scaffold(
-        appBar: AppBar(title: const Text('Opposites'), actions: const [ScriptToggleAction()]),
-        body: ListView(
-          padding: const EdgeInsets.all(16),
-          children: [
-            const _InfoBanner(text: 'High-frequency opposite pairs. Tap either word to hear it spoken.'),
-            for (final pair in antonymPairs)
-              Container(
-                margin: const EdgeInsets.only(bottom: 10),
-                padding: const EdgeInsets.all(14),
-                decoration: BoxDecoration(
-                  color: AppColors.surfaceElevated,
-                  borderRadius: BorderRadius.circular(16),
-                  border: Border.all(color: AppColors.outline),
-                ),
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Text(pair.hindi, style: const TextStyle(fontSize: 12, fontWeight: FontWeight.w700, color: AppColors.textFaint)),
-                    const SizedBox(height: 8),
-                    Row(
-                      children: [
-                        Expanded(child: _wordChip(context, settings.isDevanagari ? pair.devaA : pair.romanA, pair.romanA)),
-                        const Padding(padding: EdgeInsets.symmetric(horizontal: 8), child: Icon(Icons.compare_arrows, size: 16, color: AppColors.textFaint)),
-                        Expanded(child: _wordChip(context, settings.isDevanagari ? pair.devaB : pair.romanB, pair.romanB)),
-                      ],
-                    ),
-                  ],
-                ),
-              ),
-          ],
-        ),
-      ),
-    );
-  }
-
-  Widget _wordChip(BuildContext context, String label, String speakRoman) {
-    return InkWell(
-      borderRadius: BorderRadius.circular(10),
-      onTap: () => TtsService.instance.speak(speakRoman),
-      child: Container(
-        padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 10),
-        decoration: BoxDecoration(color: AppColors.surfaceHighest, borderRadius: BorderRadius.circular(10)),
-        alignment: Alignment.center,
-        child: Text(label, textAlign: TextAlign.center, style: const TextStyle(fontWeight: FontWeight.w800, color: AppColors.textHigh)),
-      ),
-    );
-  }
-}
-
-class AlphabetPage extends StatelessWidget {
-  const AlphabetPage({super.key});
-
-  @override
-  Widget build(BuildContext context) {
-    return DefaultTabController(
-      length: 2,
-      child: Scaffold(
-        appBar: AppBar(
-          title: const Text('Alphabet & Syllables'),
-          bottom: const TabBar(tabs: [Tab(text: 'Vowels'), Tab(text: 'Consonants')]),
-        ),
-        body: TabBarView(
-          children: [
-            _AksharaGrid(entries: kannadaVowels),
-            _AksharaGrid(entries: kannadaConsonants),
-          ],
-        ),
-      ),
-    );
-  }
-}
-
-class _AksharaGrid extends StatelessWidget {
-  final List<AksharaEntry> entries;
-  const _AksharaGrid({required this.entries});
-
-  @override
-  Widget build(BuildContext context) {
-    return GridView.builder(
-      padding: const EdgeInsets.all(16),
-      gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(crossAxisCount: 3, mainAxisSpacing: 10, crossAxisSpacing: 10, childAspectRatio: 0.95),
-      itemCount: entries.length,
-      itemBuilder: (context, i) {
-        final e = entries[i];
-        return Material(
-          color: Colors.transparent,
-          child: InkWell(
-            borderRadius: BorderRadius.circular(16),
-            onTap: () => TtsService.instance.speak(e.roman),
-            child: Container(
-              decoration: BoxDecoration(
-                color: AppColors.surfaceElevated,
-                borderRadius: BorderRadius.circular(16),
-                border: Border.all(color: AppColors.outline),
-              ),
-              alignment: Alignment.center,
-              child: Column(
-                mainAxisAlignment: MainAxisAlignment.center,
-                children: [
-                  Text(e.deva, style: const TextStyle(fontSize: 26, fontWeight: FontWeight.w800, color: AppColors.textHigh)),
-                  const SizedBox(height: 4),
-                  Text(e.roman, style: const TextStyle(fontSize: 12, fontWeight: FontWeight.w700, color: AppColors.marigold)),
-                  Text(e.hindiHint, style: const TextStyle(fontSize: 10, color: AppColors.textFaint), textAlign: TextAlign.center),
-                ],
-              ),
-            ),
-          ),
-        );
-      },
-    );
-  }
-}
-
-/// "Numbers (1–20+)" reference — 1 through 20 plus a few round tens and a
-/// hundred, alongside the Alphabet Guide in Grammar & Extras.
 class NumbersPage extends StatelessWidget {
   const NumbersPage({super.key});
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(title: const Text('Numbers')),
+      appBar: AppBar(title: const Text('Numbers'), actions: const [ScriptToggleAction()]),
       body: Column(
         children: [
           const Padding(
             padding: EdgeInsets.fromLTRB(16, 16, 16, 0),
-            child: _InfoBanner(text: '1–20, plus a few round numbers (30, 40, 50, 100). Tap any tile to hear it spoken.'),
+            child: _InfoBanner(text: '1–20, plus essential round numbers for auto fares, quantities, and market bargaining. Tap any tile to hear it spoken.'),
           ),
           Expanded(
             child: GridView.builder(
@@ -530,7 +168,7 @@ class RoleplayListPage extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(title: const Text('Roleplay Dialogues')),
+      appBar: AppBar(title: const Text('Roleplay Dialogues'), actions: const [ScriptToggleAction()]),
       body: ListView(
         padding: const EdgeInsets.all(16),
         children: [
@@ -568,7 +206,7 @@ class _RoleplayPlayerPageState extends State<RoleplayPlayerPage> {
     final done = _revealed >= turns.length;
 
     return Scaffold(
-      appBar: AppBar(title: Text(widget.dialogue.title)),
+      appBar: AppBar(title: Text(widget.dialogue.title), actions: const [ScriptToggleAction()]),
       body: Column(
         children: [
           Padding(
