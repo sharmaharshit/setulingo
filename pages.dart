@@ -15,6 +15,22 @@ void _open(BuildContext context, Widget page) {
   Navigator.push(context, MaterialPageRoute(builder: (_) => page));
 }
 
+/// Lets any screen (empty-state CTAs, Search) jump to a bottom-nav tab.
+class HomeTabs {
+  static const int situations = 0;
+  static const int forYou = 1;
+  static const int sentenceLab = 2;
+  static const int vault = 3;
+
+  static final ValueNotifier<int?> request = ValueNotifier<int?>(null);
+
+  /// Pops back to the home shell and switches to [tab].
+  static void go(BuildContext context, int tab) {
+    Navigator.of(context).popUntil((route) => route.isFirst);
+    request.value = tab;
+  }
+}
+
 class HomePage extends StatefulWidget {
   const HomePage({super.key});
 
@@ -32,9 +48,24 @@ class _HomePageState extends State<HomePage> {
     MyWordsPage(),
   ];
 
+  void _onTabRequest() {
+    final requested = HomeTabs.request.value;
+    if (requested == null) return;
+    HomeTabs.request.value = null; // consume so the same tab can be requested again
+    if (!mounted || requested < 0 || requested >= _pages.length) return;
+    setState(() => _tab = requested);
+  }
+
+  @override
+  void dispose() {
+    HomeTabs.request.removeListener(_onTabRequest);
+    super.dispose();
+  }
+
   @override
   void initState() {
     super.initState();
+    HomeTabs.request.addListener(_onTabRequest);
     WidgetsBinding.instance.addPostFrameCallback((_) {
       if (!mounted) return;
       if (!LearningPathStore.instance.isOnboarded) {
@@ -83,7 +114,7 @@ class _HomePageState extends State<HomePage> {
 }
 
 // ---------------------------------------------------------------------------
-// 1. Communicate Page (Streamlined Spoken Toolbelt & Real Spaces)
+// 1. Communicate Page
 // ---------------------------------------------------------------------------
 
 class CommunicatePage extends StatelessWidget {
@@ -232,20 +263,20 @@ class CommunicatePage extends StatelessWidget {
                       ),
                       const SizedBox(height: 24),
                       const Text(
-                        'Spoken Toolbelt',
+                        'Spoken Tools',
                         style: TextStyle(fontSize: 18, fontWeight: FontWeight.w900, letterSpacing: -0.4, color: Colors.white),
                       ),
                       const SizedBox(height: 12),
                       GridView.count(
                         shrinkWrap: true,
                         physics: const NeverScrollableScrollPhysics(),
-                        crossAxisCount: 2,
+                        crossAxisCount: 3,
                         mainAxisSpacing: 12,
                         crossAxisSpacing: 12,
-                        childAspectRatio: 2.4,
+                        childAspectRatio: 1.1,
                         children: [
-                          _extraTile(context, '🔢', 'Numbers (1–20+)', const NumbersPage()),
-                          _extraTile(context, '🎭', 'Roleplay Dialogues', const RoleplayListPage()),
+                          _extraTile(context, '🔢', 'Numbers', const NumbersPage()),
+                          _extraTile(context, '🎭', 'Roleplays', const RoleplayListPage()),
                           _extraTile(context, '🧠', 'Vault Quiz', const VaultQuizPage()),
                         ],
                       ),
@@ -299,7 +330,7 @@ class CommunicatePage extends StatelessWidget {
 }
 
 // ---------------------------------------------------------------------------
-// 2. For You: daily recommendations + Sanskrit Roots (Tatsama Bridge)
+// 2. For You Page
 // ---------------------------------------------------------------------------
 
 class ForYouPage extends StatelessWidget {
@@ -417,7 +448,7 @@ class ForYouPage extends StatelessWidget {
 }
 
 // ---------------------------------------------------------------------------
-// 3. Sentence Lab: Bilingual Dropdowns (Kannada + Hindi Meaning)
+// 3. Sentence Lab Page
 // ---------------------------------------------------------------------------
 
 class SentenceLabPage extends StatefulWidget {
@@ -440,9 +471,15 @@ class _SentenceLabPageState extends State<SentenceLabPage> {
     'Innondu': 'इन्नोन्दु (एक और)',
   };
 
+  static String _customLabel(LabVocabEntry e, {required bool dash}) {
+    if (e.hindi.isEmpty) return e.roman;
+    return dash ? '${e.roman} — ${e.hindi}' : '${e.roman} (${e.hindi})';
+  }
+
   Map<String, String> get _slot1Map => {
         ..._builtinSlot1Map,
-        for (final e in SentenceLabVocabStore.instance.customAnchors) e.roman: '${e.roman} (${e.hindi})',
+        for (final e in SentenceLabVocabStore.instance.customAnchors)
+          if (e.roman.isNotEmpty) e.roman: _customLabel(e, dash: false),
       };
 
   Map<String, String> get _builtinSlot2Map {
@@ -482,7 +519,8 @@ class _SentenceLabPageState extends State<SentenceLabPage> {
 
   Map<String, String> get _slot2Map => {
         ..._builtinSlot2Map,
-        for (final e in SentenceLabVocabStore.instance.customNouns) e.roman: '${e.roman} — ${e.hindi}',
+        for (final e in SentenceLabVocabStore.instance.customNouns)
+          if (e.roman.isNotEmpty) e.roman: _customLabel(e, dash: true),
       };
 
   static const Map<String, Map<String, String>> _slot3ComboOverrides = {
@@ -519,7 +557,8 @@ class _SentenceLabPageState extends State<SentenceLabPage> {
 
   Map<String, String> get _slot3Map => {
         ..._builtinSlot3Map,
-        for (final e in SentenceLabVocabStore.instance.customVerbs) e.roman: '${e.roman} (${e.hindi})',
+        for (final e in SentenceLabVocabStore.instance.customVerbs)
+          if (e.roman.isNotEmpty) e.roman: _customLabel(e, dash: false),
       };
 
   @override
@@ -529,11 +568,19 @@ class _SentenceLabPageState extends State<SentenceLabPage> {
   }
 
   void _validateSlots() {
-    if (!_slot2Map.containsKey(_slot2Key)) {
-      _slot2Key = _slot2Map.keys.first;
+    final slot1 = _slot1Map;
+    if (!slot1.containsKey(_slot1Key)) {
+      _slot1Key = slot1.containsKey('Ondu')
+          ? 'Ondu'
+          : (slot1.keys.isNotEmpty ? slot1.keys.first : 'Ondu');
     }
-    if (!_slot3Map.containsKey(_slot3Key)) {
-      _slot3Key = _slot3Map.keys.first;
+    final slot2 = _slot2Map;
+    if (!slot2.containsKey(_slot2Key)) {
+      _slot2Key = slot2.keys.isNotEmpty ? slot2.keys.first : 'dose';
+    }
+    final slot3 = _slot3Map;
+    if (!slot3.containsKey(_slot3Key)) {
+      _slot3Key = slot3.keys.isNotEmpty ? slot3.keys.first : 'kodi';
     }
   }
 
@@ -558,7 +605,8 @@ class _SentenceLabPageState extends State<SentenceLabPage> {
   String get _currentRoman => '$_slot1Key $_slot2Key $_slot3Key.';
 
   String get _currentHindi {
-    final nounName = _slot2Map[_slot2Key]!.split('—').last.trim();
+    final nounLabel = _slot2Map[_slot2Key] ?? _slot2Key;
+    final nounName = nounLabel.split('—').last.trim();
     if (_slot1Key == 'Ondu' && _slot3Key == 'kodi') return 'एक $nounName दीजिए';
     if (_slot1Key == 'Nanage' && _slot3Key == 'beku') return 'मुझे एक $nounName चाहिए';
     if (_slot1Key == 'Swalpa' && _slot3Key == 'haaki') return 'थोड़ा $nounName डालिए';
@@ -593,7 +641,14 @@ class _SentenceLabPageState extends State<SentenceLabPage> {
                 'Select bilingual options. The engine locks incompatible grammar pairings so every sentence is 100% natural.',
                 style: TextStyle(fontSize: 13, color: scheme.onSurfaceVariant),
               ),
-              const SizedBox(height: 20),
+              const SizedBox(height: 16),
+              const DismissibleHelperBanner(
+                bannerId: 'sentence_lab_tagging_tip',
+                title: 'Grow your sentence builder',
+                message: 'Save any single word to your Vault, tap the ✨ icon beside it, and tag it as an Anchor (slot 1), '
+                    'Noun (slot 2) or Verb (slot 3). It then shows up in the dropdowns below.',
+              ),
+              const SizedBox(height: 4),
               Container(
                 padding: const EdgeInsets.all(20),
                 decoration: BoxDecoration(
@@ -737,7 +792,7 @@ class _SentenceLabPageState extends State<SentenceLabPage> {
 }
 
 // ---------------------------------------------------------------------------
-// 4. Saved Vault & Sanskrit Cognates Tab
+// 4. Saved Vault Page
 // ---------------------------------------------------------------------------
 
 class MyWordsPage extends StatelessWidget {
@@ -769,7 +824,16 @@ class MyWordsPage extends StatelessWidget {
               builder: (context, _) {
                 final saved = sentencesStore.sentences;
                 if (saved.isEmpty) {
-                  return const Center(child: Text('No sentences saved yet. Use the bookmark button in any situation or Sentence Lab.'));
+                  return PolishedEmptyState(
+                    icon: Icons.chat_bubble_outline,
+                    title: 'No sentences saved yet',
+                    message: 'Tap the bookmark on any sentence in a Situation, or build your own in Sentence Lab, '
+                        'and it will live here for quick revision.',
+                    primaryLabel: 'Explore Situations',
+                    onPrimary: () => HomeTabs.go(context, HomeTabs.situations),
+                    secondaryLabel: 'Open Sentence Lab',
+                    onSecondary: () => HomeTabs.go(context, HomeTabs.sentenceLab),
+                  );
                 }
                 return ListView.builder(
                   padding: const EdgeInsets.all(16),
@@ -793,12 +857,30 @@ class MyWordsPage extends StatelessWidget {
               builder: (context, _) {
                 final saved = wordsStore.words;
                 if (saved.isEmpty) {
-                  return const Center(child: Text('No words saved yet. Tap any word chunk across the app to save it here.'));
+                  return PolishedEmptyState(
+                    icon: Icons.bookmark_add_outlined,
+                    title: 'No words saved yet',
+                    message: 'Tap any word chunk in a Situation or Sentence Lab to save it. '
+                        'Single words can later be tagged as Anchors, Nouns or Verbs.',
+                    primaryLabel: 'Explore Situations',
+                    onPrimary: () => HomeTabs.go(context, HomeTabs.situations),
+                    secondaryLabel: 'Open Sentence Lab',
+                    onSecondary: () => HomeTabs.go(context, HomeTabs.sentenceLab),
+                  );
                 }
                 return ListView.builder(
                   padding: const EdgeInsets.all(16),
-                  itemCount: saved.length,
-                  itemBuilder: (context, i) {
+                  itemCount: saved.length + 1,
+                  itemBuilder: (context, index) {
+                    if (index == 0) {
+                      return const DismissibleHelperBanner(
+                        bannerId: 'vault_tagging_tip',
+                        title: 'Turn saved words into sentences',
+                        message: 'Tap the ✨ icon on a single word to tag it as an Anchor, Noun or Verb. '
+                            'Tagged words become options in Sentence Lab. (Multi-word phrases can\'t be tagged.)',
+                      );
+                    }
+                    final i = index - 1;
                     final item = saved[i];
                     final label = settings.isDevanagari ? item.deva : item.roman;
                     return Card(
@@ -809,11 +891,12 @@ class MyWordsPage extends StatelessWidget {
                         trailing: Row(
                           mainAxisSize: MainAxisSize.min,
                           children: [
-                            IconButton(
-                              icon: const Icon(Icons.auto_awesome, size: 20, color: AppColors.marigold),
-                              tooltip: 'Add to Sentence Lab',
-                              onPressed: () => _showVaultTagDialog(context, item),
-                            ),
+                            if (isTaggableForSentenceLab(item.roman))
+                              IconButton(
+                                icon: const Icon(Icons.auto_awesome, size: 20, color: AppColors.marigold),
+                                tooltip: 'Add to Sentence Lab',
+                                onPressed: () => _showVaultTagDialog(context, item),
+                              ),
                             IconButton(
                               icon: const Icon(Icons.delete_outline, size: 20, color: AppColors.textFaint),
                               onPressed: () => wordsStore.removeWord(item.id),
@@ -863,14 +946,19 @@ void _showVaultTagDialog(BuildContext context, SavedWord item) {
                 title: Text(role.label, style: const TextStyle(fontWeight: FontWeight.w800, color: AppColors.textHigh)),
                 subtitle: Text(role.hindiLabel, style: const TextStyle(fontSize: 12, color: AppColors.textFaint)),
                 onTap: () async {
-                  await SentenceLabVocabStore.instance.addCustomEntry(
+                  final added = await SentenceLabVocabStore.instance.addCustomEntry(
                     role,
                     LabVocabEntry(roman: item.roman, deva: item.deva, hindi: item.hindi),
                   );
                   if (!ctx.mounted) return;
                   Navigator.pop(ctx);
+                  if (!context.mounted) return;
                   ScaffoldMessenger.of(context).showSnackBar(
-                    SnackBar(content: Text('Added "${item.roman}" to Sentence Lab as ${role.label}! 🎉')),
+                    SnackBar(
+                      content: Text(added
+                          ? 'Added "${item.roman}" to Sentence Lab as ${role.label}! 🎉'
+                          : '"${item.roman}" is already in Sentence Lab as ${role.label}.'),
+                    ),
                   );
                 },
               ),
