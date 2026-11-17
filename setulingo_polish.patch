@@ -1,0 +1,640 @@
+diff --git a/main_v2.dart b/main_v2.dart
+index e430cea..32ac6a9 100644
+--- a/main_v2.dart
++++ b/main_v2.dart
+@@ -15,6 +15,7 @@ Future<void> main() async {
+   await LearningPathStore.instance.load();
+   await GamificationStore.instance.load();
+   await SentenceLabVocabStore.instance.load();
++  await HelperBannerStore.instance.load();
+   runApp(const SetuLingoV2App());
+ }
+ 
+diff --git a/pages.dart b/pages.dart
+index 9333ed5..845cdcf 100644
+--- a/pages.dart
++++ b/pages.dart
+@@ -15,6 +15,22 @@ void _open(BuildContext context, Widget page) {
+   Navigator.push(context, MaterialPageRoute(builder: (_) => page));
+ }
+ 
++/// Lets any screen (empty-state CTAs, Search) jump to a bottom-nav tab.
++class HomeTabs {
++  static const int situations = 0;
++  static const int forYou = 1;
++  static const int sentenceLab = 2;
++  static const int vault = 3;
++
++  static final ValueNotifier<int?> request = ValueNotifier<int?>(null);
++
++  /// Pops back to the home shell and switches to [tab].
++  static void go(BuildContext context, int tab) {
++    Navigator.of(context).popUntil((route) => route.isFirst);
++    request.value = tab;
++  }
++}
++
+ class HomePage extends StatefulWidget {
+   const HomePage({super.key});
+ 
+@@ -32,9 +48,24 @@ class _HomePageState extends State<HomePage> {
+     MyWordsPage(),
+   ];
+ 
++  void _onTabRequest() {
++    final requested = HomeTabs.request.value;
++    if (requested == null) return;
++    HomeTabs.request.value = null; // consume so the same tab can be requested again
++    if (!mounted || requested < 0 || requested >= _pages.length) return;
++    setState(() => _tab = requested);
++  }
++
++  @override
++  void dispose() {
++    HomeTabs.request.removeListener(_onTabRequest);
++    super.dispose();
++  }
++
+   @override
+   void initState() {
+     super.initState();
++    HomeTabs.request.addListener(_onTabRequest);
+     WidgetsBinding.instance.addPostFrameCallback((_) {
+       if (!mounted) return;
+       if (!LearningPathStore.instance.isOnboarded) {
+@@ -440,9 +471,16 @@ class _SentenceLabPageState extends State<SentenceLabPage> {
+     'Innondu': 'इन्नोन्दु (एक और)',
+   };
+ 
++  /// Display label for a user-tagged entry; never renders empty "()" / "—".
++  static String _customLabel(LabVocabEntry e, {required bool dash}) {
++    if (e.hindi.isEmpty) return e.roman;
++    return dash ? '${e.roman} — ${e.hindi}' : '${e.roman} (${e.hindi})';
++  }
++
+   Map<String, String> get _slot1Map => {
+         ..._builtinSlot1Map,
+-        for (final e in SentenceLabVocabStore.instance.customAnchors) e.roman: '${e.roman} (${e.hindi})',
++        for (final e in SentenceLabVocabStore.instance.customAnchors)
++          if (e.roman.isNotEmpty) e.roman: _customLabel(e, dash: false),
+       };
+ 
+   Map<String, String> get _builtinSlot2Map {
+@@ -482,7 +520,8 @@ class _SentenceLabPageState extends State<SentenceLabPage> {
+ 
+   Map<String, String> get _slot2Map => {
+         ..._builtinSlot2Map,
+-        for (final e in SentenceLabVocabStore.instance.customNouns) e.roman: '${e.roman} — ${e.hindi}',
++        for (final e in SentenceLabVocabStore.instance.customNouns)
++          if (e.roman.isNotEmpty) e.roman: _customLabel(e, dash: true),
+       };
+ 
+   static const Map<String, Map<String, String>> _slot3ComboOverrides = {
+@@ -519,7 +558,8 @@ class _SentenceLabPageState extends State<SentenceLabPage> {
+ 
+   Map<String, String> get _slot3Map => {
+         ..._builtinSlot3Map,
+-        for (final e in SentenceLabVocabStore.instance.customVerbs) e.roman: '${e.roman} (${e.hindi})',
++        for (final e in SentenceLabVocabStore.instance.customVerbs)
++          if (e.roman.isNotEmpty) e.roman: _customLabel(e, dash: false),
+       };
+ 
+   @override
+@@ -528,12 +568,24 @@ class _SentenceLabPageState extends State<SentenceLabPage> {
+     _validateSlots();
+   }
+ 
++  /// Keeps all three slot selections valid. Order matters: slot 2 depends on
++  /// slot 1, and slot 3 depends on slots 1 + 2. Every step has a hard-coded
++  /// fallback so an empty/corrupt custom list can never throw or leave a
++  /// dropdown pointing at a value that isn't in its items.
+   void _validateSlots() {
+-    if (!_slot2Map.containsKey(_slot2Key)) {
+-      _slot2Key = _slot2Map.keys.first;
++    final slot1 = _slot1Map;
++    if (!slot1.containsKey(_slot1Key)) {
++      _slot1Key = slot1.containsKey('Ondu')
++          ? 'Ondu'
++          : (slot1.keys.isNotEmpty ? slot1.keys.first : 'Ondu');
++    }
++    final slot2 = _slot2Map;
++    if (!slot2.containsKey(_slot2Key)) {
++      _slot2Key = slot2.keys.isNotEmpty ? slot2.keys.first : 'dose';
+     }
+-    if (!_slot3Map.containsKey(_slot3Key)) {
+-      _slot3Key = _slot3Map.keys.first;
++    final slot3 = _slot3Map;
++    if (!slot3.containsKey(_slot3Key)) {
++      _slot3Key = slot3.keys.isNotEmpty ? slot3.keys.first : 'kodi';
+     }
+   }
+ 
+@@ -558,7 +610,8 @@ class _SentenceLabPageState extends State<SentenceLabPage> {
+   String get _currentRoman => '$_slot1Key $_slot2Key $_slot3Key.';
+ 
+   String get _currentHindi {
+-    final nounName = _slot2Map[_slot2Key]!.split('—').last.trim();
++    final nounLabel = _slot2Map[_slot2Key] ?? _slot2Key;
++    final nounName = nounLabel.split('—').last.trim();
+     if (_slot1Key == 'Ondu' && _slot3Key == 'kodi') return 'एक $nounName दीजिए';
+     if (_slot1Key == 'Nanage' && _slot3Key == 'beku') return 'मुझे एक $nounName चाहिए';
+     if (_slot1Key == 'Swalpa' && _slot3Key == 'haaki') return 'थोड़ा $nounName डालिए';
+@@ -593,7 +646,14 @@ class _SentenceLabPageState extends State<SentenceLabPage> {
+                 'Select bilingual options. The engine locks incompatible grammar pairings so every sentence is 100% natural.',
+                 style: TextStyle(fontSize: 13, color: scheme.onSurfaceVariant),
+               ),
+-              const SizedBox(height: 20),
++              const SizedBox(height: 16),
++              const DismissibleHelperBanner(
++                bannerId: 'sentence_lab_tagging_tip',
++                title: 'Grow your sentence builder',
++                message: 'Save any single word to your Vault, tap the ✨ icon beside it, and tag it as an Anchor (slot 1), '
++                    'Noun (slot 2) or Verb (slot 3). It then shows up in the dropdowns below.',
++              ),
++              const SizedBox(height: 4),
+               Container(
+                 padding: const EdgeInsets.all(20),
+                 decoration: BoxDecoration(
+@@ -769,7 +829,16 @@ class MyWordsPage extends StatelessWidget {
+               builder: (context, _) {
+                 final saved = sentencesStore.sentences;
+                 if (saved.isEmpty) {
+-                  return const Center(child: Text('No sentences saved yet. Use the bookmark button in any situation or Sentence Lab.'));
++                  return PolishedEmptyState(
++                    icon: Icons.chat_bubble_outline,
++                    title: 'No sentences saved yet',
++                    message: 'Tap the bookmark on any sentence in a Situation, or build your own in Sentence Lab, '
++                        'and it will live here for quick revision.',
++                    primaryLabel: 'Explore Situations',
++                    onPrimary: () => HomeTabs.go(context, HomeTabs.situations),
++                    secondaryLabel: 'Open Sentence Lab',
++                    onSecondary: () => HomeTabs.go(context, HomeTabs.sentenceLab),
++                  );
+                 }
+                 return ListView.builder(
+                   padding: const EdgeInsets.all(16),
+@@ -793,12 +862,30 @@ class MyWordsPage extends StatelessWidget {
+               builder: (context, _) {
+                 final saved = wordsStore.words;
+                 if (saved.isEmpty) {
+-                  return const Center(child: Text('No words saved yet. Tap any word chunk across the app to save it here.'));
++                  return PolishedEmptyState(
++                    icon: Icons.bookmark_add_outlined,
++                    title: 'No words saved yet',
++                    message: 'Tap any word chunk in a Situation or Sentence Lab to save it. '
++                        'Single words can later be tagged as Anchors, Nouns or Verbs.',
++                    primaryLabel: 'Explore Situations',
++                    onPrimary: () => HomeTabs.go(context, HomeTabs.situations),
++                    secondaryLabel: 'Open Sentence Lab',
++                    onSecondary: () => HomeTabs.go(context, HomeTabs.sentenceLab),
++                  );
+                 }
+                 return ListView.builder(
+                   padding: const EdgeInsets.all(16),
+-                  itemCount: saved.length,
+-                  itemBuilder: (context, i) {
++                  itemCount: saved.length + 1, // +1: helper banner at the top
++                  itemBuilder: (context, index) {
++                    if (index == 0) {
++                      return const DismissibleHelperBanner(
++                        bannerId: 'vault_tagging_tip',
++                        title: 'Turn saved words into sentences',
++                        message: 'Tap the ✨ icon on a single word to tag it as an Anchor, Noun or Verb. '
++                            'Tagged words become options in Sentence Lab. (Multi-word phrases can\'t be tagged.)',
++                      );
++                    }
++                    final i = index - 1;
+                     final item = saved[i];
+                     final label = settings.isDevanagari ? item.deva : item.roman;
+                     return Card(
+@@ -809,11 +896,12 @@ class MyWordsPage extends StatelessWidget {
+                         trailing: Row(
+                           mainAxisSize: MainAxisSize.min,
+                           children: [
+-                            IconButton(
+-                              icon: const Icon(Icons.auto_awesome, size: 20, color: AppColors.marigold),
+-                              tooltip: 'Add to Sentence Lab',
+-                              onPressed: () => _showVaultTagDialog(context, item),
+-                            ),
++                            if (isTaggableForSentenceLab(item.roman))
++                              IconButton(
++                                icon: const Icon(Icons.auto_awesome, size: 20, color: AppColors.marigold),
++                                tooltip: 'Add to Sentence Lab',
++                                onPressed: () => _showVaultTagDialog(context, item),
++                              ),
+                             IconButton(
+                               icon: const Icon(Icons.delete_outline, size: 20, color: AppColors.textFaint),
+                               onPressed: () => wordsStore.removeWord(item.id),
+@@ -863,14 +951,19 @@ void _showVaultTagDialog(BuildContext context, SavedWord item) {
+                 title: Text(role.label, style: const TextStyle(fontWeight: FontWeight.w800, color: AppColors.textHigh)),
+                 subtitle: Text(role.hindiLabel, style: const TextStyle(fontSize: 12, color: AppColors.textFaint)),
+                 onTap: () async {
+-                  await SentenceLabVocabStore.instance.addCustomEntry(
++                  final added = await SentenceLabVocabStore.instance.addCustomEntry(
+                     role,
+                     LabVocabEntry(roman: item.roman, deva: item.deva, hindi: item.hindi),
+                   );
+                   if (!ctx.mounted) return;
+                   Navigator.pop(ctx);
++                  if (!context.mounted) return;
+                   ScaffoldMessenger.of(context).showSnackBar(
+-                    SnackBar(content: Text('Added "${item.roman}" to Sentence Lab as ${role.label}! 🎉')),
++                    SnackBar(
++                      content: Text(added
++                          ? 'Added "${item.roman}" to Sentence Lab as ${role.label}! 🎉'
++                          : '"${item.roman}" is already in Sentence Lab as ${role.label}.'),
++                    ),
+                   );
+                 },
+               ),
+diff --git a/search_page.dart b/search_page.dart
+index 8c64d7a..9eb9ce4 100644
+--- a/search_page.dart
++++ b/search_page.dart
+@@ -3,6 +3,7 @@ import '../main_v2.dart';
+ import 'content.dart';
+ import 'pages.dart';
+ import 'store.dart';
++import 'widgets.dart';
+ 
+ void _open(BuildContext context, Widget page) {
+   Navigator.push(context, MaterialPageRoute(builder: (_) => page));
+@@ -149,20 +150,25 @@ class _GlobalSearchPageState extends State<GlobalSearchPage> {
+         ],
+       ),
+       body: _query.trim().length < 2
+-          ? const Padding(
+-              padding: EdgeInsets.all(32),
+-              child: Center(
+-                child: Text(
+-                  'Type at least 2 letters to search across situations, sentences, Sanskrit roots, and your Vault.',
+-                  textAlign: TextAlign.center,
+-                  style: TextStyle(color: AppColors.textFaint),
+-                ),
+-              ),
++          ? PolishedEmptyState(
++              icon: Icons.search,
++              title: 'Search SetuLingo',
++              message: 'Type at least 2 letters to search situations, sentences, Sanskrit roots and your Vault.',
++              primaryLabel: 'Browse Situations',
++              onPrimary: () => HomeTabs.go(context, HomeTabs.situations),
++              secondaryLabel: 'Open Sentence Lab',
++              onSecondary: () => HomeTabs.go(context, HomeTabs.sentenceLab),
+             )
+           : results.isEmpty
+-              ? const Padding(
+-                  padding: EdgeInsets.all(32),
+-                  child: Center(child: Text('No matches found.', style: TextStyle(color: AppColors.textFaint))),
++              ? PolishedEmptyState(
++                  icon: Icons.search_off,
++                  title: 'No matches for "${_query.trim()}"',
++                  message: 'Try a shorter spelling, or a Hindi word. You can also browse Situations '
++                      'or build your own sentence in Sentence Lab.',
++                  primaryLabel: 'Explore Situations',
++                  onPrimary: () => HomeTabs.go(context, HomeTabs.situations),
++                  secondaryLabel: 'Try Sentence Lab',
++                  onSecondary: () => HomeTabs.go(context, HomeTabs.sentenceLab),
+                 )
+               : ListView.separated(
+                   padding: const EdgeInsets.all(16),
+diff --git a/sentence_lab_vocab.dart b/sentence_lab_vocab.dart
+index 50e080f..66ef818 100644
+--- a/sentence_lab_vocab.dart
++++ b/sentence_lab_vocab.dart
+@@ -40,10 +40,25 @@ class LabVocabEntry {
+   Map<String, dynamic> toMap() => {'roman': roman, 'deva': deva, 'hindi': hindi};
+ 
+   factory LabVocabEntry.fromMap(Map<String, dynamic> map) => LabVocabEntry(
+-        roman: map['roman'] as String,
+-        deva: (map['deva'] ?? '') as String,
+-        hindi: (map['hindi'] ?? '') as String,
++        roman: (map['roman'] ?? '').toString().trim(),
++        deva: (map['deva'] ?? '').toString().trim(),
++        hindi: (map['hindi'] ?? '').toString().trim(),
+       );
++
++  /// Safe parse of one stored JSON string. Returns null for anything
++  /// malformed, empty, or not a single lexical token, so one bad entry can
++  /// never take down the whole list.
++  static LabVocabEntry? tryParse(Object? raw) {
++    try {
++      if (raw is! String) return null;
++      final decoded = jsonDecode(raw);
++      if (decoded is! Map) return null;
++      final entry = LabVocabEntry.fromMap(Map<String, dynamic>.from(decoded));
++      return isTaggableForSentenceLab(entry.roman) ? entry : null;
++    } catch (_) {
++      return null;
++    }
++  }
+ }
+ 
+ /// Holds user-tagged custom vocabulary so the Sentence Lab's slots can grow
+@@ -73,32 +88,91 @@ class SentenceLabVocabStore extends ChangeNotifier {
+         SlotRole.verb => customVerbs,
+       };
+ 
++  /// Loads every role independently. A corrupt value for one role (or one
++  /// corrupt entry inside a role) is skipped instead of wiping the others.
+   Future<void> load() async {
++    SharedPreferences? prefs;
+     try {
+-      final prefs = await SharedPreferences.getInstance();
+-      for (final role in SlotRole.values) {
+-        final raw = prefs.getStringList(_keyFor(role)) ?? const <String>[];
+-        final list = raw.map((s) => LabVocabEntry.fromMap(jsonDecode(s) as Map<String, dynamic>)).toList();
+-        if (role == SlotRole.anchor) {
++      prefs = await SharedPreferences.getInstance();
++    } catch (_) {}
++
++    for (final role in SlotRole.values) {
++      final list = <LabVocabEntry>[];
++      try {
++        final raw = prefs?.getStringList(_keyFor(role)) ?? const <String>[];
++        final seen = <String>{};
++        for (final item in raw) {
++          final entry = LabVocabEntry.tryParse(item);
++          if (entry == null) continue;
++          if (!seen.add(entry.roman.toLowerCase())) continue; // drop duplicates
++          list.add(entry);
++        }
++      } catch (_) {
++        // e.g. the key holds a non-list type from an older build: start clean.
++      }
++      switch (role) {
++        case SlotRole.anchor:
+           customAnchors = list;
+-        } else if (role == SlotRole.noun) {
++        case SlotRole.noun:
+           customNouns = list;
+-        } else {
++        case SlotRole.verb:
+           customVerbs = list;
+-        }
+       }
+-    } catch (_) {}
++    }
+     notifyListeners();
+   }
+ 
+-  Future<void> addCustomEntry(SlotRole role, LabVocabEntry entry) async {
++  /// Returns true if the entry was added, false if it was rejected (not a
++  /// single token) or already present for that role.
++  Future<bool> addCustomEntry(SlotRole role, LabVocabEntry entry) async {
++    final clean = LabVocabEntry(
++      roman: entry.roman.trim(),
++      deva: entry.deva.trim(),
++      hindi: entry.hindi.trim(),
++    );
++    if (!isTaggableForSentenceLab(clean.roman)) return false;
+     final list = forRole(role);
+-    if (list.any((e) => e.roman.toLowerCase() == entry.roman.toLowerCase())) return;
+-    list.add(entry);
++    if (list.any((e) => e.roman.toLowerCase() == clean.roman.toLowerCase())) return false;
++    list.add(clean);
+     notifyListeners();
+     try {
+       final prefs = await SharedPreferences.getInstance();
+       await prefs.setStringList(_keyFor(role), list.map((e) => jsonEncode(e.toMap())).toList());
++    } catch (_) {
++      // Persisting failed: the entry still works for this session.
++    }
++    return true;
++  }
++}
++
++/// Remembers which one-time helper banners the user has dismissed.
++/// Call `await HelperBannerStore.instance.load();` in main() next to the
++/// other stores (see patch notes).
++class HelperBannerStore extends ChangeNotifier {
++  HelperBannerStore._();
++  static final HelperBannerStore instance = HelperBannerStore._();
++
++  static const String _prefKey = 'dismissed_helper_banners';
++  final Set<String> _dismissed = {};
++
++  bool isDismissed(String id) => _dismissed.contains(id);
++
++  Future<void> load() async {
++    try {
++      final prefs = await SharedPreferences.getInstance();
++      _dismissed
++        ..clear()
++        ..addAll(prefs.getStringList(_prefKey) ?? const <String>[]);
++    } catch (_) {}
++    notifyListeners();
++  }
++
++  Future<void> dismiss(String id) async {
++    if (!_dismissed.add(id)) return;
++    notifyListeners();
++    try {
++      final prefs = await SharedPreferences.getInstance();
++      await prefs.setStringList(_prefKey, _dismissed.toList());
+     } catch (_) {}
+   }
+ }
+diff --git a/widgets.dart b/widgets.dart
+index 1055ddb..74cad9b 100644
+--- a/widgets.dart
++++ b/widgets.dart
+@@ -476,3 +476,199 @@ class _SentenceCardState extends State<SentenceCard> {
+     );
+   }
+ }
++
++
++// ---------------------------------------------------------------------------
++// Polish: empty states + dismissible helper banner
++// ---------------------------------------------------------------------------
++
++/// Styled empty state: icon badge, headline, guidance and up to two CTAs.
++class PolishedEmptyState extends StatelessWidget {
++  final IconData icon;
++  final String title;
++  final String message;
++  final String primaryLabel;
++  final IconData primaryIcon;
++  final VoidCallback onPrimary;
++  final String? secondaryLabel;
++  final VoidCallback? onSecondary;
++
++  const PolishedEmptyState({
++    super.key,
++    required this.icon,
++    required this.title,
++    required this.message,
++    required this.primaryLabel,
++    required this.onPrimary,
++    this.primaryIcon = Icons.grid_view_rounded,
++    this.secondaryLabel,
++    this.onSecondary,
++  });
++
++  @override
++  Widget build(BuildContext context) {
++    return Center(
++      child: SingleChildScrollView(
++        padding: const EdgeInsets.all(24),
++        child: Container(
++          constraints: const BoxConstraints(maxWidth: 380),
++          padding: const EdgeInsets.fromLTRB(24, 28, 24, 24),
++          decoration: BoxDecoration(
++            color: AppColors.surfaceElevated,
++            borderRadius: BorderRadius.circular(24),
++            border: Border.all(color: AppColors.outline),
++          ),
++          child: Column(
++            mainAxisSize: MainAxisSize.min,
++            children: [
++              Container(
++                width: 64,
++                height: 64,
++                decoration: BoxDecoration(
++                  color: AppColors.marigoldDeep,
++                  shape: BoxShape.circle,
++                  border: Border.all(color: AppColors.marigold.withValues(alpha: 0.35)),
++                ),
++                child: Icon(icon, size: 30, color: AppColors.marigold),
++              ),
++              const SizedBox(height: 18),
++              Text(
++                title,
++                textAlign: TextAlign.center,
++                style: Theme.of(context).textTheme.titleLarge,
++              ),
++              const SizedBox(height: 8),
++              Text(
++                message,
++                textAlign: TextAlign.center,
++                style: const TextStyle(fontSize: 13, height: 1.45, color: AppColors.textMid),
++              ),
++              const SizedBox(height: 20),
++              SizedBox(
++                width: double.infinity,
++                child: FilledButton.icon(
++                  onPressed: onPrimary,
++                  icon: Icon(primaryIcon, size: 18),
++                  label: Text(primaryLabel, style: const TextStyle(fontWeight: FontWeight.w800)),
++                ),
++              ),
++              if (secondaryLabel != null && onSecondary != null) ...[
++                const SizedBox(height: 8),
++                SizedBox(
++                  width: double.infinity,
++                  child: OutlinedButton.icon(
++                    style: OutlinedButton.styleFrom(
++                      foregroundColor: AppColors.jacaranda,
++                      side: const BorderSide(color: AppColors.outline),
++                    ),
++                    onPressed: onSecondary,
++                    icon: const Icon(Icons.auto_awesome, size: 18),
++                    label: Text(secondaryLabel!, style: const TextStyle(fontWeight: FontWeight.w800)),
++                  ),
++                ),
++              ],
++            ],
++          ),
++        ),
++      ),
++    );
++  }
++}
++
++/// One-time, dismissible tip. Hidden permanently once dismissed
++/// (persisted through [HelperBannerStore]).
++class DismissibleHelperBanner extends StatelessWidget {
++  final String bannerId;
++  final String title;
++  final String message;
++
++  const DismissibleHelperBanner({
++    super.key,
++    required this.bannerId,
++    required this.title,
++    required this.message,
++  });
++
++  Widget _roleChip(IconData icon, String label) {
++    return Container(
++      padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 5),
++      decoration: BoxDecoration(
++        color: AppColors.surfaceHighest,
++        borderRadius: BorderRadius.circular(20),
++        border: Border.all(color: AppColors.outline),
++      ),
++      child: Row(
++        mainAxisSize: MainAxisSize.min,
++        children: [
++          Icon(icon, size: 13, color: AppColors.marigold),
++          const SizedBox(width: 5),
++          Text(label, style: const TextStyle(fontSize: 11, fontWeight: FontWeight.w800, color: AppColors.textHigh)),
++        ],
++      ),
++    );
++  }
++
++  @override
++  Widget build(BuildContext context) {
++    return ListenableBuilder(
++      listenable: HelperBannerStore.instance,
++      builder: (context, _) {
++        if (HelperBannerStore.instance.isDismissed(bannerId)) {
++          return const SizedBox.shrink();
++        }
++        return Container(
++          margin: const EdgeInsets.only(bottom: 16),
++          padding: const EdgeInsets.fromLTRB(14, 12, 6, 14),
++          decoration: BoxDecoration(
++            color: AppColors.marigoldDeep,
++            borderRadius: BorderRadius.circular(16),
++            border: Border.all(color: AppColors.marigold.withValues(alpha: 0.4)),
++          ),
++          child: Column(
++            crossAxisAlignment: CrossAxisAlignment.start,
++            children: [
++              Row(
++                crossAxisAlignment: CrossAxisAlignment.start,
++                children: [
++                  const Padding(
++                    padding: EdgeInsets.only(top: 2),
++                    child: Icon(Icons.lightbulb_outline, size: 18, color: AppColors.marigold),
++                  ),
++                  const SizedBox(width: 10),
++                  Expanded(
++                    child: Text(title, style: const TextStyle(fontSize: 13, fontWeight: FontWeight.w900, color: AppColors.textHigh)),
++                  ),
++                  IconButton(
++                    visualDensity: VisualDensity.compact,
++                    tooltip: 'Dismiss',
++                    icon: const Icon(Icons.close, size: 18, color: AppColors.textMid),
++                    onPressed: () => HelperBannerStore.instance.dismiss(bannerId),
++                  ),
++                ],
++              ),
++              Padding(
++                padding: const EdgeInsets.only(left: 28, right: 8),
++                child: Column(
++                  crossAxisAlignment: CrossAxisAlignment.start,
++                  children: [
++                    Text(message, style: const TextStyle(fontSize: 12, height: 1.45, color: AppColors.textMid)),
++                    const SizedBox(height: 10),
++                    Wrap(
++                      spacing: 6,
++                      runSpacing: 6,
++                      children: [
++                        _roleChip(Icons.anchor, 'Anchor'),
++                        _roleChip(Icons.category_outlined, 'Noun'),
++                        _roleChip(Icons.bolt_outlined, 'Verb'),
++                      ],
++                    ),
++                  ],
++                ),
++              ),
++            ],
++          ),
++        );
++      },
++    );
++  }
++}
