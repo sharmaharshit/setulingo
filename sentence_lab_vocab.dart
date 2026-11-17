@@ -40,10 +40,25 @@ class LabVocabEntry {
   Map<String, dynamic> toMap() => {'roman': roman, 'deva': deva, 'hindi': hindi};
 
   factory LabVocabEntry.fromMap(Map<String, dynamic> map) => LabVocabEntry(
-        roman: map['roman'] as String,
-        deva: (map['deva'] ?? '') as String,
-        hindi: (map['hindi'] ?? '') as String,
+        roman: (map['roman'] ?? '').toString().trim(),
+        deva: (map['deva'] ?? '').toString().trim(),
+        hindi: (map['hindi'] ?? '').toString().trim(),
       );
+
+  /// Safe parse of one stored JSON string. Returns null for anything
+  /// malformed, empty, or not a single lexical token, so one bad entry can
+  /// never take down the whole list.
+  static LabVocabEntry? tryParse(Object? raw) {
+    try {
+      if (raw is! String) return null;
+      final decoded = jsonDecode(raw);
+      if (decoded is! Map) return null;
+      final entry = LabVocabEntry.fromMap(Map<String, dynamic>.from(decoded));
+      return isTaggableForSentenceLab(entry.roman) ? entry : null;
+    } catch (_) {
+      return null;
+    }
+  }
 }
 
 /// Holds user-tagged custom vocabulary so the Sentence Lab's slots can grow
@@ -73,32 +88,89 @@ class SentenceLabVocabStore extends ChangeNotifier {
         SlotRole.verb => customVerbs,
       };
 
+  /// Loads every role independently. A corrupt value for one role (or one
+  /// corrupt entry inside a role) is skipped instead of wiping the others.
   Future<void> load() async {
+    SharedPreferences? prefs;
     try {
-      final prefs = await SharedPreferences.getInstance();
-      for (final role in SlotRole.values) {
-        final raw = prefs.getStringList(_keyFor(role)) ?? const <String>[];
-        final list = raw.map((s) => LabVocabEntry.fromMap(jsonDecode(s) as Map<String, dynamic>)).toList();
-        if (role == SlotRole.anchor) {
-          customAnchors = list;
-        } else if (role == SlotRole.noun) {
-          customNouns = list;
-        } else {
-          customVerbs = list;
-        }
-      }
+      prefs = await SharedPreferences.getInstance();
     } catch (_) {}
+
+    for (final role in SlotRole.values) {
+      final list = <LabVocabEntry>[];
+      try {
+        final raw = prefs?.getStringList(_keyFor(role)) ?? const <String>[];
+        final seen = <String>{};
+        for (final item in raw) {
+          final entry = LabVocabEntry.tryParse(item);
+          if (entry == null) continue;
+          if (!seen.add(entry.roman.toLowerCase())) continue; // drop duplicates
+          list.add(entry);
+        }
+      } catch (_) {
+        // e.g. the key holds a non-list type from an older build: start clean.
+      }
+      switch (role) {
+        case SlotRole.anchor:
+          customAnchors = list;
+        case SlotRole.noun:
+          customNouns = list;
+        case SlotRole.verb:
+          customVerbs = list;
+      }
+    }
     notifyListeners();
   }
 
-  Future<void> addCustomEntry(SlotRole role, LabVocabEntry entry) async {
+  /// Returns true if the entry was added, false if it was rejected (not a
+  /// single token) or already present for that role.
+  Future<bool> addCustomEntry(SlotRole role, LabVocabEntry entry) async {
+    final clean = LabVocabEntry(
+      roman: entry.roman.trim(),
+      deva: entry.deva.trim(),
+      hindi: entry.hindi.trim(),
+    );
+    if (!isTaggableForSentenceLab(clean.roman)) return false;
     final list = forRole(role);
-    if (list.any((e) => e.roman.toLowerCase() == entry.roman.toLowerCase())) return;
-    list.add(entry);
+    if (list.any((e) => e.roman.toLowerCase() == clean.roman.toLowerCase())) return false;
+    list.add(clean);
     notifyListeners();
     try {
       final prefs = await SharedPreferences.getInstance();
       await prefs.setStringList(_keyFor(role), list.map((e) => jsonEncode(e.toMap())).toList());
+    } catch (_) {
+      // Persisting failed: the entry still works for this session.
+    }
+    return true;
+  }
+}
+
+/// Remembers which one-time helper banners the user has dismissed.
+class HelperBannerStore extends ChangeNotifier {
+  HelperBannerStore._();
+  static final HelperBannerStore instance = HelperBannerStore._();
+
+  static const String _prefKey = 'dismissed_helper_banners';
+  final Set<String> _dismissed = {};
+
+  bool isDismissed(String id) => _dismissed.contains(id);
+
+  Future<void> load() async {
+    try {
+      final prefs = await SharedPreferences.getInstance();
+      _dismissed
+        ..clear()
+        ..addAll(prefs.getStringList(_prefKey) ?? const <String>[]);
+    } catch (_) {}
+    notifyListeners();
+  }
+
+  Future<void> dismiss(String id) async {
+    if (!_dismissed.add(id)) return;
+    notifyListeners();
+    try {
+      final prefs = await SharedPreferences.getInstance();
+      await prefs.setStringList(_prefKey, _dismissed.toList());
     } catch (_) {}
   }
 }
