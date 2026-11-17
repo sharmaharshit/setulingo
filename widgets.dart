@@ -4,6 +4,8 @@ import '../main_v2.dart';
 import 'sentence_lab_vocab.dart';
 import 'store.dart';
 
+/// Universal Devanagari ⇄ Roman script toggle, meant to be dropped into the
+/// `actions` list of any primary screen's AppBar so it always sits top-right.
 class ScriptToggleAction extends StatelessWidget {
   const ScriptToggleAction({super.key});
 
@@ -470,6 +472,201 @@ class _SentenceCardState extends State<SentenceCard> {
                 ),
               ],
             ),
+          ),
+        );
+      },
+    );
+  }
+}
+
+// ---------------------------------------------------------------------------
+// Polish: empty states + dismissible helper banner
+// ---------------------------------------------------------------------------
+
+/// Styled empty state: icon badge, headline, guidance and up to two CTAs.
+class PolishedEmptyState extends StatelessWidget {
+  final IconData icon;
+  final String title;
+  final String message;
+  final String primaryLabel;
+  final IconData primaryIcon;
+  final VoidCallback onPrimary;
+  final String? secondaryLabel;
+  final VoidCallback? onSecondary;
+
+  const PolishedEmptyState({
+    super.key,
+    required this.icon,
+    required this.title,
+    required this.message,
+    required this.primaryLabel,
+    required this.onPrimary,
+    this.primaryIcon = Icons.grid_view_rounded,
+    this.secondaryLabel,
+    this.onSecondary,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    return Center(
+      child: SingleChildScrollView(
+        padding: const EdgeInsets.all(24),
+        child: Container(
+          constraints: const BoxConstraints(maxWidth: 380),
+          padding: const EdgeInsets.fromLTRB(24, 28, 24, 24),
+          decoration: BoxDecoration(
+            color: AppColors.surfaceElevated,
+            borderRadius: BorderRadius.circular(24),
+            border: Border.all(color: AppColors.outline),
+          ),
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              Container(
+                width: 64,
+                height: 64,
+                decoration: BoxDecoration(
+                  color: AppColors.marigoldDeep,
+                  shape: BoxShape.circle,
+                  border: Border.all(color: AppColors.marigold.withValues(alpha: 0.35)),
+                ),
+                child: Icon(icon, size: 30, color: AppColors.marigold),
+              ),
+              const SizedBox(height: 18),
+              Text(
+                title,
+                textAlign: TextAlign.center,
+                style: Theme.of(context).textTheme.titleLarge,
+              ),
+              const SizedBox(height: 8),
+              Text(
+                message,
+                textAlign: TextAlign.center,
+                style: const TextStyle(fontSize: 13, height: 1.45, color: AppColors.textMid),
+              ),
+              const SizedBox(height: 20),
+              SizedBox(
+                width: double.infinity,
+                child: FilledButton.icon(
+                  onPressed: onPrimary,
+                  icon: Icon(primaryIcon, size: 18),
+                  label: Text(primaryLabel, style: const TextStyle(fontWeight: FontWeight.w800)),
+                ),
+              ),
+              if (secondaryLabel != null && onSecondary != null) ...[
+                const SizedBox(height: 8),
+                SizedBox(
+                  width: double.infinity,
+                  child: OutlinedButton.icon(
+                    style: OutlinedButton.styleFrom(
+                      foregroundColor: AppColors.jacaranda,
+                      side: const BorderSide(color: AppColors.outline),
+                    ),
+                    onPressed: onSecondary,
+                    icon: const Icon(Icons.auto_awesome, size: 18),
+                    label: Text(secondaryLabel!, style: const TextStyle(fontWeight: FontWeight.w800)),
+                  ),
+                ),
+              ],
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+}
+
+/// One-time, dismissible tip. Hidden permanently once dismissed
+/// (persisted through [HelperBannerStore]).
+class DismissibleHelperBanner extends StatelessWidget {
+  final String bannerId;
+  final String title;
+  final String message;
+
+  const DismissibleHelperBanner({
+    super.key,
+    required this.bannerId,
+    required this.title,
+    required this.message,
+  });
+
+  Widget _roleChip(IconData icon, String label) {
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 5),
+      decoration: BoxDecoration(
+        color: AppColors.surfaceHighest,
+        borderRadius: BorderRadius.circular(20),
+        border: Border.all(color: AppColors.outline),
+      ),
+      child: Row(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          Icon(icon, size: 13, color: AppColors.marigold),
+          const SizedBox(width: 5),
+          Text(label, style: const TextStyle(fontSize: 11, fontWeight: FontWeight.w800, color: AppColors.textHigh)),
+        ],
+      ),
+    );
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return ListenableBuilder(
+      listenable: HelperBannerStore.instance,
+      builder: (context, _) {
+        if (HelperBannerStore.instance.isDismissed(bannerId)) {
+          return const SizedBox.shrink();
+        }
+        return Container(
+          margin: const EdgeInsets.only(bottom: 16),
+          padding: const EdgeInsets.fromLTRB(14, 12, 6, 14),
+          decoration: BoxDecoration(
+            color: AppColors.marigoldDeep,
+            borderRadius: BorderRadius.circular(16),
+            border: Border.all(color: AppColors.marigold.withValues(alpha: 0.4)),
+          ),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Row(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  const Padding(
+                    padding: EdgeInsets.only(top: 2),
+                    child: Icon(Icons.lightbulb_outline, size: 18, color: AppColors.marigold),
+                  ),
+                  const SizedBox(width: 10),
+                  Expanded(
+                    child: Text(title, style: const TextStyle(fontSize: 13, fontWeight: FontWeight.w900, color: AppColors.textHigh)),
+                  ),
+                  IconButton(
+                    visualDensity: VisualDensity.compact,
+                    tooltip: 'Dismiss',
+                    icon: const Icon(Icons.close, size: 18, color: AppColors.textMid),
+                    onPressed: () => HelperBannerStore.instance.dismiss(bannerId),
+                  ),
+                ],
+              ),
+              Padding(
+                padding: const EdgeInsets.only(left: 28, right: 8),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(message, style: const TextStyle(fontSize: 12, height: 1.45, color: AppColors.textMid)),
+                    const SizedBox(height: 10),
+                    Wrap(
+                      spacing: 6,
+                      runSpacing: 6,
+                      children: [
+                        _roleChip(Icons.anchor, 'Anchor'),
+                        _roleChip(Icons.category_outlined, 'Noun'),
+                        _roleChip(Icons.bolt_outlined, 'Verb'),
+                      ],
+                    ),
+                  ],
+                ),
+              ),
+            ],
           ),
         );
       },
