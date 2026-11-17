@@ -15,6 +15,7 @@ Future<void> main() async {
   await LearningPathStore.instance.load();
   await GamificationStore.instance.load();
   await SentenceLabVocabStore.instance.load();
+  await HelperBannerStore.instance.load();
   runApp(const SetuLingoV2App());
 }
 
