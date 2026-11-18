@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import 'main_v2.dart';
+import '../main_v2.dart';
 import 'profile_settings.dart';
 import 'pages.dart';
 
