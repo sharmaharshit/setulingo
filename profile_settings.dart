@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 import '../main_v2.dart';
-import 'store.dart';
+import 'auth_page.dart';
 import 'widgets.dart';
 
 class UserAuthStore extends ChangeNotifier {
