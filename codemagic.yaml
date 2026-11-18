@@ -8,14 +8,20 @@ workflows:
       flutter: stable
 
     scripts:
-      - name: Move new Dart files into lib/ if they are in the repo root
+      - name: Move new Dart files into lib/v2/ if needed
         script: |
           mkdir -p lib/v2
           if [ -f main_v2.dart ] && [ ! -f lib/main_v2.dart ]; then
             mv main_v2.dart lib/main_v2.dart
+          elif [ -f lib/main_v2.dart ] && [ ! -f lib/main_v2.dart ]; then
+            # already there
+            true
           fi
-          for f in content store widgets pages lesson_page profile_settings search_page learning_path grammar_content quiz_page sentence_lab_vocab; do
-            if [ -f "$f.dart" ] && [ ! -f "lib/v2/$f.dart" ]; then
+          
+          for f in content store widgets pages lesson_page profile_settings search_page learning_path grammar_content quiz_page sentence_lab_vocab auth_page; do
+            if [ -f "lib/$f.dart" ] && [ ! -f "lib/v2/$f.dart" ]; then
+              mv "lib/$f.dart" "lib/v2/$f.dart"
+            elif [ -f "$f.dart" ] && [ ! -f "lib/v2/$f.dart" ]; then
               mv "$f.dart" "lib/v2/$f.dart"
             fi
           done
@@ -25,7 +31,7 @@ workflows:
           echo "Files under lib/:"
           find lib -type f | sort
           missing=0
-          for f in lib/main_v2.dart lib/v2/content.dart lib/v2/store.dart lib/v2/widgets.dart lib/v2/pages.dart lib/v2/lesson_page.dart lib/v2/profile_settings.dart lib/v2/search_page.dart lib/v2/learning_path.dart lib/v2/grammar_content.dart lib/v2/quiz_page.dart lib/v2/sentence_lab_vocab.dart; do
+          for f in lib/main_v2.dart lib/v2/content.dart lib/v2/store.dart lib/v2/widgets.dart lib/v2/pages.dart lib/v2/lesson_page.dart lib/v2/profile_settings.dart lib/v2/search_page.dart lib/v2/learning_path.dart lib/v2/grammar_content.dart lib/v2/quiz_page.dart lib/v2/sentence_lab_vocab.dart lib/v2/auth_page.dart; do
             if [ ! -f "$f" ]; then
               echo "MISSING: $f"
               missing=1
