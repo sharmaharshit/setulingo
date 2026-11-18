@@ -1,9 +1,10 @@
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
-import 'v2/pages.dart';
-import 'v2/sentence_lab_vocab.dart';
-import 'v2/store.dart';
-import 'v2/auth_page.dart';
+import 'pages.dart';
+import 'sentence_lab_vocab.dart';
+import 'store.dart';
+import 'auth_page.dart';
+import 'profile_settings.dart';
 
 Future<void> main() async {
   WidgetsFlutterBinding.ensureInitialized();
@@ -21,9 +22,8 @@ Future<void> main() async {
   runApp(const SetuLingoV2App());
 }
 
-/// "Boutique Editorial" — a classy, understated design system built with
-/// sophisticated matte charcoals, warm champagne gold accents, and clean
-/// typographic contrast reminiscent of high-end editorial publications.
+/// "Boutique Editorial" — classy matte charcoals, champagne gold accents,
+/// and high-legibility linen typography.
 class AppColors {
   static const bg = Color(0xFF141416);
   static const surface = Color(0xFF1A1A1E);
