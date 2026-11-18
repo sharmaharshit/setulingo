@@ -23,6 +23,7 @@ class KWord {
 class Chunk {
   final String roman;
   final String hindi;
+  String get deva => roman; // Compatibility getter
 
   const Chunk(this.roman, this.hindi);
 }
@@ -37,6 +38,7 @@ class PhraseStep extends LessonStep {
   final List<Chunk> chunks;
   final String? note;
   final String? streetCode;
+  String get deva => roman; // Compatibility getter
 
   const PhraseStep({
     required this.roman,
@@ -51,6 +53,7 @@ class SpeakPracticeStep extends LessonStep {
   final String promptHindi;
   final String targetRoman;
   final String tip;
+  String get targetDeva => targetRoman; // Compatibility getter
 
   const SpeakPracticeStep({
     required this.promptHindi,
@@ -65,12 +68,22 @@ class BuildStep extends LessonStep {
   final List<String> tilesRoman;
   final String revealRoman;
 
+  List<String> get answerDeva => answerRoman;
+  List<String> get tilesDeva => tilesRoman;
+  String get revealDeva => revealRoman;
+
   const BuildStep({
     required this.promptHindi,
     required this.answerRoman,
     required this.tilesRoman,
     required this.revealRoman,
   });
+}
+
+class UseStep extends LessonStep {
+  final String promptHindi;
+  final String roman;
+  const UseStep({required this.promptHindi, required this.roman});
 }
 
 class Lesson {
@@ -94,6 +107,7 @@ class KSentence {
   final List<Chunk> chunks;
   final String? note;
   final String? streetCode;
+  String get deva => roman; // Compatibility getter
 
   const KSentence({
     required this.id,
@@ -231,17 +245,14 @@ final List<LabAnchor> labAnchors = const [
 
 // 2. Nouns (32 words)
 final List<LabNoun> labNouns = const [
-  // Drinks
   LabNoun(category: 'Drinks', roman: 'Neeru', hindi: 'Paani', countability: 'mass', semanticTags: ['drink', 'needable']),
   LabNoun(category: 'Drinks', roman: 'Coffee', hindi: 'Coffee', countability: 'mass', semanticTags: ['drink', 'needable']),
   LabNoun(category: 'Drinks', roman: 'Chaha', hindi: 'Chai', countability: 'mass', semanticTags: ['drink', 'needable']),
   LabNoun(category: 'Drinks', roman: 'Haalu', hindi: 'Doodh', countability: 'mass', semanticTags: ['drink', 'needable']),
-  // Food
   LabNoun(category: 'Food', roman: 'Oota', hindi: 'Khaana', countability: 'mass', semanticTags: ['food', 'needable']),
   LabNoun(category: 'Food', roman: 'Tindi', hindi: 'Naashta', countability: 'mass', semanticTags: ['food', 'needable']),
   LabNoun(category: 'Food', roman: 'Sebu', hindi: 'Seb (Apple)', countability: 'count', semanticTags: ['food', 'needable']),
   LabNoun(category: 'Food', roman: 'Dose', hindi: 'Dosa', countability: 'count', semanticTags: ['food', 'needable']),
-  // Objects
   LabNoun(category: 'Objects', roman: 'Pustaka', hindi: 'Kitaab', countability: 'count', semanticTags: ['readable', 'object', 'needable']),
   LabNoun(category: 'Objects', roman: 'Batte', hindi: 'Kapde', countability: 'mass', semanticTags: ['object', 'needable']),
   LabNoun(category: 'Objects', roman: 'Hana', hindi: 'Paise', countability: 'mass', semanticTags: ['payable', 'needable']),
@@ -251,7 +262,6 @@ final List<LabNoun> labNouns = const [
   LabNoun(category: 'Objects', roman: 'Bill', hindi: 'Bill', countability: 'count', semanticTags: ['payable', 'object', 'needable']),
   LabNoun(category: 'Objects', roman: 'Cheela', hindi: 'Thaila / Bag', countability: 'count', semanticTags: ['object', 'needable']),
   LabNoun(category: 'Objects', roman: 'Kurchi', hindi: 'Kursi', countability: 'count', semanticTags: ['object', 'needable']),
-  // Places & Travel
   LabNoun(category: 'Places & Travel', roman: 'Mane', hindi: 'Ghar', countability: 'count', semanticTags: ['place']),
   LabNoun(category: 'Places & Travel', roman: 'Angadi', hindi: 'Dukaan', countability: 'count', semanticTags: ['place']),
   LabNoun(category: 'Places & Travel', roman: 'Aspatre', hindi: 'Hospital', countability: 'count', semanticTags: ['place']),
@@ -259,7 +269,6 @@ final List<LabNoun> labNouns = const [
   LabNoun(category: 'Places & Travel', roman: 'Auto', hindi: 'Auto', countability: 'count', semanticTags: ['transport', 'needable']),
   LabNoun(category: 'Places & Travel', roman: 'Bus', hindi: 'Bus', countability: 'count', semanticTags: ['transport', 'needable']),
   LabNoun(category: 'Places & Travel', roman: 'Room', hindi: 'Kamra', countability: 'count', semanticTags: ['place', 'needable']),
-  // Work & Info
   LabNoun(category: 'Work & Info', roman: 'Kelasa', hindi: 'Kaam', countability: 'mass', semanticTags: ['work', 'needable']),
   LabNoun(category: 'Work & Info', roman: 'Samaya', hindi: 'Samay / Time', countability: 'mass', semanticTags: ['abstract', 'needable']),
   LabNoun(category: 'Work & Info', roman: 'Sahaya', hindi: 'Madad', countability: 'mass', semanticTags: ['work', 'abstract', 'needable']),
@@ -277,8 +286,8 @@ final List<LabVerb> labVerbs = const [
   LabVerb(roman: 'Ishta', hindi: 'Pasand hai', allowedAnchorTypes: ['dative'], requiredNounTags: ['food', 'drink', 'object', 'language', 'place']),
   LabVerb(roman: 'Gottu', hindi: 'Pata hai / Aata hai', allowedAnchorTypes: ['dative'], requiredNounTags: ['info', 'place_info', 'language', 'work']),
   LabVerb(roman: 'Gottilla', hindi: 'Nahi pata / Nahi aata', allowedAnchorTypes: ['dative'], requiredNounTags: ['info', 'place_info', 'language', 'work']),
-  LabVerb(roman: 'Ide', hindi: 'Hai', allowedAnchorTypes: ['possessive', 'modifier', 'quant_mass', 'quant_all', 'quant_count', 'locative', 'temporal'], requiredNounTags: []), // any noun
-  LabVerb(roman: 'Illa', hindi: 'Nahi hai', allowedAnchorTypes: ['dative', 'possessive', 'modifier', 'quant_mass', 'quant_all', 'quant_count', 'locative', 'temporal'], requiredNounTags: []), // any noun
+  LabVerb(roman: 'Ide', hindi: 'Hai', allowedAnchorTypes: ['possessive', 'modifier', 'quant_mass', 'quant_all', 'quant_count', 'locative', 'temporal'], requiredNounTags: []),
+  LabVerb(roman: 'Illa', hindi: 'Nahi hai', allowedAnchorTypes: ['dative', 'possessive', 'modifier', 'quant_mass', 'quant_all', 'quant_count', 'locative', 'temporal'], requiredNounTags: []),
   LabVerb(roman: 'Sikkutte', hindi: 'Milta hai / Milega', allowedAnchorTypes: ['dative', 'locative'], requiredNounTags: ['food', 'drink', 'object', 'transport', 'work', 'needable']),
   LabVerb(roman: 'Sikkutta', hindi: 'Milta hai kya?', allowedAnchorTypes: ['locative'], requiredNounTags: ['food', 'drink', 'object', 'transport', 'needable']),
   LabVerb(roman: 'Channagide', hindi: 'Achha hai', allowedAnchorTypes: ['possessive', 'modifier'], requiredNounTags: ['food', 'drink', 'object', 'place']),
@@ -291,7 +300,7 @@ final List<LabVerb> labVerbs = const [
   LabVerb(roman: 'Maadi', hindi: 'Kijiye / Banaiye', allowedAnchorTypes: ['modifier', 'temporal', 'quant_mass'], requiredNounTags: ['food', 'drink', 'work']),
   LabVerb(roman: 'Heli', hindi: 'Bataiye', allowedAnchorTypes: ['dative', 'possessive', 'modifier'], requiredNounTags: ['info', 'place_info']),
   LabVerb(roman: 'Enu', hindi: 'Kya hai?', allowedAnchorTypes: ['possessive', 'modifier'], requiredNounTags: ['info', 'work']),
-  LabVerb(roman: 'Elli', hindi: 'Kahan hai?', allowedAnchorTypes: ['possessive', 'modifier'], requiredNounTags: ['object', 'place', 'transport']),
+  LabVerb: 'Elli', hindi: 'Kahan hai?', allowedAnchorTypes: ['possessive', 'modifier'], requiredNounTags: ['object', 'place', 'transport']),
   LabVerb(roman: 'Eshtu', hindi: 'Kitna hai?', allowedAnchorTypes: ['possessive', 'modifier'], requiredNounTags: ['payable', 'abstract']),
   LabVerb(roman: 'Tintini', hindi: 'Khaata/Khaati hoon', allowedAnchorTypes: ['nom_1sg'], requiredNounTags: ['food']),
   LabVerb(roman: 'Kuditini', hindi: 'Peeta/Peeti hoon', allowedAnchorTypes: ['nom_1sg'], requiredNounTags: ['drink']),
