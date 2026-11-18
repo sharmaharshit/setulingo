@@ -23,7 +23,7 @@ class KWord {
 class Chunk {
   final String roman;
   final String hindi;
-  String get deva => roman; // Compatibility getter
+  String get deva => roman;
 
   const Chunk(this.roman, this.hindi);
 }
@@ -38,7 +38,7 @@ class PhraseStep extends LessonStep {
   final List<Chunk> chunks;
   final String? note;
   final String? streetCode;
-  String get deva => roman; // Compatibility getter
+  String get deva => roman;
 
   const PhraseStep({
     required this.roman,
@@ -53,7 +53,7 @@ class SpeakPracticeStep extends LessonStep {
   final String promptHindi;
   final String targetRoman;
   final String tip;
-  String get targetDeva => targetRoman; // Compatibility getter
+  String get targetDeva => targetRoman;
 
   const SpeakPracticeStep({
     required this.promptHindi,
@@ -81,9 +81,21 @@ class BuildStep extends LessonStep {
 }
 
 class UseStep extends LessonStep {
-  final String promptHindi;
-  final String roman;
-  const UseStep({required this.promptHindi, required this.roman});
+  final String question;
+  final String situation;
+  final List<String> optionsRoman;
+  final List<String> optionsDeva;
+  final int answerIndex;
+  final String reveal;
+
+  const UseStep({
+    required this.question,
+    required this.situation,
+    required this.optionsRoman,
+    required this.optionsDeva,
+    required this.answerIndex,
+    required this.reveal,
+  });
 }
 
 class Lesson {
@@ -107,7 +119,7 @@ class KSentence {
   final List<Chunk> chunks;
   final String? note;
   final String? streetCode;
-  String get deva => roman; // Compatibility getter
+  String get deva => roman;
 
   const KSentence({
     required this.id,
@@ -170,7 +182,7 @@ class WordConnection {
 }
 
 // ---------------------------------------------------------------------------
-// Sentence Lab v3 — 81-Word Curated Matrix (22 Anchors, 32 Nouns, 27 Verbs)
+// Sentence Lab v3 — 81-Word Curated Matrix
 // ---------------------------------------------------------------------------
 
 class LabAnchor {
@@ -300,7 +312,7 @@ final List<LabVerb> labVerbs = const [
   LabVerb(roman: 'Maadi', hindi: 'Kijiye / Banaiye', allowedAnchorTypes: ['modifier', 'temporal', 'quant_mass'], requiredNounTags: ['food', 'drink', 'work']),
   LabVerb(roman: 'Heli', hindi: 'Bataiye', allowedAnchorTypes: ['dative', 'possessive', 'modifier'], requiredNounTags: ['info', 'place_info']),
   LabVerb(roman: 'Enu', hindi: 'Kya hai?', allowedAnchorTypes: ['possessive', 'modifier'], requiredNounTags: ['info', 'work']),
-  LabVerb: 'Elli', hindi: 'Kahan hai?', allowedAnchorTypes: ['possessive', 'modifier'], requiredNounTags: ['object', 'place', 'transport']),
+  LabVerb(roman: 'Elli', hindi: 'Kahan hai?', allowedAnchorTypes: ['possessive', 'modifier'], requiredNounTags: ['object', 'place', 'transport']),
   LabVerb(roman: 'Eshtu', hindi: 'Kitna hai?', allowedAnchorTypes: ['possessive', 'modifier'], requiredNounTags: ['payable', 'abstract']),
   LabVerb(roman: 'Tintini', hindi: 'Khaata/Khaati hoon', allowedAnchorTypes: ['nom_1sg'], requiredNounTags: ['food']),
   LabVerb(roman: 'Kuditini', hindi: 'Peeta/Peeti hoon', allowedAnchorTypes: ['nom_1sg'], requiredNounTags: ['drink']),
@@ -327,7 +339,7 @@ List<LabVerb> getValidVerbsForPair(LabAnchor anchor, LabNoun noun) {
 }
 
 // ---------------------------------------------------------------------------
-// Categories & Situations (Spoken Survival)
+// Categories & Situations
 // ---------------------------------------------------------------------------
 
 final List<Category> categories = [
