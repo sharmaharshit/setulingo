@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import '../main_v2.dart';
 import 'store.dart';
+import 'pages.dart';
 
 class AuthPage extends StatefulWidget {
   const AuthPage({super.key});
@@ -29,15 +30,13 @@ class _AuthPageState extends State<AuthPage> {
     }
 
     setState(() => _isLoading = true);
-    await Future.delayed(const Duration(milliseconds: 800)); // Simulate auth sync
+    await Future.delayed(const Duration(milliseconds: 800));
 
-    // Save authentication state & collected user contact data
     await UserAuthStore.instance.login(_controller.text.trim());
 
     if (!mounted) return;
     setState(() => _isLoading = false);
 
-    // Navigate to Home screen
     Navigator.of(context).pushReplacement(
       MaterialPageRoute(builder: (_) => const HomePage()),
     );
