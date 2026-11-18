@@ -3,6 +3,7 @@ import 'package:google_fonts/google_fonts.dart';
 import 'v2/pages.dart';
 import 'v2/sentence_lab_vocab.dart';
 import 'v2/store.dart';
+import 'v2/auth_page.dart';
 
 Future<void> main() async {
   WidgetsFlutterBinding.ensureInitialized();
@@ -16,32 +17,32 @@ Future<void> main() async {
   await GamificationStore.instance.load();
   await SentenceLabVocabStore.instance.load();
   await HelperBannerStore.instance.load();
+  await UserAuthStore.instance.load();
   runApp(const SetuLingoV2App());
 }
 
-/// "Bengaluru Dusk" — a warm, editorial dark theme built around the amber
-/// streetlights and jacaranda-violet evenings of the city, instead of a
-/// generic dark-mode blue. Fraunces (serif, warm, a little literary) carries
-/// headlines; Plus Jakarta Sans (clean geometric sans) carries UI and body.
+/// "Boutique Editorial" — a classy, understated design system built with
+/// sophisticated matte charcoals, warm champagne gold accents, and clean
+/// typographic contrast reminiscent of high-end editorial publications.
 class AppColors {
-  static const bg = Color(0xFF0B0710);
-  static const surface = Color(0xFF150F1E);
-  static const surfaceElevated = Color(0xFF1E1730);
-  static const surfaceHighest = Color(0xFF281F3D);
-  static const outline = Color(0xFF2C2340);
-  static const outlineSoft = Color(0xFF1F1830);
+  static const bg = Color(0xFF141416);
+  static const surface = Color(0xFF1A1A1E);
+  static const surfaceElevated = Color(0xFF1E1E22);
+  static const surfaceHighest = Color(0xFF28282D);
+  static const outline = Color(0xFF2C2C33);
+  static const outlineSoft = Color(0xFF202025);
 
-  static const marigold = Color(0xFFF2A93B);
-  static const marigoldDeep = Color(0xFF3D2A0E);
-  static const jacaranda = Color(0xFF9B7BF0);
-  static const skyAccent = Color(0xFF5FD4C8);
+  static const marigold = Color(0xFFC5A059); // Champagne gold / muted brass
+  static const marigoldDeep = Color(0xFF332B1A);
+  static const jacaranda = Color(0xFF9E8FB2); // Muted lavender
+  static const skyAccent = Color(0xFF7A9A82); // Muted sage green
 
-  static const textHigh = Color(0xFFF7F3FB);
-  static const textMid = Color(0xFFB6A8CC);
-  static const textFaint = Color(0xFF7C6E94);
+  static const textHigh = Color(0xFFF4F1EA);
+  static const textMid = Color(0xFFB3ADA1);
+  static const textFaint = Color(0xFF6E685D);
 
-  static const success = Color(0xFF5FD4A0);
-  static const danger = Color(0xFFE8697A);
+  static const success = Color(0xFF7A9A82);
+  static const danger = Color(0xFFC97070);
 }
 
 class SetuLingoV2App extends StatelessWidget {
@@ -88,7 +89,7 @@ class SetuLingoV2App extends StatelessWidget {
           color: AppColors.surfaceElevated,
           elevation: 0,
           shape: RoundedRectangleBorder(
-            borderRadius: BorderRadius.circular(20),
+            borderRadius: BorderRadius.circular(16),
             side: const BorderSide(color: AppColors.outline, width: 1.0),
           ),
         ),
@@ -105,7 +106,7 @@ class SetuLingoV2App extends StatelessWidget {
           iconTheme: const IconThemeData(color: AppColors.textHigh),
         ),
         navigationBarTheme: NavigationBarThemeData(
-          backgroundColor: const Color(0xFF0E0816),
+          backgroundColor: AppColors.surface,
           indicatorColor: AppColors.marigold.withValues(alpha: 0.16),
           height: 64,
           labelTextStyle: WidgetStateProperty.resolveWith(
@@ -135,7 +136,12 @@ class SetuLingoV2App extends StatelessWidget {
           indicatorColor: AppColors.marigold,
         ),
       ),
-      home: const HomePage(),
+      home: ListenableBuilder(
+        listenable: UserAuthStore.instance,
+        builder: (context, _) {
+          return UserAuthStore.instance.isLoggedIn ? const HomePage() : const AuthPage();
+        },
+      ),
     );
   }
 }
