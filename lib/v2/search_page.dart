@@ -1,9 +1,6 @@
 import 'package:flutter/material.dart';
 import '../main_v2.dart';
 import 'content.dart';
-import 'pages.dart';
-import 'store.dart';
-import 'widgets.dart';
 
 void _open(BuildContext context, Widget page) {
   Navigator.push(context, MaterialPageRoute(builder: (_) => page));

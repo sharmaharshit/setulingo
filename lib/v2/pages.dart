@@ -2,7 +2,6 @@ import 'package:flutter/material.dart';
 import '../main_v2.dart';
 import 'content.dart';
 import 'grammar_content.dart';
-import 'learning_path.dart';
 import 'lesson_page.dart';
 import 'profile_settings.dart';
 import 'quiz_page.dart';
@@ -688,8 +687,6 @@ class CategorySituationsPage extends StatelessWidget {
     return ListenableBuilder(
       listenable: gami,
       builder: (context, _) {
-        final total = category.situations.length;
-        final done = gami.completedCountFor(category);
         return Scaffold(
           appBar: AppBar(
             title: Text('${category.emoji} ${category.title}'),
