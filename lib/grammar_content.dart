@@ -1,8 +1,6 @@
 import 'package:flutter/material.dart';
 import '../main_v2.dart';
-import 'content.dart';
 import 'store.dart';
-import 'widgets.dart';
 
 class KNumberEntry {
   final int value;
