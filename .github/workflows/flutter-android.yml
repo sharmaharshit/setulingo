@@ -1,0 +1,32 @@
+name: Flutter Android CI
+
+on:
+  push:
+    branches: [main, repair/preservation-first]
+  pull_request:
+    branches: [main]
+
+jobs:
+  analyze-and-build:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: subosito/flutter-action@v2
+        with:
+          channel: stable
+      - name: Generate Android platform
+        run: |
+          if [ ! -f android/gradlew ]; then
+            flutter create --platforms=android --org com.setulingo .
+          fi
+      - name: Install dependencies
+        run: flutter pub get
+      - name: Analyze
+        run: flutter analyze
+      - name: Build debug APK
+        run: flutter build apk --debug -t lib/main.dart
+      - name: Upload APK
+        uses: actions/upload-artifact@v4
+        with:
+          name: setulingo-debug-apk
+          path: build/app/outputs/flutter-apk/app-debug.apk

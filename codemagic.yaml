@@ -3,73 +3,31 @@ workflows:
     name: SetuLingo Android Debug APK
     max_build_duration: 60
     instance_type: mac_mini_m2
-
     environment:
       flutter: stable
-
     scripts:
-      - name: Move new Dart files into lib/v2/ if needed
+      - name: Verify source layout
         script: |
-          mkdir -p lib/v2
-          if [ -f main_v2.dart ] && [ ! -f lib/main_v2.dart ]; then
-            mv main_v2.dart lib/main_v2.dart
-          elif [ -f lib/main_v2.dart ] && [ ! -f lib/main_v2.dart ]; then
-            # already there
-            true
-          fi
-          
-          for f in content store widgets pages lesson_page profile_settings search_page learning_path grammar_content quiz_page sentence_lab_vocab auth_page; do
-            if [ -f "lib/$f.dart" ] && [ ! -f "lib/v2/$f.dart" ]; then
-              mv "lib/$f.dart" "lib/v2/$f.dart"
-            elif [ -f "$f.dart" ] && [ ! -f "lib/v2/$f.dart" ]; then
-              mv "$f.dart" "lib/v2/$f.dart"
-            fi
+          set -e
+          for f in lib/main.dart lib/main_v2.dart lib/v2/content.dart lib/v2/store.dart lib/v2/widgets.dart lib/v2/pages.dart lib/v2/lesson_page.dart lib/v2/profile_settings.dart lib/v2/search_page.dart lib/v2/learning_path.dart lib/v2/grammar_content.dart lib/v2/quiz_page.dart lib/v2/sentence_lab_vocab.dart lib/v2/auth_page.dart; do
+            test -f "$f" || { echo "MISSING: $f"; exit 1; }
           done
-
-      - name: Check project files are in the right place
-        script: |
-          echo "Files under lib/:"
-          find lib -type f | sort
-          missing=0
-          for f in lib/main_v2.dart lib/v2/content.dart lib/v2/store.dart lib/v2/widgets.dart lib/v2/pages.dart lib/v2/lesson_page.dart lib/v2/profile_settings.dart lib/v2/search_page.dart lib/v2/learning_path.dart lib/v2/grammar_content.dart lib/v2/quiz_page.dart lib/v2/sentence_lab_vocab.dart lib/v2/auth_page.dart; do
-            if [ ! -f "$f" ]; then
-              echo "MISSING: $f"
-              missing=1
-            fi
-          done
-          if [ "$missing" = "1" ]; then
-            echo "Some files are missing. Add them to the repo, then rebuild."
-            exit 1
-          fi
-
-      - name: Clean stray markdown fences from Dart files
-        script: |
-          find lib -name "*.dart" -print0 | xargs -0 perl -i -ne 'print unless /^\s*```/'
-          echo "Remaining fences (should be none):"
-          grep -rn '```' lib || echo "none"
-
-      - name: Ensure assets folder exists
+          echo "All SetuLingo source files are in place."
+      - name: Ensure audio assets folder exists
         script: |
           mkdir -p assets/audio
           touch assets/audio/.gitkeep
-
-      - name: Create modern Android platform
+      - name: Generate Android platform files
         script: |
-          rm -rf android
-          flutter create --platforms=android --org com.setulingo .
-          rm -rf test
-
+          set -e
+          if [ ! -f android/gradlew ] && [ ! -f android/gradlew.bat ]; then
+            flutter create --platforms=android --org com.setulingo .
+          fi
       - name: Install Flutter dependencies
-        script: |
-          flutter pub get
-
+        script: flutter pub get
       - name: Analyze Flutter project
-        script: |
-          flutter analyze || true
-
-      - name: Build Android debug APK (new home + lessons)
-        script: |
-          flutter build apk --debug -t lib/main_v2.dart
-
+        script: flutter analyze
+      - name: Build Android debug APK
+        script: flutter build apk --debug -t lib/main.dart
     artifacts:
       - build/app/outputs/flutter-apk/*.apk

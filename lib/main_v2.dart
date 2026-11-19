@@ -25,24 +25,23 @@ Future<void> main() async {
 /// "Boutique Editorial" — classy matte charcoals, champagne gold accents,
 /// and high-legibility linen typography.
 class AppColors {
-  static const bg = Color(0xFF141416);
-  static const surface = Color(0xFF1A1A1E);
-  static const surfaceElevated = Color(0xFF1E1E22);
-  static const surfaceHighest = Color(0xFF28282D);
-  static const outline = Color(0xFF2C2C33);
-  static const outlineSoft = Color(0xFF202025);
-
-  static const marigold = Color(0xFFC5A059); // Champagne gold / muted brass
-  static const marigoldDeep = Color(0xFF332B1A);
-  static const jacaranda = Color(0xFF9E8FB2); // Muted lavender
-  static const skyAccent = Color(0xFF7A9A82); // Muted sage green
-
-  static const textHigh = Color(0xFFF4F1EA);
-  static const textMid = Color(0xFFB3ADA1);
-  static const textFaint = Color(0xFF6E685D);
-
-  static const success = Color(0xFF7A9A82);
-  static const danger = Color(0xFFC97070);
+  static const bg = Color(0xFFFAF9F6);
+  static const surface = Color(0xFFFFFFFF);
+  static const surfaceElevated = Color(0xFFFFFFFF);
+  static const surfaceHighest = Color(0xFFF3F0EA);
+  static const outline = Color(0xFFE5E0D7);
+  static const outlineSoft = Color(0xFFF0EDE7);
+  static const marigold = Color(0xFF9A6B22);
+  static const marigoldDeep = Color(0xFFF5EBD8);
+  static const jacaranda = Color(0xFF75648E);
+  static const skyAccent = Color(0xFF66816D);
+  static const textHigh = Color(0xFF28251F);
+  static const textMid = Color(0xFF69645B);
+  static const textFaint = Color(0xFF898277);
+  static const success = Color(0xFF557B5D);
+  static const successSurface = Color(0xFFEAF3EB);
+  static const danger = Color(0xFFB45B5B);
+  static const dangerSurface = Color(0xFFF8ECEB);
 }
 
 class SetuLingoV2App extends StatelessWidget {
@@ -50,16 +49,16 @@ class SetuLingoV2App extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final baseTextTheme = GoogleFonts.plusJakartaSansTextTheme(ThemeData.dark().textTheme);
+    final baseTextTheme = GoogleFonts.plusJakartaSansTextTheme(ThemeData.light().textTheme);
     final displayFont = GoogleFonts.fraunces;
 
     return MaterialApp(
       title: 'SetuLingo',
       debugShowCheckedModeBanner: false,
-      themeMode: ThemeMode.dark,
-      darkTheme: ThemeData(
+      themeMode: ThemeMode.light,
+      theme: ThemeData(
         useMaterial3: true,
-        brightness: Brightness.dark,
+        brightness: Brightness.light,
         fontFamily: GoogleFonts.plusJakartaSans().fontFamily,
         textTheme: baseTextTheme.copyWith(
           headlineLarge: displayFont(fontSize: 30, fontWeight: FontWeight.w600, color: AppColors.textHigh, letterSpacing: -0.4),
@@ -67,13 +66,13 @@ class SetuLingoV2App extends StatelessWidget {
           headlineSmall: displayFont(fontSize: 20, fontWeight: FontWeight.w600, color: AppColors.textHigh, letterSpacing: -0.2),
           titleLarge: displayFont(fontSize: 19, fontWeight: FontWeight.w600, color: AppColors.textHigh),
         ),
-        colorScheme: const ColorScheme.dark(
+        colorScheme: const ColorScheme.light(
           primary: AppColors.marigold,
           onPrimary: Color(0xFF2B1B02),
           primaryContainer: AppColors.marigoldDeep,
           onPrimaryContainer: AppColors.marigold,
           secondary: AppColors.jacaranda,
-          onSecondary: Colors.white,
+          onSecondary: AppColors.textHigh,
           tertiary: AppColors.skyAccent,
           surface: AppColors.surface,
           onSurface: AppColors.textHigh,
