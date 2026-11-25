@@ -1,0 +1,22 @@
+<vector xmlns:android="http://schemas.android.com/apk/res/android"
+    android:width="108dp"
+    android:height="108dp"
+    android:viewportWidth="108"
+    android:viewportHeight="108">
+    <!-- Minimalist bridge arch motif representing Setu (Bridge) between Hindi & Kannada -->
+    <path
+        android:fillColor="#FAF7F2"
+        android:pathData="M24,68 C24,46 84,46 84,68 L76,68 C76,54 32,54 32,68 Z" />
+    <path
+        android:fillColor="#FAF7F2"
+        android:pathData="M22,70 L86,70 L86,75 L22,75 Z" />
+    <path
+        android:fillColor="#FAF7F2"
+        android:pathData="M34,54 L39,54 L39,70 L34,70 Z" />
+    <path
+        android:fillColor="#FAF7F2"
+        android:pathData="M69,54 L74,54 L74,70 L69,70 Z" />
+    <path
+        android:fillColor="#FAF7F2"
+        android:pathData="M54,32 m-5,0 a5,5 0 1,0 10,0 a5,5 0 1,0 -10,0" />
+</vector>
