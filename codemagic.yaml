@@ -1,13 +1,11 @@
 workflows:
   android-workflow:
-    name: SetuLingo Android Build & Release
+    name: SetuLingo Android Build
     max_build_duration: 60
-    instance_type: mac_mini_m2
     environment:
       flutter: stable
       java: 17
-      groups:
-        - keystore_credentials
+      ndk: r27
       vars:
         PACKAGE_NAME: "com.setulingo.app"
     triggering:
@@ -18,30 +16,77 @@ workflows:
         - pattern: main
           include: true
           source: true
+      cancel_previous_builds: true
     scripts:
-      - name: Set up local.properties
+      - name: Set up Flutter and Android SDK paths
         script: |
+          set -e
+          FLUTTER_BIN="$(command -v flutter)"
+          FLUTTER_SDK_PATH="${FLUTTER_ROOT:-$(cd "$(dirname "$FLUTTER_BIN")/.." && pwd)}"
+          ANDROID_SDK_PATH="${ANDROID_SDK_ROOT:-${ANDROID_HOME:-}}"
+          if [ -z "$ANDROID_SDK_PATH" ]; then
+            echo "Android SDK path was not provided by the build machine."
+            exit 1
+          fi
           mkdir -p android
-          FLUTTER_SDK_PATH="${FLUTTER_ROOT:-$(dirname $(dirname $(which flutter)))}"
-          echo "flutter.sdk=$FLUTTER_SDK_PATH" > android/local.properties
+          {
+            echo "flutter.sdk=$FLUTTER_SDK_PATH"
+            echo "sdk.dir=$ANDROID_SDK_PATH"
+          } > android/local.properties
+          flutter --version
+          java -version
+
+      - name: Restore the Gradle wrapper
+        script: |
+          set -e
+          GRADLE_VERSION="8.11.1"
+          if [ ! -f android/gradle/wrapper/gradle-wrapper.jar ] || [ ! -f android/gradlew ]; then
+            echo "Gradle wrapper files are absent from the repository; generating them for this build."
+            curl --fail --location --silent --show-error \
+              "https://services.gradle.org/distributions/gradle-${GRADLE_VERSION}-bin.zip" \
+              --output /tmp/gradle-${GRADLE_VERSION}-bin.zip
+            unzip -q -o /tmp/gradle-${GRADLE_VERSION}-bin.zip -d /tmp
+            mkdir -p /tmp/setulingo-wrapper-project
+            /tmp/gradle-${GRADLE_VERSION}/bin/gradle \
+              -p /tmp/setulingo-wrapper-project \
+              wrapper --gradle-version "${GRADLE_VERSION}" --distribution-type bin
+            cp /tmp/setulingo-wrapper-project/gradlew android/gradlew
+            cp /tmp/setulingo-wrapper-project/gradlew.bat android/gradlew.bat
+            mkdir -p android/gradle/wrapper
+            cp /tmp/setulingo-wrapper-project/gradle/wrapper/gradle-wrapper.jar android/gradle/wrapper/
+            chmod +x android/gradlew
+          fi
+          grep distributionUrl android/gradle/wrapper/gradle-wrapper.properties
+          test -f android/gradle/wrapper/gradle-wrapper.jar
+          test -x android/gradlew
+
       - name: Get Flutter packages
         script: |
           flutter pub get
+
       - name: Format Dart code
         script: |
           dart format .
+
       - name: Run Flutter static analysis
         script: |
           flutter analyze
+
       - name: Run unit and widget tests
         script: |
           flutter test
+
       - name: Build Debug APK
         script: |
           flutter build apk --debug
-      - name: Set up Android release signing
+
+      - name: Configure Android release signing
         script: |
-          if [ -n "$CM_KEYSTORE" ]; then
+          set -e
+          if [ -n "${CM_KEYSTORE:-}" ]; then
+            : "${CM_KEYSTORE_PASSWORD:?CM_KEYSTORE_PASSWORD is required when CM_KEYSTORE is set}"
+            : "${CM_KEY_ALIAS:?CM_KEY_ALIAS is required when CM_KEYSTORE is set}"
+            : "${CM_KEY_PASSWORD:?CM_KEY_PASSWORD is required when CM_KEYSTORE is set}"
             echo "$CM_KEYSTORE" | base64 --decode > android/app/upload-keystore.jks
             cat <<EOF > android/key.properties
           storePassword=$CM_KEYSTORE_PASSWORD
@@ -49,23 +94,21 @@ workflows:
           keyAlias=$CM_KEY_ALIAS
           storeFile=upload-keystore.jks
           EOF
+            echo "Release signing is configured."
           else
-            echo "CM_KEYSTORE is not set. Release build will fall back to debug signing."
+            echo "No upload keystore configured. Signed release APK/AAB steps will be skipped; the debug APK will still be produced."
           fi
-      - name: Build Release APK
+
+      - name: Build signed Release APK and App Bundle
         script: |
-          flutter build apk --release
-      - name: Build Release App Bundle (AAB)
-        script: |
-          flutter build appbundle --release
+          if [ -n "${CM_KEYSTORE:-}" ]; then
+            flutter build apk --release
+            flutter build appbundle --release
+          else
+            echo "Skipping release artifacts because no upload keystore was supplied."
+          fi
+
     artifacts:
       - build/app/outputs/flutter-apk/*.apk
       - build/app/outputs/bundle/release/*.aab
-      - flutter_drive.log
-    publishing:
-      email:
-        recipients:
-          - team@setulingo.app
-        notify:
-          success: true
-          failure: true
+      - /tmp/gradle-*-bin.zip
