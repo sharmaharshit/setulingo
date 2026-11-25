@@ -7,9 +7,6 @@ workflows:
       flutter: stable
       java: 17
       groups:
-        # Define these variable groups in Codemagic UI:
-        # - keystore_credentials: CM_KEYSTORE (base64), CM_KEYSTORE_PASSWORD, CM_KEY_ALIAS, CM_KEY_PASSWORD
-        # - google_play_credentials: GPLAY_SERVICE_ACCOUNT_CREDENTIALS (optional, for Play Store upload)
         - keystore_credentials
       vars:
         PACKAGE_NAME: "com.setulingo.app"
@@ -24,7 +21,9 @@ workflows:
     scripts:
       - name: Set up local.properties
         script: |
-          echo "flutter.sdk=$HOME/programs/flutter" > "$CM_BUILD_DIR/android/local.properties"
+          mkdir -p android
+          FLUTTER_SDK_PATH="${FLUTTER_ROOT:-$(dirname $(dirname $(which flutter)))}"
+          echo "flutter.sdk=$FLUTTER_SDK_PATH" > android/local.properties
       - name: Get Flutter packages
         script: |
           flutter pub get
@@ -43,8 +42,8 @@ workflows:
       - name: Set up Android release signing
         script: |
           if [ -n "$CM_KEYSTORE" ]; then
-            echo "$CM_KEYSTORE" | base64 --decode > "$CM_BUILD_DIR/android/app/upload-keystore.jks"
-            cat <<EOF > "$CM_BUILD_DIR/android/key.properties"
+            echo "$CM_KEYSTORE" | base64 --decode > android/app/upload-keystore.jks
+            cat <<EOF > android/key.properties
           storePassword=$CM_KEYSTORE_PASSWORD
           keyPassword=$CM_KEY_PASSWORD
           keyAlias=$CM_KEY_ALIAS
@@ -70,8 +69,3 @@ workflows:
         notify:
           success: true
           failure: true
-      # Optional Google Play deployment (uncomment when GPLAY_SERVICE_ACCOUNT_CREDENTIALS is configured):
-      # google_play:
-      #   credentials: $GPLAY_SERVICE_ACCOUNT_CREDENTIALS
-      #   track: internal
-      #   submit_as_draft: true
