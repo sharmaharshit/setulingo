@@ -10,9 +10,9 @@ class AppStateStore extends ChangeNotifier {
 
   ReaderMode _readerMode;
   AudioPreferences _audioPreferences;
-  Set<String> _completedScenarios;
-  Set<String> _completedLessons;
-  Map<String, int> _lessonStepProgress;
+  final Set<String> _completedScenarios;
+  final Set<String> _completedLessons;
+  final Map<String, int> _lessonStepProgress;
   bool _isDailyScenarioCompleted;
 
   AppStateStore(this._persistence)

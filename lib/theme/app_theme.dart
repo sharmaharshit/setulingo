@@ -1,4 +1,4 @@
-import 'package:flutter/material.dart';
+import 'package:material_ui/material_ui.dart';
 
 /// Editorial, warm paper-and-ink theme for SetuLingo.
 /// Strictly avoids any Kannada script fonts per project specification.

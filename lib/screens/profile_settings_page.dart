@@ -1,4 +1,4 @@
-import 'package:flutter/material.dart';
+import 'package:material_ui/material_ui.dart';
 import 'package:provider/provider.dart';
 
 import '../data/lessons_data.dart';
@@ -151,25 +151,29 @@ class ProfileSettingsPage extends StatelessWidget {
                   style: TextStyle(fontSize: 13, color: AppTheme.inkMuted),
                 ),
                 const SizedBox(height: 12),
-                ...ReaderMode.values.map((mode) {
-                  return RadioListTile<ReaderMode>(
-                    contentPadding: EdgeInsets.zero,
-                    dense: true,
-                    activeColor: AppTheme.terracotta,
-                    value: mode,
-                    groupValue: appState.readerMode,
-                    title: Text(
-                      mode.label,
-                      style: const TextStyle(
-                        fontWeight: FontWeight.w600,
-                        fontSize: 14,
-                      ),
-                    ),
-                    onChanged: (val) {
-                      if (val != null) appState.setReaderMode(val);
-                    },
-                  );
-                }),
+                RadioGroup<ReaderMode>(
+                  groupValue: appState.readerMode,
+                  onChanged: (mode) {
+                    if (mode != null) appState.setReaderMode(mode);
+                  },
+                  child: Column(
+                    children: ReaderMode.values.map((mode) {
+                      return RadioListTile<ReaderMode>(
+                        contentPadding: EdgeInsets.zero,
+                        dense: true,
+                        activeColor: AppTheme.terracotta,
+                        value: mode,
+                        title: Text(
+                          mode.label,
+                          style: const TextStyle(
+                            fontWeight: FontWeight.w600,
+                            fontSize: 14,
+                          ),
+                        ),
+                      );
+                    }).toList(),
+                  ),
+                ),
               ],
             ),
           ),
@@ -244,7 +248,7 @@ class ProfileSettingsPage extends StatelessWidget {
                 ),
                 SwitchListTile(
                   contentPadding: EdgeInsets.zero,
-                  activeColor: AppTheme.terracotta,
+                  activeThumbColor: AppTheme.terracotta,
                   title: const Text(
                     'Auto-play phrase on lesson steps',
                     style: TextStyle(fontSize: 14, fontWeight: FontWeight.w600),
