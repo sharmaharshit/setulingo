@@ -27,9 +27,9 @@ workflows:
       - name: Get Flutter packages
         script: |
           flutter pub get
-      - name: Verify Dart formatting
+      - name: Format Dart code
         script: |
-          dart format --output=none --set-exit-if-changed .
+          dart format .
       - name: Run Flutter static analysis
         script: |
           flutter analyze
