@@ -43,10 +43,11 @@ SetuLingo/
 - `provider: ^6.1.2` — State management
 - `shared_preferences: ^2.3.2` — Local persistence
 - `intl: ^0.19.0` — Date formatting for daily scenario tracking
+- `material_ui: ^1.11.1` — Standalone Flutter Material widget library
 - `flutter_lints: ^4.0.0` (dev) — Static analysis
 
 ## Local Setup & Source Validation
-1. Ensure Flutter SDK (3.24+ / Dart 3.3+) is installed.
+1. Ensure Flutter SDK 3.47+ with Dart SDK 3.13+ is installed (required by `material_ui`).
 2. Fetch dependencies:
    ```bash
    flutter pub get
