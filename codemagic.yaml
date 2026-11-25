@@ -111,4 +111,3 @@ workflows:
     artifacts:
       - build/app/outputs/flutter-apk/*.apk
       - build/app/outputs/bundle/release/*.aab
-      - /tmp/gradle-*-bin.zip
